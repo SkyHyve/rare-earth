@@ -15,7 +15,7 @@ npm install rare-earth
 ## Usage
 Include the source in your html
 ```html
-<script defer type="text/babel" src="{% static 'skyhyve/common/@tables.js' %}"></script>
+<script defer type="text/babel" src="{% static 'path/to/rare-earth.js' %}"></script>
 ```
  In your React functions
  ```js
