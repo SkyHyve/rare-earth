@@ -189,21 +189,65 @@ window.RareEarth = {
       }
     }
 
+
+    function swapColumns(columnA, columnB){
+      switch ((props.columns.attributes[columnA] == null) && (props.columns.attributes[columnA] == null)){
+        case true:
+          return;
+        case false:
+          let newColumnOrder = [];
+          for (let i = 0; i < props.columns.order.length; i++){
+            let orderColumnKey = props.columns.order[i];
+            switch ((orderColumnKey == columnA) || (orderColumnKey == columnB)){
+              case false:
+                newColumnOrder.push(orderColumnKey);
+                break;
+              case true:
+                switch (orderColumnKey == columnA){
+                  case true:
+                    newColumnOrder.push(columnB);
+                    break;
+                  case false:
+                  newColumnOrder.push(columnA);
+                  break;
+                }
+            }
+          }
+          props.setColumns({index: props.columns.index, order: newColumnOrder, attributes: props.columns.attributes});
+      }
+    }
+    function onDragStartHandle(event){
+      event.dataTransfer.setData('initiator', event.target.getAttribute('data-rare-earth-column-key'));
+    }
+    function onDropHandle(event){
+      event.preventDefault();
+
+      let columnA = event.dataTransfer.getData('initiator');
+      let columnB = event.target.getAttribute('data-rare-earth-column-key');
+
+      switch (columnB == null){
+        case true:
+          return;
+        case false:
+          swapColumns(columnA, columnB);
+      }
+    }
+
     return(
-      <th>
-        <div style={{alignItems: 'center', display: 'flex'}}>
-          <div style={{padding: '0px 8px 0px 8px', flex: '0 0', position: 'relative'}}>
-            <button style={sortButtonStyle} onClick={sortFieldClick}>
-              <div style={{minWidth: '18px', height: '100%', minHeight: '3rem'}}>
-                <div style={sortArrowStyles.up}>{"\u25B2"}</div>
-                <div style={sortArrowStyles.down}>{"\u25BC"}</div>
+      <th data-rare-earth-column-key={props.column_key} draggable='true' onDragStart={onDragStartHandle} onDragOver={(event) => event.preventDefault()} onDragEnter={(event) => event.preventDefault()} onDrop={onDropHandle}>
+        <div data-rare-earth-column-key={props.column_key} style={{alignItems: 'center', display: 'flex'}}>
+          <div data-rare-earth-column-key={props.column_key} style={{padding: '0px 8px 0px 8px', flex: '0 0', position: 'relative'}}>
+            <button data-rare-earth-column-key={props.column_key} style={sortButtonStyle} onClick={sortFieldClick}>
+              <div data-rare-earth-column-key={props.column_key} style={{minWidth: '18px', height: '100%', minHeight: '3rem'}}>
+                <div data-rare-earth-column-key={props.column_key} style={sortArrowStyles.up}>{"\u25B2"}</div>
+                <div data-rare-earth-column-key={props.column_key} style={sortArrowStyles.down}>{"\u25BC"}</div>
               </div>
-              <div style={{display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', minWidth: '18px', height: '100%', minHeight: '3rem'}}>
-                <div style={{}}>{column_sort_meta.index}</div>
+              <div data-rare-earth-column-key={props.column_key} style={{display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', minWidth: '18px', height: '100%', minHeight: '3rem'}}>
+                <div data-rare-earth-column-key={props.column_key} style={{}}>{column_sort_meta.index}</div>
               </div>
             </button>
           </div>
-          <div style={{flex: '1'}}>
+          <div data-rare-earth-column-key={props.column_key} style={{flex: '1'}}>
             {props.column.name}
           </div>
         </div>
@@ -300,7 +344,6 @@ window.RareEarth = {
       userFields.searchText,
       userFields.useSearchRegex,
       userFields.nullOrder,
-      columns,
       records
     ]);
 
@@ -308,7 +351,7 @@ window.RareEarth = {
     for (let i = 0; i < columns.order.length; i++){
       let key = columns.order[i];
       let column = columns.attributes[key];
-      columns_headers.push(<RareEarth.TableHeader key={key} column_key={key} column={column} userFields={userFields} setUserFields={setUserFields}/>)
+      columns_headers.push(<RareEarth.TableHeader key={key} columns={columns} setColumns={setColumns} column_key={key} column={column} userFields={userFields} setUserFields={setUserFields}/>)
     }
 
     let pageCount = Math.ceil(sortedRecords.length / userFields.pageLength);
