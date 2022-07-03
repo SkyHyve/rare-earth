@@ -10,6 +10,28 @@ class RareEarthValueValidationError extends Error {
 window.RareEarth = {
   ValueValidationError: RareEarthValueValidationError,
   TablePagination: function(props){
+    console.log(props);
+    function setPageLength(pageLength){
+      let firstEntry = ((props.userFields.page - 1) * props.userFields.pageLength) + 1;
+      let firstEntryPage = Math.ceil(firstEntry / pageLength);
+
+      props.setUserFields({
+        pageLength: pageLength,
+        page: firstEntryPage,
+        sortFields: props.userFields.sortFields,
+        searchText: props.userFields.searchText,
+        useSearchRegex: props.userFields.searchText,
+        nullOrder: props.userFields.nullOrder
+      });
+    }
+
+    const PAGE_LENGTH_OPTIONS = [10, 15, 25, 50, 100];
+    let pageLengthOptions = [];
+    for (let i = 0; i < PAGE_LENGTH_OPTIONS.length; i++){
+      let pageLength = PAGE_LENGTH_OPTIONS[i];
+      pageLengthOptions.push(<option key={pageLength} value={pageLength}>{pageLength}</option>);
+    }
+
     const paginationButtonStyles = {
       border: '1px solid black',
       borderRadius: '0.25rem',
@@ -71,7 +93,11 @@ window.RareEarth = {
     }
 
     return(
-      <div style={{display: 'flex', backgroundColor: '#212529'}}>
+      <div style={{display: 'flex', alignItems: "center", backgroundColor: '#212529'}}>
+        <label htmlFor={props.tableId + "-pageLengthSelect"} style={{color: "#FFFFFF", padding: "0.25rem"}}>Page Length</label>
+        <select id={props.tableId + "-pageLengthSelect"} autoComplete="off" style={{padding: "0.25rem"}} defaultValue={props.userFields.pageLength} onChange={(event) => setPageLength(event.target.value)}>
+          {pageLengthOptions}
+        </select>
         {paginationButtons}
       </div>
     )
@@ -385,7 +411,7 @@ window.RareEarth = {
     console.debug('Render Table');
     return(
       <div>
-        <RareEarth.TablePagination userFields={userFields} setUserFields={setUserFields} pageCount={pageCount}/>
+        <RareEarth.TablePagination tableId={1} numRecords={records.length} userFields={userFields} setUserFields={setUserFields} pageCount={pageCount}/>
         <table className={props.tableClasses.join(' ')}>
           <thead>
             <tr>
