@@ -1,0 +1,23 @@
+{
+  "name": "rare-earth",
+  "version": "0.0.1",
+  "description": "Rare Earth is a package for making React tables with ease. This library is browser native so does not require any build step.",
+  "main": "src/js/rare-earth.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SkyHyve/rare-earth.git"
+  },
+  "keywords": [
+    "react",
+    "table"
+  ],
+  "author": "Matthew LW Graham",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/SkyHyve/rare-earth/issues"
+  },
+  "homepage": "https://github.com/SkyHyve/rare-earth#readme"
+}
