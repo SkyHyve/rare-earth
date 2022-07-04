@@ -71,7 +71,7 @@ window.RareEarth = {
           break;
       }
     }
-    paginationButtons.push(<button key={props.userFields.page}><b>{props.userFields.page}</b></button>);
+    paginationButtons.push(<button key={props.userFields.page}><b>{"Page " + props.userFields.page + " of " + props.pageCount}</b></button>);
     for (let i = props.userFields.page + 1; i < props.userFields.page + 4; i ++){
       switch (i > props.pageCount){
         case true:
