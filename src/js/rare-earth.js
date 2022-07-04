@@ -292,7 +292,7 @@ window.RareEarth = {
     })
 
     const [display, setDisplay] = React.useState(props.display || {});
-    const [columns, setColumns] = React.useState(props.columns || []);
+    const [columns, setColumns] = React.useState(props.columns || {index: false, order: [], attributes: {}});
     const [records, setRecords] = React.useState(props.records || []);
 
     React.useEffect(() => setRecords(props.records), [props.records]);
