@@ -295,6 +295,8 @@ window.RareEarth = {
     const [columns, setColumns] = React.useState(props.columns || []);
     const [records, setRecords] = React.useState(props.records || []);
 
+    React.useEffect(() => setRecords(props.records), [props.records]);
+
     function defaultCompareFunc(a, b){
       switch(a == null){
         case true:
