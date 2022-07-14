@@ -280,6 +280,9 @@ window.RareEarth = {
       </th>
     )
   },
+  ExportWidget: function(props){
+    return(<button onClick={props.exportTable}>Export</button>)
+  },
   Table: function(props){
 
     const [userFields, setUserFields] = React.useState({
@@ -292,9 +295,10 @@ window.RareEarth = {
     })
 
     const [display, setDisplay] = React.useState(props.display || {});
-    const [columns, setColumns] = React.useState(props.columns || {index: false, order: [], attributes: {}});
+    const [columns, setColumns] = React.useState(props.columns || []);
     const [records, setRecords] = React.useState(props.records || []);
 
+    React.useEffect(() => setColumns(props.columns), [props.records]);
     React.useEffect(() => setRecords(props.records), [props.records]);
 
     function defaultCompareFunc(a, b){
@@ -410,11 +414,43 @@ window.RareEarth = {
       }
       rows.push(<tr key={i}>{cells}</tr>);
     }
+
+    function exportTable(){
+      let csvContent = "data:text/csv;charset=utf-8,";
+
+      let exportRows = [];
+
+      let exportHeaders = [];
+      for (let i = 0; i < columns.order.length; i++){
+        let key = columns.order[i];
+        let column = columns.attributes[key];
+        exportHeaders.push(column.name);
+      }
+      exportRows.push(exportHeaders.join(","));
+
+      for (var i = 0; i < sortedRecords.length; i++){
+        let exportRecord = [];
+        let record = sortedRecords[i];
+        for (let j = 0; j < columns.order.length; j++){
+          let key = columns.order[j];
+          let column = columns.attributes[key];
+          let value = column.valueFunc(record);
+          exportRecord.push((value == null) ? '' : String(value));
+        }
+        exportRows.push(exportRecord.join(","));
+      }
+
+      csvContent += exportRows.join("\r\n");
+      var encodedUri = encodeURI(csvContent);
+      window.open(encodedUri);
+    }
+
     console.debug('Render Table');
     return(
       <div>
         <RareEarth.TablePagination tableId={1} numRecords={records.length} userFields={userFields} setUserFields={setUserFields} pageCount={pageCount}/>
-        <table className={props.tableClasses.join(' ')}>
+        <RareEarth.ExportWidget exportTable={exportTable}/>
+        <table className={(props.tableClasses != null) ? props.tableClasses.join(' ') : ''}>
           <thead>
             <tr>
               {columns_headers}
