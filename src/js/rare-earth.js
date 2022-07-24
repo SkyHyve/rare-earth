@@ -567,7 +567,15 @@ window.RareEarth = {
         for (let j = 0; j < columns.order.length; j++){
           let key = columns.order[j];
           let column = columns.attributes[key];
-          let value = column.valueFunc(record);
+          var value;
+          switch (column.valueFunc == null){
+            case false:
+              value = column.valueFunc(record);
+              break;
+            case true:
+              value = record[key];
+              break;
+          }
           exportRecord.push((value == null) ? '' : String(value));
         }
         exportRows.push(exportRecord.join(","));
