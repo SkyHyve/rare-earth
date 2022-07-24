@@ -7,10 +7,91 @@ class RareEarthValueValidationError extends Error {
     this.value = value;
   }
 }
+class RareEarthPropValidationError extends Error {
+  constructor(propName, propValue, ...params){
+    super(...params);
+
+    this.propName = propName;
+    this.propValue = propValue;
+  }
+}
 window.RareEarth = {
+  version: "0.0.8",
   ValueValidationError: RareEarthValueValidationError,
+  PropValidationError: RareEarthPropValidationError,
+  defaultProps: {
+    pageLengthChoices: [
+      10,
+      15,
+      25,
+      50,
+      100
+    ],
+    userFields: {
+      pageLength: 10,
+      page: 1,
+    }
+  },
+  validateProps: function(props){
+    // Validate columns prop
+    if (props.columns == null){
+      throw new RareEarth.PropValidationError('columns', props.columns, "The prop 'columns' is a required prop");
+    }
+    if (!Array.isArray(props.columns.order)){
+      throw new RareEarth.PropValidationError('columns', props.columns, "The prop 'columns.order' must be an array");
+    }
+
+    // Validate pageLengthChoices prop
+    if (props.pageLengthChoices != null){
+      if (Array.isArray(props.pageLengthChoices) != true){
+        throw new RareEarth.PropValidationError('pageLengthChoices', props.pageLengthChoices, "The prop 'pageLengthChoices' must be an Array of positive integers. Not Array");
+      }
+      if (!props.pageLengthChoices.every((x) => Number.isInteger(parseFloat(x)))){
+        throw new RareEarth.PropValidationError('pageLengthChoices', props.pageLengthChoices, "The prop 'pageLengthChoices' must be an array of positive integers. Not Integers");
+      }
+      if (!props.pageLengthChoices.every((x) => parseFloat(x) > 0)){
+        throw new RareEarth.PropValidationError('pageLengthChoices', props.pageLengthChoices, "The prop 'pageLengthChoices' must be an array of positive integers. Not Positive");
+      }
+    }
+
+    // Validate userFields prop
+    if (props.userFields != null){
+      // Validate userFields.pageLength
+      if (props.userFields.pageLength != null){
+        if (!Number.isInteger(parseFloat(props.userFields.pageLength))){
+          throw new RareEarth.PropValidationError('userFields.pageLength', props.userFields.pageLength, "The prop 'userFields.pageLength' must be a positive integer in the pageLengthChoices. Not Integer");
+        }
+        if (parseFloat(props.userFields.pageLength) <= 0){
+          throw new RareEarth.PropValidationError('userFields.pageLength', props.userFields.pageLength, "The prop 'userFields.pageLength' must be a positive integer in the pageLengthChoices. Not Positive");
+        }
+        if (!(props.userFields?.pageLengthChoices ?? RareEarth.defaultProps.pageLengthChoices).map(parseFloat).includes(props.userFields.pageLength)){
+          throw new RareEarth.PropValidationError('userFields.pageLength', props.userFields.pageLength, "The prop 'userFields.pageLength' must be a positive integer in the pageLengthChoices. Not in pageLengthChoices");
+        }
+      }
+
+      // Validate userFields.page
+      if (props.userFields.page != null){
+        if (!Number.isInteger(parseFloat(props.userFields.page))){
+          throw new RareEarth.PropValidationError('userFields.page', props.userFields.page, "The prop 'userFields.page' must be a positive integer. Not Integer");
+        }
+        if (parseFloat(props.userFields.page) <= 0){
+          throw new RareEarth.PropValidationError('userFields.page', props.userFields.page, "The prop 'userFields.page' must be a positive integer in the pageLengthChoices. Not Positive");
+        }
+      }
+
+      // Validate userFields.sortFields
+      if (props.userFields.sortFields != null){
+        if (!Array.isArray(props.userFields.sortFields)){
+          throw new RareEarth.PropValidationError('userFields.sortFields', props.userFields.sortFields, "The prop 'userFields.sortField' must be an Array of objects of the form {'key': column_key, 'reverse': bool}. Not Array");
+        }
+        for (let i = 0; i < props.userFields.sortFields.length; i++){
+
+        }
+      }
+    }
+  },
   TablePagination: function(props){
-    console.log(props);
+
     function setPageLength(pageLength){
       let firstEntry = ((props.userFields.page - 1) * props.userFields.pageLength) + 1;
       let firstEntryPage = Math.ceil(firstEntry / pageLength);
@@ -25,11 +106,22 @@ window.RareEarth = {
       });
     }
 
-    const PAGE_LENGTH_OPTIONS = [10, 15, 25, 50, 100];
     let pageLengthOptions = [];
-    for (let i = 0; i < PAGE_LENGTH_OPTIONS.length; i++){
-      let pageLength = PAGE_LENGTH_OPTIONS[i];
-      pageLengthOptions.push(<option key={pageLength} value={pageLength}>{pageLength}</option>);
+    var addNextPageOption = true;
+    for (let i = 0; i < props.pageLengthChoices.length; i++){
+      let pageLength = props.pageLengthChoices[i];
+      switch (pageLength < props.numRecords){
+        case true:
+          pageLengthOptions.push(<option key={pageLength} value={pageLength}>{pageLength}</option>);
+          break;
+        case false:
+          pageLengthOptions.push(<option key={props.numRecords} value={props.numRecords}>{props.numRecords} (All)</option>);
+          addNextPageOption = false;
+          break;
+      }
+      if (!addNextPageOption){
+        break;
+      }
     }
 
     const paginationButtonStyles = {
@@ -95,7 +187,7 @@ window.RareEarth = {
     return(
       <div style={{display: 'flex', alignItems: "center", backgroundColor: '#212529'}}>
         <label htmlFor={props.tableId + "-pageLengthSelect"} style={{color: "#FFFFFF", padding: "0.25rem"}}>Page Length</label>
-        <select id={props.tableId + "-pageLengthSelect"} autoComplete="off" style={{padding: "0.25rem"}} defaultValue={props.userFields.pageLength} onChange={(event) => setPageLength(event.target.value)}>
+        <select id={props.tableId + "-pageLengthSelect"} autoComplete="off" style={{padding: "0.25rem"}} value={props.userFields.pageLength} onChange={(event) => setPageLength(event.target.value)}>
           {pageLengthOptions}
         </select>
         {paginationButtons}
@@ -283,23 +375,44 @@ window.RareEarth = {
   ExportWidget: function(props){
     return(<button onClick={props.exportTable}>Export</button>)
   },
-  Table: function(props){
+  Table: React.forwardRef(function(props, ref){
+    RareEarth.validateProps(props);
 
+    const rareEarthRef = ref ?? React.useRef(null);
+
+    const [display, setDisplay] = React.useState(props.display ?? {});
+    const [columns, setColumns] = React.useState(props.columns ?? {});
+    const [records, setRecords] = React.useState(props.records ?? []);
+
+    const [pageLengthChoices, setPageLengthChoices] = React.useState(props.pageLengthChoices ?? RareEarth.defaultProps.pageLengthChoices);
     const [userFields, setUserFields] = React.useState({
-      pageLength: 10,
-      page: 1,
-      sortFields: [],
-      searchText: {},
-      useSearchRegex: {},
-      nullOrder: {},
-    })
-
-    const [display, setDisplay] = React.useState(props.display || {});
-    const [columns, setColumns] = React.useState(props.columns || []);
-    const [records, setRecords] = React.useState(props.records || []);
+      pageLength: props?.userFields?.pageLength ?? RareEarth.defaultProps.userFields.pageLength,
+      page: props?.userFields?.page ?? RareEarth.defaultProps.userFields.page,
+      sortFields: props?.userFields?.sortFields ?? [],
+      searchText: props?.userFields?.searchText ?? {},
+      useSearchRegex: props?.userFields?.searchText ?? {},
+      nullOrder: props?.userFields?.nullOrder ?? {},
+    });
 
     React.useEffect(() => setColumns(props.columns), [props.records]);
     React.useEffect(() => setRecords(props.records), [props.records]);
+
+    // Getters and Setters on Ref
+    React.useEffect(function(){
+      rareEarthRef.current.getUserFields = () => userFields;
+    }, [userFields]);
+    React.useEffect(function(){
+      rareEarthRef.current.setUserFields = function(newUserFields){
+        setUserFields({
+          pageLength: newUserFields?.pageLength ?? userFields.pageLength,
+          page: newUserFields?.page ?? userFields.page,
+          sortFields: newUserFields?.sortFields ?? userFields.sortFields,
+          searchText: newUserFields?.searchText ?? userFields.searchText,
+          useSearchRegex: newUserFields?.useSearchRegex ?? userFields.useSearchRegex,
+          nullOrder: newUserFields?.nullOrder ?? userFields.nullOrder,
+        });
+      }
+    }, []);
 
     function defaultCompareFunc(a, b){
       switch(a == null){
@@ -336,8 +449,18 @@ window.RareEarth = {
         let reverse = userFields.sortFields[i]['reverse'];
         let compareFunc = columns.attributes[sortField].compareFunc;
 
-        let aVal = columns.attributes[sortField].valueFunc(recordA);
-        let bVal = columns.attributes[sortField].valueFunc(recordB);
+        var aVal;
+        var bVal;
+        switch (columns.attributes[sortField].valueFunc == null){
+          case false:
+            aVal = columns.attributes[sortField].valueFunc(recordA);
+            bVal = columns.attributes[sortField].valueFunc(recordB);
+            break;
+          case true:
+            aVal = recordA[sortField];
+            bVal = recordB[sortField]
+            break;
+        }
 
         var compareVal;
         switch(reverse){
@@ -394,21 +517,31 @@ window.RareEarth = {
       for (let j = 0; j < columns.order.length; j++){
         let key = columns.order[j];
         let column = columns.attributes[key];
+
+        var value;
+        switch (column.valueFunc == null){
+          case false:
+            value = column.valueFunc(record);
+            break;
+          case true:
+            value = record[key];
+            break;
+        }
+
+        if ((value == null) && (!column.allow_null)){
+          throw new RareEarth.ValueValidationError(record, column, value, `RareEarth.ValueValidationError: null values not allowed in the column '${key}'. Error occurs in record ${JSON.stringify(record)}`);
+        }
+        if ((typeof(value) != column.type) && value != null){
+          throw new RareEarth.ValueValidationError(record, column, value, `RareEarth.ValueValidationError: Received type '${typeof(value)}' in the column '${key}, expected type '${column.type}'. Error occurs in record ${JSON.stringify(record)} with value ${value}`);
+        }
+
         switch (column.displayFunc == null){
           case true:
-            let value = column.valueFunc(record);
-            if ((value == null) && (!column.allow_null)){
-              throw new RareEarth.ValueValidationError(record, column, value, `RareEarth.ValueValidationError: null values not allowed in the column '${key}'. Error occurs in record ${JSON.stringify(record)}`);
-            }
-            if ((typeof(value) != column.type) && value != null){
-              throw new RareEarth.ValueValidationError(record, column, value, `RareEarth.ValueValidationError: Received type '${typeof(value)}' in the column '${key}, expected type '${column.type}'. Error occurs in record ${JSON.stringify(record)} with value ${value}`);
-            }
-
             cells.push(<td key={key}>{value}</td>);
             break;
           case false:
-            let cellDisplay = column.displayFunc(record);
-            cells.push(<td key={key}><div dangerouslySetInnerHTML={{__html: cellDisplay}}></div></td>);
+            let cellDisplay = column.displayFunc(record, value);
+            cells.push(<td key={key}>{cellDisplay}</td>);
             break;
         }
       }
@@ -447,10 +580,10 @@ window.RareEarth = {
 
     console.debug('Render Table');
     return(
-      <div>
-        <RareEarth.TablePagination tableId={1} numRecords={records.length} userFields={userFields} setUserFields={setUserFields} pageCount={pageCount}/>
+      <div ref={rareEarthRef} id={props.id}>
+        <RareEarth.TablePagination tableId={1} numRecords={records.length} pageLengthChoices={pageLengthChoices.sort((a, b) => a > b)} userFields={userFields} setUserFields={setUserFields} pageCount={pageCount}/>
         <RareEarth.ExportWidget exportTable={exportTable}/>
-        <table className={(props.tableClasses != null) ? props.tableClasses.join(' ') : ''}>
+        <table className={props.tableClasses?.join(' ') ?? ''}>
           <thead>
             <tr>
               {columns_headers}
@@ -462,7 +595,7 @@ window.RareEarth = {
         </table>
       </div>
     )
-  },
+  }),
   Examples: {
     display: {
       'title': 'This is an Example Table',
@@ -482,27 +615,24 @@ window.RareEarth = {
       ],
       attributes: {
         'example_column_key_1': {
-          'name': 'Example Column Name 1',
-          'type': 'string',
-          'allow_null': true,
-          'valueFunc': function(record){
-            return record['example_column_key_1'];
-          }
+          name: 'Example Column Name 1',
+          type: 'string',
+          allow_null: true,
         },
         'example_column_key_2': {
-          'name': 'Example Column Name 2',
-          'type': 'number',
-          'allow_null': true,
-          'valueFunc': function(record){
-            return record['example_column_key_2'];
-          }
+          name: 'Example Column Name 2',
+          type: 'number',
+          allow_null: true,
         },
         'example_column_key_3': {
-          'name': 'Functional Example Concat',
-          'type': 'string',
-          'allow_null': true,
-          'valueFunc': function(record){
+          name: 'Functional Example Concat',
+          type: 'string',
+          allow_null: true,
+          valueFunc: function(record){
             return ((record['example_column_key_1'] == null) || (record['example_column_key_2'] == null)) ? null : record['example_column_key_1'] + record['example_column_key_2'];
+          },
+          displayFunc: function(record, value){
+            return (<button onClick={(event) => console.log("The value is: " + value)}>{((record['example_column_key_1'] == null) || (record['example_column_key_2'] == null)) ? null : record['example_column_key_1'] + record['example_column_key_2']}</button>);
           }
         }
       }
