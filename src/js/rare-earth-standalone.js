@@ -15,7 +15,7 @@ class RareEarthPropValidationError extends Error {
     this.propValue = propValue;
   }
 }
-const RareEarth = {
+window.RareEarth = {
   version: "0.0.8",
   ValueValidationError: RareEarthValueValidationError,
   PropValidationError: RareEarthPropValidationError,
@@ -904,8 +904,4 @@ const RareEarth = {
       },
     ]
   },
-}
-
-export {
-  RareEarth,
 }
