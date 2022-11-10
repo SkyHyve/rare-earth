@@ -373,7 +373,7 @@ const RareEarth = {
     )
   },
   ExportWidget: function(props){
-    return(<button onClick={props.exportTable}>Export</button>)
+    return(<button className="btn btn-dark" onClick={props.exportTable}>Export</button>)
   },
   Table: React.forwardRef(function(props, ref){
     RareEarth.validateProps(props);
