@@ -1,3 +1,5 @@
+import { React } from 'react';
+
 class RareEarthValueValidationError extends Error {
   constructor(record, column, value, ...params){
     super(...params);
