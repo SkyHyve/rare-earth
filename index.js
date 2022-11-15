@@ -1,3 +1,3 @@
 export {
   RareEarth,
-} from './src/js/rare-earth.js'
+} from './dist/bundle.js'
