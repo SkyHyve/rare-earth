@@ -1,8 +1,8 @@
 {
   "name": "rare-earth",
-  "version": "0.0.13",
+  "version": "0.0.14",
   "description": "Rare Earth is a package for making React tables with ease. This library is browser native so does not require any build step.",
-  "main": "src/js/rare-earth.js",
+  "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -21,7 +21,6 @@
   },
   "homepage": "https://github.com/SkyHyve/rare-earth#readme",
   "dependencies": {
-    "@babel/standalone": "^7.18.7",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   }
