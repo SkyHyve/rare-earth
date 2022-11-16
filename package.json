@@ -1,9 +1,12 @@
 {
   "name": "rare-earth",
-  "version": "0.0.19",
+  "version": "0.0.20",
   "description": "Rare Earth is a package for making React tables with ease. This library is browser native so does not require any build step.",
-  "main": "index.js",
+  "exports": "./index.js",
   "type": "module",
+  "engines": {
+    "node": ">=14.16"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
