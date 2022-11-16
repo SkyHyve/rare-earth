@@ -8,7 +8,7 @@ export default {
   input: 'src/js/rare-earth.js',
   output: {
     file: 'dist/bundle.js',
-    format: 'iife'
+    format: 'es'
   },
   plugins: [
     replace({
