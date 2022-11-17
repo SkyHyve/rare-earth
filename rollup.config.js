@@ -11,7 +11,6 @@ const OUTPUT_NAME = 'RareEarth';
 
 const GLOBALS = {
   react: 'React',
-  'react-dom': 'ReactDOM',
   'prop-types': 'PropTypes',
 };
 
@@ -41,7 +40,6 @@ const PLUGINS = [
 
 const EXTERNAL = [
   'react',
-  'react-dom',
   'prop-types',
 ];
 
