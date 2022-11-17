@@ -1216,4 +1216,4 @@ var RareEarth = {
   }
 };
 
-export { RareEarth };
+export { RareEarth as default };

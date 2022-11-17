@@ -1218,4 +1218,4 @@ var RareEarth = {
   }
 };
 
-exports.RareEarth = RareEarth;
+module.exports = RareEarth;

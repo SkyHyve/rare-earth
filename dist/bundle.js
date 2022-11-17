@@ -1,8 +1,8 @@
 (function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('react')) :
-  typeof define === 'function' && define.amd ? define(['exports', 'react'], factory) :
-  (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.RareEarth = {}, global.React));
-})(this, (function (exports, React) { 'use strict';
+  typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('react')) :
+  typeof define === 'function' && define.amd ? define(['react'], factory) :
+  (global = typeof globalThis !== 'undefined' ? globalThis : global || self, global.RareEarth = factory(global.React));
+})(this, (function (React) { 'use strict';
 
   function _typeof(obj) {
     "@babel/helpers - typeof";
@@ -1220,6 +1220,6 @@
     }
   };
 
-  exports.RareEarth = RareEarth;
+  return RareEarth;
 
 }));

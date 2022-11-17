@@ -908,6 +908,4 @@ const RareEarth = {
   },
 }
 
-export {
-  RareEarth,
-}
+export default RareEarth;
