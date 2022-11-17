@@ -1,31 +1,78 @@
-import replace from '@rollup/plugin-replace';
+import babel from '@rollup/plugin-babel';
+import nodeResolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
-import { nodeResolve } from '@rollup/plugin-node-resolve';
-import { babel } from '@rollup/plugin-babel';
+import replace from '@rollup/plugin-replace';
 import React from 'react';
 
-export default {
-  input: 'src/js/rare-earth.js',
-  output: {
-    file: 'dist/bundle.js',
-    format: 'es'
-  },
-  plugins: [
-    replace({
-      'process.env.NODE_ENV': JSON.stringify('production'),
-    }),
-    nodeResolve({browser: true, extensions: ['.js']}),
-    commonjs({
-      include: 'node_modules/**',
-      namedExports: {
-        'react': Object.keys(React),
-      }
-    }),
-    babel({
-      babelrc: true,
-      babelHelpers: 'bundled',
-      exclude: 'node_modules/**',
-      presets: ['@babel/preset-react'],
-    }),
-  ],
+import pkg from './package.json' assert { type: "json" };
+
+const INPUT_FILE_PATH = 'src/js/rare-earth.js';
+const OUTPUT_NAME = 'RareEarth';
+
+const GLOBALS = {
+  react: 'React',
+  'react-dom': 'ReactDOM',
 };
+
+const PLUGINS = [
+  replace({
+    'process.env.NODE_ENV': JSON.stringify('production'),
+  }),
+  commonjs({
+    include: 'node_modules/**',
+    namedExports: {
+      'react': Object.keys(React),
+    }
+  }),
+  babel({
+    babelrc: true,
+    babelHelpers: 'bundled',
+    exclude: 'node_modules/**',
+    presets: ['@babel/preset-react'],
+  }),
+  nodeResolve({
+    browser: true,
+    resolveOnly: [
+      /^(?!react$)/,
+      /^(?!react-dom$)/,
+    ],
+  }),
+];
+
+const EXTERNAL = [
+  'react',
+  'react-dom',
+  'prop-types',
+];
+
+// https://github.com/rollup/plugins/tree/master/packages/babel#babelhelpers
+const CJS_AND_ES_EXTERNALS = EXTERNAL.concat(/@babel\/runtime/);
+
+const OUTPUT_DATA = [
+  {
+    file: pkg.browser,
+    format: 'umd',
+  },
+  {
+    file: pkg.main,
+    format: 'cjs',
+  },
+  {
+    file: pkg.module,
+    format: 'es',
+  },
+];
+
+const config = OUTPUT_DATA.map(({ file, format }) => ({
+  input: INPUT_FILE_PATH,
+  output: {
+    file,
+    format,
+    name: OUTPUT_NAME,
+    globals: GLOBALS,
+  },
+  external: ['cjs', 'es'].includes(format) ? CJS_AND_ES_EXTERNALS : EXTERNAL,
+  plugins: PLUGINS,
+}));
+
+export default config;
