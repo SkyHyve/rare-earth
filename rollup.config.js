@@ -12,17 +12,16 @@ const OUTPUT_NAME = 'RareEarth';
 const GLOBALS = {
   react: 'React',
   'react-dom': 'ReactDOM',
+  'prop-types': 'PropTypes',
 };
 
 const PLUGINS = [
   replace({
+    preventAssignment: true,
     'process.env.NODE_ENV': JSON.stringify('production'),
   }),
   commonjs({
     include: 'node_modules/**',
-    namedExports: {
-      'react': Object.keys(React),
-    }
   }),
   babel({
     babelrc: true,
@@ -35,6 +34,7 @@ const PLUGINS = [
     resolveOnly: [
       /^(?!react$)/,
       /^(?!react-dom$)/,
+      /^(?!prop-types)/,
     ],
   }),
 ];
