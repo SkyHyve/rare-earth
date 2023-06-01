@@ -1,50 +1,54 @@
-import babel from '@rollup/plugin-babel';
-import nodeResolve from '@rollup/plugin-node-resolve';
+import alias from '@rollup/plugin-alias';
+import resolve from '@rollup/plugin-node-resolve'
+import json from '@rollup/plugin-json'
+import babel from '@rollup/plugin-babel'
 import commonjs from '@rollup/plugin-commonjs';
 import replace from '@rollup/plugin-replace';
-import React from 'react';
 
 import pkg from './package.json' assert { type: "json" };
 
-const INPUT_FILE_PATH = 'src/js/rare-earth.js';
+const INPUT_FILE_PATH = 'src/Table.jsx';
 const OUTPUT_NAME = 'RareEarth';
-
-const GLOBALS = {
-  react: 'React',
-  'prop-types': 'PropTypes',
-};
 
 const PLUGINS = [
   replace({
-    preventAssignment: true,
     'process.env.NODE_ENV': JSON.stringify('production'),
   }),
-  commonjs({
-    include: 'node_modules/**',
+  alias({
+    entries: [
+      { find: 'react', replacement: 'preact/compat' },
+      { find: 'react-dom/test-utils', replacement: 'preact/test-utils' },
+      { find: 'react-dom', replacement: 'preact/compat' },
+      { find: 'react/jsx-runtime', replacement: 'preact/jsx-runtime' }
+    ]
   }),
+  resolve(),
+  json(),
   babel({
-    babelrc: true,
-    babelHelpers: 'bundled',
     exclude: 'node_modules/**',
-    presets: ['@babel/preset-react'],
+    babelHelpers: 'bundled',
+    plugins: [
+      [
+        '@babel/plugin-transform-react-jsx',
+        {
+          pragma: 'h',
+          pragmaFrag: 'Fragment'
+        }
+      ]
+    ]
   }),
-  nodeResolve({
-    browser: true,
-    resolveOnly: [
-      /^(?!react$)/,
-      /^(?!react-dom$)/,
-      /^(?!prop-types)/,
-    ],
-  }),
+  commonjs(),
 ];
 
 const EXTERNAL = [
-  'react',
-  'prop-types',
+  'preact',
+  'preact/hooks',
+  'preact/compat',
 ];
 
 // https://github.com/rollup/plugins/tree/master/packages/babel#babelhelpers
 const CJS_AND_ES_EXTERNALS = EXTERNAL.concat(/@babel\/runtime/);
+
 
 const OUTPUT_DATA = [
   {
@@ -67,7 +71,9 @@ const config = OUTPUT_DATA.map(({ file, format }) => ({
     file,
     format,
     name: OUTPUT_NAME,
-    globals: GLOBALS,
+    globals: {
+      'node_modules/react-icons/lib/esm/iconBase.js': 'reactIconThis'
+    }
   },
   external: ['cjs', 'es'].includes(format) ? CJS_AND_ES_EXTERNALS : EXTERNAL,
   plugins: PLUGINS,
