@@ -1,6 +1,6 @@
 {
   "name": "@rare-earth/react-tables",
-  "version": "0.1.29",
+  "version": "0.2.4",
   "description": "Rare Earth is a package for making React tables with ease. This library is browser native so does not require any build step.",
   "main": "./dist/bundle.cjs",
   "module": "./dist/bundle.esm",
@@ -10,6 +10,7 @@
     "node": ">=14.16"
   },
   "scripts": {
+    "build": "rollup -c",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -57,6 +58,18 @@
     "@rollup/plugin-typescript": "11.1.0",
     "acorn-jsx": "5.3.2",
     "nodemon": "2.0.22",
-    "rollup": "3.20.2"
+    "rollup": "3.23.1"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
   }
 }

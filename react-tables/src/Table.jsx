@@ -2,16 +2,21 @@ import React from 'react';
 
 import { css, cx, CacheProvider } from '@emotion/react';
 import createCache from '@emotion/cache';
-import { Box, Button, Flex, Modal, Popover, Select, Stack, TextInput, Tooltip } from '@mantine/core';
+import { Avatar, Box, Button, Checkbox, Flex, Group, Modal, NumberInput, Popover, Select, Space, Stack, Tabs, TextInput, Tooltip, rem } from '@mantine/core';
 import {  createEmotionCache, MantineProvider } from '@mantine/core';
 
-import { BsSearch, BsTriangleFill } from 'react-icons/bs';
+import { BsTriangleFill } from 'react-icons/bs';
+import { FaGreaterThan, FaGreaterThanEqual, FaLessThan, FaLessThanEqual, FaSearch, FaSearchPlus } from 'react-icons/fa';
 import { FiFilter } from 'react-icons/fi';
-import { TbTableExport } from 'react-icons/tb';
+import { TbLetterX, TbTableExport } from 'react-icons/tb';
 
 import { debounce } from 'throttle-debounce';
 
 const DEBOUNCE_INPUT_TIME_MS = 500;
+
+const positionRelativeCss = css`
+  position: relative;
+`;
 
 const ascendingDeselectedCss = css`
   color: #adb5bd;
@@ -26,6 +31,10 @@ const descendingDeselectedCss = css`
 const descendingSelectedCss = css`
   color: #212529;
   transform: rotate(180deg);
+`;
+const containerCss = css`
+  width: 100%;
+  overflow: scroll;
 `;
 const tableCss = css`
   width: 100%;
@@ -247,7 +256,7 @@ const TableControl = ({
           min-width: 150px;
         `}
       >
-        <BsSearch/>
+        <FaSearch/>
         <TextInput
           value={searchInput}
           onChange={(event) => setSearchInput((event.target.value == '') ? null : event.target.value)}
@@ -259,13 +268,42 @@ const TableControl = ({
 
 const TableHeader = React.forwardRef((props, ref) => {
 
-  const [searchInput, setSearchInput] = React.useState(props.search[props.column_key]);
-  const [searchModalOpen, setSearchModalOpen] = React.useState(false);
+  const [searchInput, setSearchInput] = React.useState({
+    string: props.search[props.column_key]?.string?.text,
+    number: {
+      gt: props.search[props.column_key]?.number?.gt?.value,
+      lt: props.search[props.column_key]?.number?.lt?.value,
+    }
+  });
+  const [searchOptionsOpen, setSearchOptionsOpen] = React.useState(false);
 
   React.useEffect(() => {
 
     const debounceFunc = debounce(props.debounceTime ?? DEBOUNCE_INPUT_TIME_MS, () => {
-      props.setSearch({...props.search, fields: {...props.search.fields, [props.column_key]: searchInput}});
+      props.setSearch({
+        ...props.search,
+        fields: {
+          ...props.search.fields,
+          [props.column_key]: {
+            ...props.search.fields[props.column_key],
+            string: {
+              ...props.search.fields[props.column_key].string,
+              text: searchInput.string,
+            },
+            number: {
+              ...props.search.fields[props.column_key].number,
+              gt: {
+                ...props.search.fields[props.column_key].number.gt,
+                value: searchInput.number.gt
+              },
+              lt: {
+                ...props.search.fields[props.column_key].number.lt,
+                value: searchInput.number.lt
+              },
+            }
+          }
+        }
+      });
     }, {atBegin: false});
 
     debounceFunc();
@@ -436,6 +474,121 @@ const TableHeader = React.forwardRef((props, ref) => {
     }
   }
   console.log(props);
+
+  function renderSearchInput(){
+    switch(props.search.fields[props.column_key]._type){
+      case 'string':
+        return(
+          <TextInput
+            value={searchInput?.string ?? ''}
+            onChange={(event) => setSearchInput({
+              ...searchInput,
+              string: ((event.target.value == '') ? null : event.target.value)
+            })}
+            css={css`width: 100%;`}
+          />
+        );
+      case 'number':
+        return(
+          <Flex
+            justify="flex-start"
+            gap="0.25rem"
+            wrap="nowrap"
+            css={css`max-width: 17rem;`}
+          >
+            <NumberInput
+              hideControls={true}
+              value={searchInput.number?.gt ?? ''}
+              onChange={(value) => setSearchInput({
+                ...searchInput,
+                number: {
+                  ...searchInput.number,
+                  gt: value,
+                }
+              })}
+              styles={{wrapper: {minWidth: rem('6rem'), maxWidth: rem('6rem')}}}
+            />
+            <Avatar
+              onClick={(event) => props.setSearch({
+                ...props.search,
+                fields: {
+                  ...props.search.fields,
+                  [props.column_key]: {
+                    ...props.search.fields[props.column_key],
+                    number: {
+                      ...props.search.fields[props.column_key].number,
+                      gt: {
+                        ...props.search.fields[props.column_key].number.gt,
+                        equals: !props.search.fields[props.column_key].number.gt.equals
+                      }
+                    }
+                  }
+                }
+              })}
+              css={css`cursor: pointer;`}
+              styles={{
+                root: {
+                  'min-width': '1.4rem',
+                  'width': '1.4rem',
+                }
+              }}
+            >
+              {(props.search.fields[props.column_key].number.gt.equals ? <FaLessThanEqual/> : <FaLessThan/>)}
+            </Avatar>
+            <Avatar
+              styles={{
+                root: {
+                  'min-width': '1.2rem',
+                  'width': '1.2rem',
+                }
+              }}
+            >
+              <TbLetterX/>
+            </Avatar>
+            <Avatar
+              onClick={(event) => props.setSearch({
+                ...props.search,
+                fields: {
+                  ...props.search.fields,
+                  [props.column_key]: {
+                    ...props.search.fields[props.column_key],
+                    number: {
+                      ...props.search.fields[props.column_key].number,
+                      lt: {
+                        ...props.search.fields[props.column_key].number.lt,
+                        equals: !props.search.fields[props.column_key].number.lt.equals
+                      }
+                    }
+                  }
+                }
+              })}
+              css={css`cursor: pointer;`}
+              styles={{
+                root: {
+                  'min-width': '1.4rem',
+                  'width': '1.4rem',
+                }
+              }}
+            >
+              {(props.search.fields[props.column_key].number.lt.equals ? <FaLessThanEqual/> : <FaLessThan/>)}
+            </Avatar>
+            <NumberInput
+              hideControls={true}
+              value={searchInput.number?.lt ?? ''}
+              onChange={(value) => setSearchInput({
+                ...searchInput,
+                number: {
+                  ...searchInput.number,
+                  lt: value,
+                }
+              })}
+              styles={{wrapper: {minWidth: rem('6rem'), maxWidth: rem('6rem')}}}
+            />
+          </Flex>
+        );
+    }
+  }
+
   return(
     <th>
       <Stack
@@ -467,13 +620,176 @@ const TableHeader = React.forwardRef((props, ref) => {
             {props.column.label ?? props.column_key.toString()}
           </Flex>
         </div>
-        <Flex align="center">
-          <TextInput
-            value={searchInput ?? ''}
-            onChange={(event) => setSearchInput((event.target.value == '') ? null : event.target.value)}
-            css={css`width: 100%;`}
-          />
-        </Flex>
+        <div css={positionRelativeCss}>
+          <Popover
+            width="100%"
+            opened={searchOptionsOpen}
+            onChange={setSearchOptionsOpen}
+            styles={{dropdown: {top: rem('2.375rem')}}}
+            position="bottom"
+          >
+            <Popover.Target>
+              <Flex align="center" gap="xs">
+                {renderSearchInput()}
+                <Avatar
+                  styles={{root: {backgroundColor: (searchOptionsOpen ? '#000000' : '#ffffff'), cursor: 'pointer'}, placeholder: {backgroundColor: (searchOptionsOpen ? '#000000' : '#ffffff'), cursor: 'pointer'}}}
+                  onClick={(event) => setSearchOptionsOpen(!searchOptionsOpen)}
+                >
+                  <FaSearchPlus color={(searchOptionsOpen ? '#ffffff' : '#000000')}/>
+                </Avatar>
+              </Flex>
+            </Popover.Target>
+            <Popover.Dropdown css={css`top: 2.375rem !important;`}>
+              <Tabs
+                value={props.search.fields[props.column_key]._type}
+                onTabChange={(value) => props.setSearch({
+                  ...props.search,
+                  fields: {
+                    ...props.search.fields,
+                    [props.column_key]: {
+                      ...props.search.fields[props.column_key],
+                      _type: value
+                    }
+                  }
+                })}
+              >
+                <Tabs.List>
+                  <Tabs.Tab
+                    value="string"
+                  >
+                    Text
+                  </Tabs.Tab>
+                  <Tabs.Tab
+                    value="number"
+                  >
+                    Numeric
+                  </Tabs.Tab>
+                </Tabs.List>
+
+                <Tabs.Panel
+                  value="string"
+                >
+                  <Stack>
+                    <Checkbox
+                      label="Trim"
+                      checked={props.search.fields[props.column_key].string.trim}
+                      onChange={(event) => props.setSearch({
+                        ...props.search,
+                        fields: {
+                          ...props.search.fields,
+                          [props.column_key]: {
+                            ...props.search.fields[props.column_key],
+                            string: {
+                              ...props.search.fields[props.column_key].string,
+                              trim: event.currentTarget.checked
+                            }
+                          }
+                        }
+                      })}
+                    />
+                    <Checkbox
+                      label="Case Sensitive"
+                      checked={props.search.fields[props.column_key].string.caseSensitive}
+                      onChange={(event) => props.setSearch({
+                        ...props.search,
+                        fields: {
+                          ...props.search.fields,
+                          [props.column_key]: {
+                            ...props.search.fields[props.column_key],
+                            string: {
+                              ...props.search.fields[props.column_key].string,
+                              caseSensitive: event.currentTarget.checked
+                            }
+                          }
+                        }
+                      })}
+                    />
+                    <Checkbox
+                      label="Regex"
+                      checked={props.search.fields[props.column_key].string.isRegex}
+                      onChange={(event) => props.setSearch({
+                        ...props.search,
+                        fields: {
+                          ...props.search.fields,
+                          [props.column_key]: {
+                            ...props.search.fields[props.column_key],
+                            string: {
+                              ...props.search.fields[props.column_key].string,
+                              isRegex: event.currentTarget.checked
+                            }
+                          }
+                        }
+                      })}
+                    />
+                  </Stack>
+                </Tabs.Panel>
+                <Tabs.Panel
+                  value="number"
+                >
+                  <Stack>
+                    <Checkbox
+                      label="Omit Non Numeric"
+                      checked={props.search.fields[props.column_key].number.omitNonNumeric}
+                      onChange={(event) => props.setSearch({
+                        ...props.search,
+                        fields: {
+                          ...props.search.fields,
+                          [props.column_key]: {
+                            ...props.search.fields[props.column_key],
+                            number: {
+                              ...props.search.fields[props.column_key].number,
+                              omitNonNumeric: event.currentTarget.checked
+                            }
+                          }
+                        }
+                      })}
+                    />
+                    <Checkbox
+                      label="Inclusive Greater Than"
+                      checked={props.search.fields[props.column_key].number.gt.equals}
+                      onChange={(event) => props.setSearch({
+                        ...props.search,
+                        fields: {
+                          ...props.search.fields,
+                          [props.column_key]: {
+                            ...props.search.fields[props.column_key],
+                            number: {
+                              ...props.search.fields[props.column_key].number,
+                              gt: {
+                                ...props.search.fields[props.column_key].number.gt,
+                                equals: event.currentTarget.checked,
+                              }
+                            }
+                          }
+                        }
+                      })}
+                    />
+                    <Checkbox
+                      label="Inclusive Less Than"
+                      checked={props.search.fields[props.column_key].number.lt.equals}
+                      onChange={(event) => props.setSearch({
+                        ...props.search,
+                        fields: {
+                          ...props.search.fields,
+                          [props.column_key]: {
+                            ...props.search.fields[props.column_key],
+                            number: {
+                              ...props.search.fields[props.column_key].number,
+                              lt: {
+                                ...props.search.fields[props.column_key].number.lt,
+                                equals: event.currentTarget.checked,
+                              }
+                            }
+                          }
+                        }
+                      })}
+                    />
+                  </Stack>
+                </Tabs.Panel>
+              </Tabs>
+            </Popover.Dropdown>
+          </Popover>
+        </div>
       </Stack>
     </th>
   );
@@ -495,7 +811,29 @@ const Table = React.forwardRef((props, ref) => {
   const [sortFields, setSortFields] = React.useState(props.initialSortFields ?? []);
   const [search, setSearch] = React.useState({
     global: null,
-    fields: Object.fromEntries((props.columns ?? []).map((x, i) => [x.key, null])),
+    fields: Object.fromEntries((props.columns ?? []).map((x, i) => [
+      x.key,
+      {
+        _type: ((x.type == 'number') ? 'number' : 'string'),
+        string: {
+          text: null,
+          trim: true,
+          caseSensitive: false,
+          isRegex: false
+        },
+        number: {
+          omitNonNumeric: true,
+          gt: {
+            value: null,
+            equals: false,
+          },
+          lt: {
+            value: null,
+            equals: false,
+          }
+        }
+      }
+    ])),
   });
 
   const headerRefs = React.useRef({});
@@ -589,6 +927,130 @@ const Table = React.forwardRef((props, ref) => {
     setRecords(props.records ?? []);
   }, [props.records]);
 
+  function stringDoesMatch({recordCompareStr, keySearch, trim, caseSensitive, isRegex}){
+    if (keySearch == null){
+      return true;
+    }
+
+    var _recordCompareStr;
+    var _keySearch;
+    switch (trim){
+      case true:
+        _recordCompareStr = recordCompareStr.trim();
+        _keySearch = keySearch.trim();
+        break;
+      case false:
+        _recordCompareStr = recordCompareStr;
+        _keySearch = keySearch;
+        break;
+    }
+    switch (caseSensitive){
+      case true:
+        break;
+      case false:
+        switch (isRegex){
+          case true:
+            break;
+          case false:
+            _recordCompareStr = recordCompareStr.toLowerCase();
+            _keySearch = keySearch.toLowerCase();
+            break;
+        }
+        break;
+    }
+    switch (isRegex){
+      case true:
+        var _regex;
+        switch (caseSensitive){
+          case true:
+             _regex = new RegExp(_keySearch, "g");
+             break;
+          case false:
+            _regex = new RegExp(_keySearch, "gi");
+            break;
+        }
+        return _regex.test(_recordCompareStr);
+      case false:
+        return _recordCompareStr.includes(_keySearch);
+    }
+  }
+
+  function numberDoesMatch({ recordNumber, omitNonNumeric, gtNum, gtEquals, ltNum, ltEquals }){
+    if (isNaN(recordNumber)){
+      return !omitNonNumeric;
+    }
+    console.log(recordNumber, gtNum, gtEquals, ltNum, ltEquals, recordNumber < gtNum, recordNumber <= gtNum, recordNumber > ltNum, recordNumber >= ltNum);
+    switch (gtNum == null){
+      case true:
+        break;
+      case false:
+        switch (gtEquals){
+          case true:
+            switch (recordNumber < gtNum){
+              case true:
+                return false;
+              case false:
+                break;
+            }
+            break;
+          case false:
+            switch (recordNumber <= gtNum){
+              case true:
+                return false;
+              case false:
+                break;
+            }
+            break;
+        }
+    }
+    switch (ltNum == null){
+      case true:
+        break;
+      case false:
+        switch (ltEquals){
+          case true:
+            switch (recordNumber > ltNum){
+              case true:
+                return false;
+              case false:
+                break;
+            }
+            break;
+          case false:
+            switch (recordNumber >= ltNum){
+              case true:
+                return false;
+              case false:
+                break;
+            }
+            break;
+        }
+    }
+    return true;
+  }
+
+  function doesMatch({ recordCompareStr, keySearch }){
+    switch (keySearch._type){
+      case 'string':
+        return stringDoesMatch({
+          recordCompareStr: recordCompareStr,
+          keySearch: keySearch.string.text,
+          trim: keySearch.string.trim,
+          caseSensitive: keySearch.string.caseSensitive,
+          isRegex: keySearch.string.isRegex,
+        });
+      case 'number':
+        return numberDoesMatch({
+          recordNumber: parseFloat((recordCompareStr ?? '').trim()),
+          omitNonNumeric: keySearch.number.omitNonNumeric,
+          gtNum: keySearch.number.gt.value,
+          gtEquals: keySearch.number.gt.equals,
+          ltNum: keySearch.number.lt.value,
+          ltEquals: keySearch.number.lt.equals,
+        });
+    }
+  }
+
   const filteredRecords = React.useMemo(function(){
 
     console.debug('Filtering Records');
@@ -598,19 +1060,33 @@ const Table = React.forwardRef((props, ref) => {
       let record = records[i];
       var include = !Boolean(search.global);
       for (let key in search.fields){
-        let recordCompareStr = (columns?.attributes?.[key]?.valueFunc?.(record) ?? '')?.toString?.()?.trim?.()?.toLowerCase?.();
+        let recordCompareStr = (columns?.attributes?.[key]?.valueFunc?.(record) ?? '')?.toString?.();
 
-        let globalSearch = search.global?.trim?.()?.toLowerCase?.();
-        if ((Boolean(search.global)) && (recordCompareStr?.includes?.(globalSearch))){
+        if ((Boolean(search.global)) && (stringDoesMatch({
+          recordCompareStr: recordCompareStr,
+          keySearch: search.global,
+          trim: true,
+          caseSensitive: false,
+          isRegex: false
+        }))){
           include = true;
           break;
         }
 
-        let keySearch = search.fields[key]?.trim?.()?.toLowerCase?.();
-        if (!keySearch){
-          continue;
+        let keySearch = search.fields[key];
+        if (keySearch._type == 'string'){
+          if (keySearch.string.text == null){
+            continue;
+          }
+        } else if (keySearch._type == 'number'){
+          if ((keySearch.number.gt.value == null) && (keySearch.number.lt.value == null)){
+            continue;
+          }
         }
-        if (recordCompareStr?.includes?.(keySearch)){
+        if (doesMatch({
+          recordCompareStr: recordCompareStr,
+          keySearch: keySearch,
+        })){
           if (Boolean(search.global)){
             include = true;
             break;
@@ -684,6 +1160,9 @@ const Table = React.forwardRef((props, ref) => {
     }
     rows.push(<tr key={i}>{cells}</tr>);
   }
+  if (filteredSortedRecords.length < page * pageLength){
+    setPage(1);
+  }
 
   function exportTable(){
     let csvContent = "data:text/csv;charset=utf-8,";
@@ -738,7 +1217,7 @@ const Table = React.forwardRef((props, ref) => {
         withNormalizeCSS
         emotionCache={cache}
       >
-        <div ref={ref} id={props.id}>
+        <div ref={ref} id={props.id} css={containerCss}>
           <TableControl
             exportTable={exportTable}
             numRecords={records.length}

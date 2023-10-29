@@ -1,6 +1,6 @@
 {
   "name": "@rare-earth/preact-tables",
-  "version": "0.1.12",
+  "version": "0.1.19",
   "description": "Rare Earth is a package for making React tables with ease. This library is browser native so does not require any build step.",
   "main": "./dist/bundle.cjs",
   "module": "./dist/bundle.esm",
@@ -33,6 +33,7 @@
     "@emotion/css": "^11.10.6",
     "@mantine/core": "^6.0.7",
     "@mantine/modals": "^6.0.7",
+    "prop-types": "^15.8.1",
     "preact": "10.13.2",
     "react-icons": "^4.8.0",
     "throttle-debounce": "^5.0.0",

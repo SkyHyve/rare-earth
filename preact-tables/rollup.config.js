@@ -1,5 +1,5 @@
 import alias from '@rollup/plugin-alias';
-import resolve from '@rollup/plugin-node-resolve'
+import nodeResolve from '@rollup/plugin-node-resolve'
 import json from '@rollup/plugin-json'
 import babel from '@rollup/plugin-babel'
 import commonjs from '@rollup/plugin-commonjs';
@@ -13,6 +13,7 @@ const OUTPUT_NAME = 'RareEarth';
 const PLUGINS = [
   replace({
     'process.env.NODE_ENV': JSON.stringify('production'),
+    preventAssignment: true,
   }),
   alias({
     entries: [
@@ -22,11 +23,18 @@ const PLUGINS = [
       { find: 'react/jsx-runtime', replacement: 'preact/jsx-runtime' }
     ]
   }),
-  resolve(),
+  nodeResolve({
+    resolveOnly: [
+      /^(?!preact$)/,
+      /^(?!react-icons$)/,
+      /^(?!prop-types)/,
+    ],
+  }),
   json(),
   babel({
-    exclude: 'node_modules/**',
+    babelrc: true,
     babelHelpers: 'bundled',
+    exclude: 'node_modules/**',
     plugins: [
       [
         '@babel/plugin-transform-react-jsx',
@@ -35,16 +43,21 @@ const PLUGINS = [
           pragmaFrag: 'Fragment'
         }
       ]
-    ]
+    ],
+    presets: ['@babel/preset-react'],
   }),
-  commonjs(),
+  commonjs({
+    include: 'node_modules/**',
+  })
 ];
 
 const EXTERNAL = [
   'preact',
   'preact/hooks',
   'preact/compat',
+  'prop-types',
 ];
+// const EXTERNAL = [];
 
 // https://github.com/rollup/plugins/tree/master/packages/babel#babelhelpers
 const CJS_AND_ES_EXTERNALS = EXTERNAL.concat(/@babel\/runtime/);
@@ -72,6 +85,8 @@ const config = OUTPUT_DATA.map(({ file, format }) => ({
     format,
     name: OUTPUT_NAME,
     globals: {
+      'prop-types': 'PropTypes',
+      'preact': 'preact',
       'node_modules/react-icons/lib/esm/iconBase.js': 'reactIconThis'
     }
   },

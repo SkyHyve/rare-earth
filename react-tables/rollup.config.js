@@ -38,7 +38,10 @@ const PLUGINS = [
 
 const EXTERNAL = [
   'react',
+  'react-dom',
   'prop-types',
+  'preact',
+  'preact/compat',
 ];
 
 // https://github.com/rollup/plugins/tree/master/packages/babel#babelhelpers
