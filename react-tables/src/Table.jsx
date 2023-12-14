@@ -484,6 +484,7 @@ const TableHeader = React.forwardRef((props, ref) => {
               ...searchInput,
               string: ((event.target.value == '') ? null : event.target.value)
             })}
+            size="xs"
             css={css`width: 100%;`}
           />
         );
@@ -493,7 +494,7 @@ const TableHeader = React.forwardRef((props, ref) => {
             justify="flex-start"
             gap="0.25rem"
             wrap="nowrap"
-            css={css`max-width: 17rem;`}
+            css={css`max-width: 12rem;`}
           >
             <NumberInput
               hideControls={true}
@@ -505,7 +506,17 @@ const TableHeader = React.forwardRef((props, ref) => {
                   gt: value,
                 }
               })}
-              styles={{wrapper: {minWidth: rem('6rem'), maxWidth: rem('6rem')}}}
+              size="xs"
+              styles={{
+                wrapper: {
+                  minWidth: rem('3.5rem'),
+                  maxWidth: rem('6rem')
+                },
+                input: {
+                  paddingLeft: '0.125rem',
+                  paddingRight: '0.125rem',
+                }
+              }}
             />
             <Avatar
               onClick={(event) => props.setSearch({
@@ -581,7 +592,17 @@ const TableHeader = React.forwardRef((props, ref) => {
                   lt: value,
                 }
               })}
-              styles={{wrapper: {minWidth: rem('6rem'), maxWidth: rem('6rem')}}}
+              size="xs"
+              styles={{
+                wrapper: {
+                  minWidth: rem('3.5rem'),
+                  maxWidth: rem('6rem')
+                },
+                input: {
+                  paddingLeft: '0.125rem',
+                  paddingRight: '0.125rem',
+                }
+              }}
             />
           </Flex>
         );
@@ -628,10 +649,20 @@ const TableHeader = React.forwardRef((props, ref) => {
             position="bottom"
           >
             <Popover.Target>
-              <Flex align="center" gap="xs">
+              <Flex align="center" gap="0.25rem">
                 {renderSearchInput()}
                 <Avatar
-                  styles={{root: {backgroundColor: (searchOptionsOpen ? '#000000' : '#ffffff'), cursor: 'pointer'}, placeholder: {backgroundColor: (searchOptionsOpen ? '#000000' : '#ffffff'), cursor: 'pointer'}}}
+                  styles={{
+                    root: {
+                      backgroundColor: (searchOptionsOpen ? '#000000' : '#ffffff'),
+                      cursor: 'pointer',
+                      height: '1.875rem',
+                    },
+                    placeholder: {
+                      backgroundColor: (searchOptionsOpen ? '#000000' : '#ffffff'),
+                      cursor: 'pointer'
+                    }
+                  }}
                   onClick={(event) => setSearchOptionsOpen(!searchOptionsOpen)}
                 >
                   <FaSearchPlus color={(searchOptionsOpen ? '#ffffff' : '#000000')}/>
@@ -1125,7 +1156,7 @@ const Table = React.forwardRef((props, ref) => {
     columns_headers.push(<TableHeader ref={headerRefs} key={key} columns={columns} setColumns={setColumns} sortFields={sortFields} setSortFields={setSortFields} search={search} setSearch={setSearch} column_index={i} column_key={key} column={column} />)
   }
 
-  let pageCount = Math.ceil((filteredSortedRecords?.length ?? 0) / pageLength);
+  let pageCount = Math.max(Math.ceil((filteredSortedRecords?.length ?? 0) / pageLength), 1);
   let rows = [];
   for (let i = (page - 1) * pageLength; i < Math.min(page * pageLength, filteredSortedRecords.length); i++){
     let record = filteredSortedRecords[i];

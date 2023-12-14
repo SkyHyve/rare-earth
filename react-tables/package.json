@@ -1,6 +1,6 @@
 {
   "name": "@rare-earth/react-tables",
-  "version": "0.2.6",
+  "version": "0.2.8",
   "description": "Rare Earth is a package for making React tables with ease. This library is browser native so does not require any build step.",
   "main": "./dist/bundle.cjs",
   "module": "./dist/bundle.esm",
