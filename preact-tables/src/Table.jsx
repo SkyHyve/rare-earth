@@ -126,10 +126,12 @@ const TableControl = ({
     case true:
       paginationButtons.push(
         <Button
+          classNames={{
+            root: 'bf0f3433-a76c-4581-bd6e-ac13d49caf4f'
+          }}
           key="<<"
           disabled={true}
           onClick={() => {}}
-          styles={{root: {visibility: 'hidden'}}}
         >
           <b>{String.fromCharCode(60) + String.fromCharCode(60)}</b>
         </Button>
@@ -141,9 +143,11 @@ const TableControl = ({
       case true:
         paginationButtons.push(
           <Button
+            classNames={{
+              root: 'ae6f8fac-8781-4f58-bb38-f61fc471b030'
+            }}
             key={i}
             onClick={() => setPage(i)}
-            styles={{root: {visibility: 'hidden'}}}
           >
             <b>{i}</b>
           </Button>
@@ -173,9 +177,11 @@ const TableControl = ({
       case true:
         paginationButtons.push(
           <Button
+            classNames={{
+              root: 'aa2ce6aa-dd20-45c5-94e2-2a4bb225523d'
+            }}
             key={i}
             onClick={() => setPage(i)}
-            styles={{root: {visibility: 'hidden'}}}
           >
             <b>{i}</b>
           </Button>
@@ -206,10 +212,12 @@ const TableControl = ({
     case true:
       paginationButtons.push(
         <Button
+          classNames={{
+            root: 'e6cbdcf0-c7bd-4fa8-9530-7234629f516c'
+          }}
           key=">>"
           disabled={true}
           onClick={() => {}}
-          styles={{root: {visibility: 'hidden'}}}
         >
           <b>{String.fromCharCode(62) + String.fromCharCode(62)}</b>
         </Button>

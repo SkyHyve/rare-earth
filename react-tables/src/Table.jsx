@@ -358,7 +358,7 @@ const TableHeader = React.forwardRef((props, ref) => {
         }
         break;
     }
-    console.log(new_sort_fields);
+
     props.setSortFields(new_sort_fields);
   }
 
@@ -473,7 +473,6 @@ const TableHeader = React.forwardRef((props, ref) => {
         swapColumns(columnA, columnB, indexA, before);
     }
   }
-  console.log(props);
 
   function renderSearchInput(){
     switch(props.search.fields[props.column_key]._type){
@@ -979,7 +978,7 @@ const Table = React.forwardRef((props, ref) => {
     if (isNaN(recordNumber)){
       return !omitNonNumeric;
     }
-    console.log(recordNumber, gtNum, gtEquals, ltNum, ltEquals, recordNumber < gtNum, recordNumber <= gtNum, recordNumber > ltNum, recordNumber >= ltNum);
+
     switch (gtNum == null){
       case true:
         break;
@@ -1160,7 +1159,7 @@ const Table = React.forwardRef((props, ref) => {
     }
     rows.push(<tr key={i}>{cells}</tr>);
   }
-  if (filteredSortedRecords.length < page * pageLength){
+  if ((page > 1) && (filteredSortedRecords.length < ((page - 1) * pageLength + 1))){
     setPage(1);
   }
 
