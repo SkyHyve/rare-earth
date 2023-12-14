@@ -494,7 +494,7 @@ const TableHeader = React.forwardRef((props, ref) => {
             justify="flex-start"
             gap="0.25rem"
             wrap="nowrap"
-            css={css`max-width: 12rem;`}
+            css={css`max-width: 10rem;`}
           >
             <NumberInput
               hideControls={true}
@@ -509,8 +509,8 @@ const TableHeader = React.forwardRef((props, ref) => {
               size="xs"
               styles={{
                 wrapper: {
-                  minWidth: rem('3.5rem'),
-                  maxWidth: rem('6rem')
+                  minWidth: rem('3rem'),
+                  maxWidth: rem('4.5rem')
                 },
                 input: {
                   paddingLeft: '0.125rem',
@@ -538,8 +538,9 @@ const TableHeader = React.forwardRef((props, ref) => {
               css={css`cursor: pointer;`}
               styles={{
                 root: {
-                  'min-width': '1.4rem',
-                  'width': '1.4rem',
+                  minWidth: '1rem',
+                  width: '1rem',
+                  height: '1.875rem',
                 }
               }}
             >
@@ -548,8 +549,9 @@ const TableHeader = React.forwardRef((props, ref) => {
             <Avatar
               styles={{
                 root: {
-                  'min-width': '1.2rem',
-                  'width': '1.2rem',
+                  minWidth: '1rem',
+                  width: '1rem',
+                  height: '1.875rem',
                 }
               }}
             >
@@ -575,8 +577,9 @@ const TableHeader = React.forwardRef((props, ref) => {
               css={css`cursor: pointer;`}
               styles={{
                 root: {
-                  'min-width': '1.4rem',
-                  'width': '1.4rem',
+                  minWidth: '1rem',
+                  width: '1rem',
+                  height: '1.875rem',
                 }
               }}
             >
@@ -595,8 +598,8 @@ const TableHeader = React.forwardRef((props, ref) => {
               size="xs"
               styles={{
                 wrapper: {
-                  minWidth: rem('3.5rem'),
-                  maxWidth: rem('6rem')
+                  minWidth: rem('3rem'),
+                  maxWidth: rem('4.5rem')
                 },
                 input: {
                   paddingLeft: '0.125rem',
