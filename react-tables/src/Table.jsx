@@ -486,13 +486,23 @@ const TableHeader = React.forwardRef((props, ref) => {
             })}
             size="xs"
             css={css`width: 100%;`}
+            styles={{
+              wrapper: {
+                minWidth: rem('4.5rem'),
+                maxWidth: rem('6rem')
+              },
+              input: {
+                paddingLeft: '0.125rem',
+                paddingRight: '0.125rem',
+              }
+            }}
           />
         );
       case 'number':
         return(
           <Flex
             justify="flex-start"
-            gap="0.25rem"
+            gap="0.125rem"
             wrap="nowrap"
             css={css`max-width: 10rem;`}
           >
@@ -652,7 +662,7 @@ const TableHeader = React.forwardRef((props, ref) => {
             position="bottom"
           >
             <Popover.Target>
-              <Flex align="center" gap="0.25rem">
+              <Flex align="center" gap="0.125rem">
                 {renderSearchInput()}
                 <Avatar
                   styles={{
@@ -660,6 +670,8 @@ const TableHeader = React.forwardRef((props, ref) => {
                       backgroundColor: (searchOptionsOpen ? '#000000' : '#ffffff'),
                       cursor: 'pointer',
                       height: '1.875rem',
+                      minWidth: '1.375rem',
+                      width: '1.375rem',
                     },
                     placeholder: {
                       backgroundColor: (searchOptionsOpen ? '#000000' : '#ffffff'),
@@ -833,7 +845,13 @@ const Table = React.forwardRef((props, ref) => {
   const [columns, setColumns] = React.useState({
     _indexKey: crypto.randomUUID(),
     order: (props.columns ?? []).map((x, i) => x.key),
-    attributes: Object.fromEntries((props.columns ?? []).map((x, i) => [x.key, {...x, valueFunc: x?.valueFunc ?? ((record) => record?.[x.key])}])),
+    attributes: Object.fromEntries((props.columns ?? []).map((x, i) => [x.key, {...x, valueFunc: x?.valueFunc ?? ((record) => {
+      switch (x.type == 'number'){
+        case true:
+          return parseFloat(record?.[x.key]);
+        case false:
+          return record?.[x.key];
+    }})}])),
   });
   const [records, setRecords] = React.useState(props.records ?? []);
 
