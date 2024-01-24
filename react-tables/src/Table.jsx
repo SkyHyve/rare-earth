@@ -936,6 +936,10 @@ const Table = React.forwardRef((props, ref) => {
           bVal = recordB[sortField]
           break;
       }
+      if (columns.attributes[sortField].type == 'number'){
+        aVal = parseFloat(aVal);
+        bVal = parseFloat(bVal);
+      }
 
       var compareVal;
       switch(reverse){
