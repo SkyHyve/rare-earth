@@ -363,8 +363,8 @@ const TableHeader = React.forwardRef((props, ref) => {
     props.setSortFields(new_sort_fields);
   }
 
-  var ascendingIcon = <BsTriangleFill css={ascendingDeselectedCss}/>;
-  var descendingIcon = <BsTriangleFill css={descendingDeselectedCss}/>;
+  var ascendingIcon = <BsTriangleFill size='0.8rem' css={ascendingDeselectedCss}/>;
+  var descendingIcon = <BsTriangleFill size='0.8rem' css={descendingDeselectedCss}/>;
   var column_sort_meta = {
     'symbol': null,
     'index': null,
@@ -374,7 +374,7 @@ const TableHeader = React.forwardRef((props, ref) => {
     if (sortField.key == props.column_key){
       switch (sortField.reverse){
         case true:
-          descendingIcon = <BsTriangleFill css={descendingSelectedCss}/>;
+          descendingIcon = <BsTriangleFill size='0.8rem' css={descendingSelectedCss}/>;
           break;
         case false:
           ascendingIcon = <BsTriangleFill css={ascendingSelectedCss}/>;
@@ -762,12 +762,16 @@ const TableHeader = React.forwardRef((props, ref) => {
           <Flex align="center">
             <Button
               className="p-1 m-1"
-              styles={{root: {backgroundColor: "#495057", color: "#212529"}}}
+              styles={{root: {
+                backgroundColor: "#495057",
+                color: "#212529",
+                padding: '0.125rem',
+              }}}
               onClick={(event) => sortFieldClick(event)}
             >
               <Flex align="center" justify="center">
                 {column_sort_meta.index}
-                <Stack spacing={4} className="m-1">
+                <Stack gap="0.125rem" className="m-1">
                   {ascendingIcon}
                   {descendingIcon}
                 </Stack>
@@ -829,6 +833,7 @@ const TableHeader = React.forwardRef((props, ref) => {
                     }
                   })}
                 />
+                {renderPopup()}
               </Stack>
             </Popover.Dropdown>
           </Popover>
