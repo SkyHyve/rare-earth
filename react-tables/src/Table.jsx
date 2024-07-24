@@ -2,7 +2,7 @@ import React from 'react';
 
 import { css, cx, CacheProvider } from '@emotion/react';
 import createCache from '@emotion/cache';
-import { Avatar, Box, Button, Checkbox, Flex, Group, Modal, NumberInput, Popover, Select, Space, Stack, Tabs, TextInput, Tooltip, rem } from '@mantine/core';
+import { Avatar, Box, Button, Checkbox, Flex, Group, Modal, NumberInput, Popover, Select, Space, Stack, Switch, Tabs, TextInput, Tooltip, rem } from '@mantine/core';
 import {  createEmotionCache, MantineProvider } from '@mantine/core';
 
 import { BsTriangleFill } from 'react-icons/bs';
@@ -44,6 +44,7 @@ const tableCss = css`
   background-color: #212529;
 
   th, td {
+    font-size: 0.75rem;
     padding: 0.75rem;
     vertical-align: top;
     border-top: 1px solid #495057;
@@ -658,7 +659,12 @@ const TableHeader = React.forwardRef((props, ref) => {
             width="100%"
             opened={searchOptionsOpen}
             onChange={setSearchOptionsOpen}
-            styles={{dropdown: {top: rem('2.375rem')}}}
+            styles={{dropdown: {
+              top: rem('2.375rem'),
+              left: rem('0rem'),
+              minWidth: rem('25rem'),
+
+            }}}
             position="bottom"
           >
             <Popover.Target>
@@ -684,154 +690,156 @@ const TableHeader = React.forwardRef((props, ref) => {
                 </Avatar>
               </Flex>
             </Popover.Target>
-            <Popover.Dropdown css={css`top: 2.375rem !important;`}>
-              <Tabs
-                value={props.search.fields[props.column_key]._type}
-                onTabChange={(value) => props.setSearch({
-                  ...props.search,
-                  fields: {
-                    ...props.search.fields,
-                    [props.column_key]: {
-                      ...props.search.fields[props.column_key],
-                      _type: value
+            <Popover.Dropdown css={css`top: 2.375rem !important; left: 0 !important; min-width: 25rem !important;`}>
+              <Stack gap="0.25rem">
+                <Tabs
+                  value={props.search.fields[props.column_key]._type}
+                  onTabChange={(value) => props.setSearch({
+                    ...props.search,
+                    fields: {
+                      ...props.search.fields,
+                      [props.column_key]: {
+                        ...props.search.fields[props.column_key],
+                        _type: value
+                      }
                     }
-                  }
-                })}
-              >
-                <Tabs.List>
-                  <Tabs.Tab
+                  })}
+                >
+                  <Tabs.List>
+                    <Tabs.Tab
+                      value="string"
+                    >
+                      Text
+                    </Tabs.Tab>
+                    <Tabs.Tab
+                      value="number"
+                    >
+                      Numeric
+                    </Tabs.Tab>
+                  </Tabs.List>
+
+                  <Tabs.Panel
                     value="string"
                   >
-                    Text
-                  </Tabs.Tab>
-                  <Tabs.Tab
+                    <Stack gap="0.25rem">
+                      <Checkbox
+                        label="Trim"
+                        checked={props.search.fields[props.column_key].string.trim}
+                        onChange={(event) => props.setSearch({
+                          ...props.search,
+                          fields: {
+                            ...props.search.fields,
+                            [props.column_key]: {
+                              ...props.search.fields[props.column_key],
+                              string: {
+                                ...props.search.fields[props.column_key].string,
+                                trim: event.currentTarget.checked
+                              }
+                            }
+                          }
+                        })}
+                      />
+                      <Checkbox
+                        label="Case Sensitive"
+                        checked={props.search.fields[props.column_key].string.caseSensitive}
+                        onChange={(event) => props.setSearch({
+                          ...props.search,
+                          fields: {
+                            ...props.search.fields,
+                            [props.column_key]: {
+                              ...props.search.fields[props.column_key],
+                              string: {
+                                ...props.search.fields[props.column_key].string,
+                                caseSensitive: event.currentTarget.checked
+                              }
+                            }
+                          }
+                        })}
+                      />
+                      <Checkbox
+                        label="Regex"
+                        checked={props.search.fields[props.column_key].string.isRegex}
+                        onChange={(event) => props.setSearch({
+                          ...props.search,
+                          fields: {
+                            ...props.search.fields,
+                            [props.column_key]: {
+                              ...props.search.fields[props.column_key],
+                              string: {
+                                ...props.search.fields[props.column_key].string,
+                                isRegex: event.currentTarget.checked
+                              }
+                            }
+                          }
+                        })}
+                      />
+                    </Stack>
+                  </Tabs.Panel>
+                  <Tabs.Panel
                     value="number"
                   >
-                    Numeric
-                  </Tabs.Tab>
-                </Tabs.List>
-
-                <Tabs.Panel
-                  value="string"
-                >
-                  <Stack>
-                    <Checkbox
-                      label="Trim"
-                      checked={props.search.fields[props.column_key].string.trim}
-                      onChange={(event) => props.setSearch({
-                        ...props.search,
-                        fields: {
-                          ...props.search.fields,
-                          [props.column_key]: {
-                            ...props.search.fields[props.column_key],
-                            string: {
-                              ...props.search.fields[props.column_key].string,
-                              trim: event.currentTarget.checked
-                            }
-                          }
-                        }
-                      })}
-                    />
-                    <Checkbox
-                      label="Case Sensitive"
-                      checked={props.search.fields[props.column_key].string.caseSensitive}
-                      onChange={(event) => props.setSearch({
-                        ...props.search,
-                        fields: {
-                          ...props.search.fields,
-                          [props.column_key]: {
-                            ...props.search.fields[props.column_key],
-                            string: {
-                              ...props.search.fields[props.column_key].string,
-                              caseSensitive: event.currentTarget.checked
-                            }
-                          }
-                        }
-                      })}
-                    />
-                    <Checkbox
-                      label="Regex"
-                      checked={props.search.fields[props.column_key].string.isRegex}
-                      onChange={(event) => props.setSearch({
-                        ...props.search,
-                        fields: {
-                          ...props.search.fields,
-                          [props.column_key]: {
-                            ...props.search.fields[props.column_key],
-                            string: {
-                              ...props.search.fields[props.column_key].string,
-                              isRegex: event.currentTarget.checked
-                            }
-                          }
-                        }
-                      })}
-                    />
-                  </Stack>
-                </Tabs.Panel>
-                <Tabs.Panel
-                  value="number"
-                >
-                  <Stack>
-                    <Checkbox
-                      label="Omit Non Numeric"
-                      checked={props.search.fields[props.column_key].number.omitNonNumeric}
-                      onChange={(event) => props.setSearch({
-                        ...props.search,
-                        fields: {
-                          ...props.search.fields,
-                          [props.column_key]: {
-                            ...props.search.fields[props.column_key],
-                            number: {
-                              ...props.search.fields[props.column_key].number,
-                              omitNonNumeric: event.currentTarget.checked
-                            }
-                          }
-                        }
-                      })}
-                    />
-                    <Checkbox
-                      label="Inclusive Greater Than"
-                      checked={props.search.fields[props.column_key].number.gt.equals}
-                      onChange={(event) => props.setSearch({
-                        ...props.search,
-                        fields: {
-                          ...props.search.fields,
-                          [props.column_key]: {
-                            ...props.search.fields[props.column_key],
-                            number: {
-                              ...props.search.fields[props.column_key].number,
-                              gt: {
-                                ...props.search.fields[props.column_key].number.gt,
-                                equals: event.currentTarget.checked,
+                    <Stack>
+                      <Checkbox
+                        label="Omit Non Numeric"
+                        checked={props.search.fields[props.column_key].number.omitNonNumeric}
+                        onChange={(event) => props.setSearch({
+                          ...props.search,
+                          fields: {
+                            ...props.search.fields,
+                            [props.column_key]: {
+                              ...props.search.fields[props.column_key],
+                              number: {
+                                ...props.search.fields[props.column_key].number,
+                                omitNonNumeric: event.currentTarget.checked
                               }
                             }
                           }
-                        }
-                      })}
-                    />
-                    <Checkbox
-                      label="Inclusive Less Than"
-                      checked={props.search.fields[props.column_key].number.lt.equals}
-                      onChange={(event) => props.setSearch({
-                        ...props.search,
-                        fields: {
-                          ...props.search.fields,
-                          [props.column_key]: {
-                            ...props.search.fields[props.column_key],
-                            number: {
-                              ...props.search.fields[props.column_key].number,
-                              lt: {
-                                ...props.search.fields[props.column_key].number.lt,
-                                equals: event.currentTarget.checked,
+                        })}
+                      />
+                      <Checkbox
+                        label="Inclusive Greater Than"
+                        checked={props.search.fields[props.column_key].number.gt.equals}
+                        onChange={(event) => props.setSearch({
+                          ...props.search,
+                          fields: {
+                            ...props.search.fields,
+                            [props.column_key]: {
+                              ...props.search.fields[props.column_key],
+                              number: {
+                                ...props.search.fields[props.column_key].number,
+                                gt: {
+                                  ...props.search.fields[props.column_key].number.gt,
+                                  equals: event.currentTarget.checked,
+                                }
                               }
                             }
                           }
-                        }
-                      })}
-                    />
-                  </Stack>
-                </Tabs.Panel>
-              </Tabs>
+                        })}
+                      />
+                      <Checkbox
+                        label="Inclusive Less Than"
+                        checked={props.search.fields[props.column_key].number.lt.equals}
+                        onChange={(event) => props.setSearch({
+                          ...props.search,
+                          fields: {
+                            ...props.search.fields,
+                            [props.column_key]: {
+                              ...props.search.fields[props.column_key],
+                              number: {
+                                ...props.search.fields[props.column_key].number,
+                                lt: {
+                                  ...props.search.fields[props.column_key].number.lt,
+                                  equals: event.currentTarget.checked,
+                                }
+                              }
+                            }
+                          }
+                        })}
+                      />
+                    </Stack>
+                  </Tabs.Panel>
+                </Tabs>
+              </Stack>
             </Popover.Dropdown>
           </Popover>
         </div>
