@@ -2,7 +2,7 @@ import React from 'react';
 
 import { css, cx, CacheProvider } from '@emotion/react';
 import createCache from '@emotion/cache';
-import { Avatar, Box, Button, Checkbox, Flex, Group, Modal, NumberInput, Popover, Select, Space, Stack, Tabs, TextInput, Tooltip, rem } from '@mantine/core';
+import { Avatar, Box, Button, Checkbox, Flex, Group, Modal, NumberInput, Popover, Select, Space, Stack, Switch, Tabs, TextInput, Tooltip, rem } from '@mantine/core';
 import {  createEmotionCache, MantineProvider } from '@mantine/core';
 
 import { BsTriangleFill } from 'react-icons/bs';
@@ -33,6 +33,7 @@ const descendingSelectedCss = css`
   transform: rotate(180deg);
 `;
 const containerCss = css`
+  min-height: 275px;
   width: 100%;
   overflow: scroll;
 `;
@@ -44,7 +45,7 @@ const tableCss = css`
   background-color: #212529;
 
   th, td {
-    padding: 0.75rem;
+    padding: 0.375rem;
     vertical-align: top;
     border-top: 1px solid #495057;
   }
@@ -52,6 +53,10 @@ const tableCss = css`
   thead th {
     vertical-align: bottom;
     border-bottom: 2px solid #495057;
+    font-size: 1rem;
+  }
+  td {
+    font-size: 0.8rem;
   }
 
   tbody + tbody {
@@ -83,7 +88,9 @@ const TableControl = ({
   React.useEffect(() => {
 
     const debounceFunc = debounce(debounceTime ?? DEBOUNCE_INPUT_TIME_MS, () => {
-      setSearch({...search, global: searchInput});
+      setSearch((_search) => ({
+        ..._search,
+        global: searchInput}));
     }, {atBegin: false});
 
     debounceFunc();
@@ -226,16 +233,19 @@ const TableControl = ({
 
   return(
     <Flex
-      align="top"
+      align="center"
       gap="xs"
     >
       <Tooltip
         label="Export Data as CSV"
       >
         <Button
-          leftIcon={<TbTableExport />}
           onClick={(event) => exportTable()}
         >
+          <Stack spacing="0.125rem" align="center">
+              <TbTableExport size="1.25rem"/>
+              Export
+          </Stack>
         </Button>
       </Tooltip>
       <Select
@@ -280,30 +290,30 @@ const TableHeader = React.forwardRef((props, ref) => {
   React.useEffect(() => {
 
     const debounceFunc = debounce(props.debounceTime ?? DEBOUNCE_INPUT_TIME_MS, () => {
-      props.setSearch({
-        ...props.search,
+      props.setSearch((_search) => ({
+        ..._search,
         fields: {
-          ...props.search.fields,
+          ..._search.fields,
           [props.column_key]: {
-            ...props.search.fields[props.column_key],
+            ..._search.fields[props.column_key],
             string: {
-              ...props.search.fields[props.column_key].string,
+              ..._search.fields[props.column_key].string,
               text: searchInput.string,
             },
             number: {
-              ...props.search.fields[props.column_key].number,
+              ..._search.fields[props.column_key].number,
               gt: {
-                ...props.search.fields[props.column_key].number.gt,
+                ..._search.fields[props.column_key].number.gt,
                 value: searchInput.number.gt
               },
               lt: {
-                ...props.search.fields[props.column_key].number.lt,
+                ..._search.fields[props.column_key].number.lt,
                 value: searchInput.number.lt
               },
             }
           }
         }
-      });
+      }));
     }, {atBegin: false});
 
     debounceFunc();
@@ -362,8 +372,8 @@ const TableHeader = React.forwardRef((props, ref) => {
     props.setSortFields(new_sort_fields);
   }
 
-  var ascendingIcon = <BsTriangleFill css={ascendingDeselectedCss}/>;
-  var descendingIcon = <BsTriangleFill css={descendingDeselectedCss}/>;
+  var ascendingIcon = <BsTriangleFill size='0.8rem' css={ascendingDeselectedCss}/>;
+  var descendingIcon = <BsTriangleFill size='0.8rem' css={descendingDeselectedCss}/>;
   var column_sort_meta = {
     'symbol': null,
     'index': null,
@@ -373,7 +383,7 @@ const TableHeader = React.forwardRef((props, ref) => {
     if (sortField.key == props.column_key){
       switch (sortField.reverse){
         case true:
-          descendingIcon = <BsTriangleFill css={descendingSelectedCss}/>;
+          descendingIcon = <BsTriangleFill size='0.8rem' css={descendingSelectedCss}/>;
           break;
         case false:
           ascendingIcon = <BsTriangleFill css={ascendingSelectedCss}/>;
@@ -441,7 +451,11 @@ const TableHeader = React.forwardRef((props, ref) => {
               break;
           }
         }
-        props.setColumns({index: props.columns.index, order: newColumnOrder, attributes: props.columns.attributes});
+        props.setColumns({
+          index: props.columns.index,
+          order: newColumnOrder,
+          attributes: props.columns.attributes
+        });
     }
   }
   function onDragStartHandle(event, column_key, column_index){
@@ -480,10 +494,10 @@ const TableHeader = React.forwardRef((props, ref) => {
         return(
           <TextInput
             value={searchInput?.string ?? ''}
-            onChange={(event) => setSearchInput({
-              ...searchInput,
+            onChange={(event) => setSearchInput((_searchInput) => ({
+              ..._searchInput,
               string: ((event.target.value == '') ? null : event.target.value)
-            })}
+            }))}
             size="xs"
             css={css`width: 100%;`}
             styles={{
@@ -509,13 +523,13 @@ const TableHeader = React.forwardRef((props, ref) => {
             <NumberInput
               hideControls={true}
               value={searchInput.number?.gt ?? ''}
-              onChange={(value) => setSearchInput({
-                ...searchInput,
+              onChange={(value) => setSearchInput((_searchInput) => ({
+                ..._searchInput,
                 number: {
-                  ...searchInput.number,
+                  ..._searchInput.number,
                   gt: value,
                 }
-              })}
+              }))}
               size="xs"
               styles={{
                 wrapper: {
@@ -528,83 +542,85 @@ const TableHeader = React.forwardRef((props, ref) => {
                 }
               }}
             />
-            <Avatar
-              onClick={(event) => props.setSearch({
-                ...props.search,
-                fields: {
-                  ...props.search.fields,
-                  [props.column_key]: {
-                    ...props.search.fields[props.column_key],
-                    number: {
-                      ...props.search.fields[props.column_key].number,
-                      gt: {
-                        ...props.search.fields[props.column_key].number.gt,
-                        equals: !props.search.fields[props.column_key].number.gt.equals
+            <Flex gap="0.0625rem">
+              <Avatar
+                onClick={(event) => props.setSearch((_search) => ({
+                  ..._search,
+                  fields: {
+                    ..._search.fields,
+                    [props.column_key]: {
+                      ..._search.fields[props.column_key],
+                      number: {
+                        ..._search.fields[props.column_key].number,
+                        gt: {
+                          ..._search.fields[props.column_key].number.gt,
+                          equals: !_search.fields[props.column_key].number.gt.equals
+                        }
                       }
                     }
                   }
-                }
-              })}
-              css={css`cursor: pointer;`}
-              styles={{
-                root: {
-                  minWidth: '1rem',
-                  width: '1rem',
-                  height: '1.875rem',
-                }
-              }}
-            >
-              {(props.search.fields[props.column_key].number.gt.equals ? <FaLessThanEqual/> : <FaLessThan/>)}
-            </Avatar>
-            <Avatar
-              styles={{
-                root: {
-                  minWidth: '1rem',
-                  width: '1rem',
-                  height: '1.875rem',
-                }
-              }}
-            >
-              <TbLetterX/>
-            </Avatar>
-            <Avatar
-              onClick={(event) => props.setSearch({
-                ...props.search,
-                fields: {
-                  ...props.search.fields,
-                  [props.column_key]: {
-                    ...props.search.fields[props.column_key],
-                    number: {
-                      ...props.search.fields[props.column_key].number,
-                      lt: {
-                        ...props.search.fields[props.column_key].number.lt,
-                        equals: !props.search.fields[props.column_key].number.lt.equals
+                }))}
+                css={css`cursor: pointer;`}
+                styles={{
+                  root: {
+                    minWidth: '0.8rem',
+                    width: '0.8rem',
+                    height: '1.875rem',
+                  }
+                }}
+              >
+                {(props.search.fields[props.column_key].number.gt.equals ? <FaLessThanEqual size="0.6rem"/> : <FaLessThan size="0.6rem"/>)}
+              </Avatar>
+              <Avatar
+                styles={{
+                  root: {
+                    minWidth: '0.8rem',
+                    width: '0.8rem',
+                    height: '1.875rem',
+                  }
+                }}
+              >
+                <TbLetterX size="0.6rem"/>
+              </Avatar>
+              <Avatar
+                onClick={(event) => props.setSearch((_search) => ({
+                  ..._search,
+                  fields: {
+                    ..._search.fields,
+                    [props.column_key]: {
+                      ..._search.fields[props.column_key],
+                      number: {
+                        ..._search.fields[props.column_key].number,
+                        lt: {
+                          ..._search.fields[props.column_key].number.lt,
+                          equals: !_search.fields[props.column_key].number.lt.equals
+                        }
                       }
                     }
                   }
-                }
-              })}
-              css={css`cursor: pointer;`}
-              styles={{
-                root: {
-                  minWidth: '1rem',
-                  width: '1rem',
-                  height: '1.875rem',
-                }
-              }}
-            >
-              {(props.search.fields[props.column_key].number.lt.equals ? <FaLessThanEqual/> : <FaLessThan/>)}
-            </Avatar>
+                }))}
+                css={css`cursor: pointer;`}
+                styles={{
+                  root: {
+                    minWidth: '0.8rem',
+                    width: '0.8rem',
+                    height: '1.875rem',
+                  }
+                }}
+              >
+                {(props.search.fields[props.column_key].number.lt.equals ? <FaLessThanEqual size="0.6rem"/> : <FaLessThan size="0.6rem"/>)}
+              </Avatar>
+            </Flex>
             <NumberInput
               hideControls={true}
               value={searchInput.number?.lt ?? ''}
-              onChange={(value) => setSearchInput({
-                ...searchInput,
+              onChange={(value) => setSearchInput((_searchInput) => ({
+                ..._searchInput,
                 number: {
-                  ...searchInput.number,
+                  ..._searchInput.number,
                   lt: value,
                 }
-              })}
+              }))}
               size="xs"
               styles={{
                 wrapper: {
@@ -622,10 +638,132 @@ const TableHeader = React.forwardRef((props, ref) => {
     }
   }
 
+  function renderPopup(){
+    if (props.search.fields[props.column_key]._type == 'string'){
+      return(
+        <Stack spacing="0.125rem">
+          <Checkbox
+            label="Trim"
+            checked={props.search.fields[props.column_key].string.trim}
+            onChange={(event) => props.setSearch((_search) => ({
+              ..._search,
+              fields: {
+                ..._search.fields,
+                [props.column_key]: {
+                  ..._search.fields[props.column_key],
+                  string: {
+                    ..._search.fields[props.column_key].string,
+                    trim: event.currentTarget.checked
+                  }
+                }
+              }
+            }))}
+          />
+          <Checkbox
+            label="Case Sensitive"
+            checked={props.search.fields[props.column_key].string.caseSensitive}
+            onChange={(event) => props.setSearch((_search) => ({
+              ..._search,
+              fields: {
+                ..._search.fields,
+                [props.column_key]: {
+                  ..._search.fields[props.column_key],
+                  string: {
+                    ..._search.fields[props.column_key].string,
+                    caseSensitive: event.currentTarget.checked
+                  }
+                }
+              }
+            }))}
+          />
+          <Checkbox
+            label="Regex"
+            checked={props.search.fields[props.column_key].string.isRegex}
+            onChange={(event) => props.setSearch((_search) => ({
+              ..._search,
+              fields: {
+                ..._search.fields,
+                [props.column_key]: {
+                  ..._search.fields[props.column_key],
+                  string: {
+                    ..._search.fields[props.column_key].string,
+                    isRegex: event.currentTarget.checked
+                  }
+                }
+              }
+            }))}
+          />
+        </Stack>
+      );
+    } else if (props.search.fields[props.column_key]._type == 'number'){
+      return(
+        <Stack spacing="0.125rem">
+          <Checkbox
+            label="Omit Non Numeric"
+            checked={props.search.fields[props.column_key].number.omitNonNumeric}
+            onChange={(event) => props.setSearch((_search) => ({
+              ..._search,
+              fields: {
+                ..._search.fields,
+                [props.column_key]: {
+                  ..._search.fields[props.column_key],
+                  number: {
+                    ..._search.fields[props.column_key].number,
+                    omitNonNumeric: event.currentTarget.checked
+                  }
+                }
+              }
+            }))}
+          />
+          <Checkbox
+            label="Inclusive Greater Than"
+            checked={props.search.fields[props.column_key].number.gt.equals}
+            onChange={(event) => props.setSearch((_search) => ({
+              ..._search,
+              fields: {
+                ..._search.fields,
+                [props.column_key]: {
+                  ..._search.fields[props.column_key],
+                  number: {
+                    ..._search.fields[props.column_key].number,
+                    gt: {
+                      ..._search.fields[props.column_key].number.gt,
+                      equals: event.currentTarget.checked,
+                    }
+                  }
+                }
+              }
+            }))}
+          />
+          <Checkbox
+            label="Inclusive Less Than"
+            checked={props.search.fields[props.column_key].number.lt.equals}
+            onChange={(event) => props.setSearch((_search) => ({
+              ..._search,
+              fields: {
+                ..._search.fields,
+                [props.column_key]: {
+                  ..._search.fields[props.column_key],
+                  number: {
+                    ..._search.fields[props.column_key].number,
+                    lt: {
+                      ..._search.fields[props.column_key].number.lt,
+                      equals: event.currentTarget.checked,
+                    }
+                  }
+                }
+              }
+            }))}
+          />
+        </Stack>
+      );
+    }
+  }
+
   return(
     <th>
       <Stack
-        spacing={0}
+        spacing="0.125rem"
       >
         <div
           ref={(element) => ref.current[props.column_index] = element}
@@ -636,15 +774,19 @@ const TableHeader = React.forwardRef((props, ref) => {
           onDragEnter={(event) => event.preventDefault()}
           onDrop={(event) => onDropHandle(event)}
         >
-          <Flex align="center">
+          <Flex align="center" gap="0.125rem">
             <Button
               className="p-1 m-1"
-              styles={{root: {backgroundColor: "#495057", color: "#212529"}}}
+              styles={{root: {
+                backgroundColor: "#495057",
+                color: "#212529",
+                padding: '0.125rem',
+              }}}
               onClick={(event) => sortFieldClick(event)}
             >
               <Flex align="center" justify="center">
                 {column_sort_meta.index}
-                <Stack spacing={4} className="m-1">
+                <Stack spacing="0.125rem" className="m-1">
                   {ascendingIcon}
                   {descendingIcon}
                 </Stack>
@@ -658,12 +800,16 @@ const TableHeader = React.forwardRef((props, ref) => {
             width="100%"
             opened={searchOptionsOpen}
             onChange={setSearchOptionsOpen}
-            styles={{dropdown: {top: rem('2.375rem')}}}
+            styles={{dropdown: {
+              top: rem('2.375rem'),
+              left: rem('0rem'),
+              minWidth: "100%",
+
+            }}}
             position="bottom"
           >
             <Popover.Target>
               <Flex align="center" gap="0.125rem">
-                {renderSearchInput()}
                 <Avatar
                   styles={{
                     root: {
@@ -682,156 +828,29 @@ const TableHeader = React.forwardRef((props, ref) => {
                 >
                   <FaSearchPlus color={(searchOptionsOpen ? '#ffffff' : '#000000')}/>
                 </Avatar>
+                {renderSearchInput()}
               </Flex>
             </Popover.Target>
-            <Popover.Dropdown css={css`top: 2.375rem !important;`}>
-              <Tabs
-                value={props.search.fields[props.column_key]._type}
-                onTabChange={(value) => props.setSearch({
-                  ...props.search,
-                  fields: {
-                    ...props.search.fields,
-                    [props.column_key]: {
-                      ...props.search.fields[props.column_key],
-                      _type: value
+            <Popover.Dropdown css={css`top: 2.375rem !important; left: 0 !important; min-width: 25rem !important;`}>
+              <Stack spacing="0.125rem">
+                <Switch
+                  onLabel="123"
+                  offLabel="ABC"
+                  checked={props.search.fields[props.column_key]._type != 'string'}
+                  onChange={(event) => props.setSearch((_search) => ({
+                    ..._search,
+                    fields: {
+                      ..._search.fields,
+                      [props.column_key]: {
+                        ..._search.fields[props.column_key],
+                        _type: (event.currentTarget.checked ? 'number' : 'string'),
+                      }
                     }
-                  }
-                })}
-              >
-                <Tabs.List>
-                  <Tabs.Tab
-                    value="string"
-                  >
-                    Text
-                  </Tabs.Tab>
-                  <Tabs.Tab
-                    value="number"
-                  >
-                    Numeric
-                  </Tabs.Tab>
-                </Tabs.List>
-
-                <Tabs.Panel
-                  value="string"
-                >
-                  <Stack>
-                    <Checkbox
-                      label="Trim"
-                      checked={props.search.fields[props.column_key].string.trim}
-                      onChange={(event) => props.setSearch({
-                        ...props.search,
-                        fields: {
-                          ...props.search.fields,
-                          [props.column_key]: {
-                            ...props.search.fields[props.column_key],
-                            string: {
-                              ...props.search.fields[props.column_key].string,
-                              trim: event.currentTarget.checked
-                            }
-                          }
-                        }
-                      })}
-                    />
-                    <Checkbox
-                      label="Case Sensitive"
-                      checked={props.search.fields[props.column_key].string.caseSensitive}
-                      onChange={(event) => props.setSearch({
-                        ...props.search,
-                        fields: {
-                          ...props.search.fields,
-                          [props.column_key]: {
-                            ...props.search.fields[props.column_key],
-                            string: {
-                              ...props.search.fields[props.column_key].string,
-                              caseSensitive: event.currentTarget.checked
-                            }
-                          }
-                        }
-                      })}
-                    />
-                    <Checkbox
-                      label="Regex"
-                      checked={props.search.fields[props.column_key].string.isRegex}
-                      onChange={(event) => props.setSearch({
-                        ...props.search,
-                        fields: {
-                          ...props.search.fields,
-                          [props.column_key]: {
-                            ...props.search.fields[props.column_key],
-                            string: {
-                              ...props.search.fields[props.column_key].string,
-                              isRegex: event.currentTarget.checked
-                            }
-                          }
-                        }
-                      })}
-                    />
-                  </Stack>
-                </Tabs.Panel>
-                <Tabs.Panel
-                  value="number"
-                >
-                  <Stack>
-                    <Checkbox
-                      label="Omit Non Numeric"
-                      checked={props.search.fields[props.column_key].number.omitNonNumeric}
-                      onChange={(event) => props.setSearch({
-                        ...props.search,
-                        fields: {
-                          ...props.search.fields,
-                          [props.column_key]: {
-                            ...props.search.fields[props.column_key],
-                            number: {
-                              ...props.search.fields[props.column_key].number,
-                              omitNonNumeric: event.currentTarget.checked
-                            }
-                          }
-                        }
-                      })}
-                    />
-                    <Checkbox
-                      label="Inclusive Greater Than"
-                      checked={props.search.fields[props.column_key].number.gt.equals}
-                      onChange={(event) => props.setSearch({
-                        ...props.search,
-                        fields: {
-                          ...props.search.fields,
-                          [props.column_key]: {
-                            ...props.search.fields[props.column_key],
-                            number: {
-                              ...props.search.fields[props.column_key].number,
-                              gt: {
-                                ...props.search.fields[props.column_key].number.gt,
-                                equals: event.currentTarget.checked,
-                              }
-                            }
-                          }
-                        }
-                      })}
-                    />
-                    <Checkbox
-                      label="Inclusive Less Than"
-                      checked={props.search.fields[props.column_key].number.lt.equals}
-                      onChange={(event) => props.setSearch({
-                        ...props.search,
-                        fields: {
-                          ...props.search.fields,
-                          [props.column_key]: {
-                            ...props.search.fields[props.column_key],
-                            number: {
-                              ...props.search.fields[props.column_key].number,
-                              lt: {
-                                ...props.search.fields[props.column_key].number.lt,
-                                equals: event.currentTarget.checked,
-                              }
-                            }
-                          }
-                        }
-                      })}
-                    />
-                  </Stack>
-                </Tabs.Panel>
-              </Tabs>
+                  }))}
+                  size="md"
+                />
+                {renderPopup()}
+              </Stack>
             </Popover.Dropdown>
           </Popover>
         </div>
@@ -1228,7 +1247,7 @@ const Table = React.forwardRef((props, ref) => {
     for (let i = 0; i < columns.order.length; i++){
       let key = columns.order[i];
       let column = columns.attributes[key];
-      exportHeaders.push(column.name);
+      exportHeaders.push(column.label ?? column.key);
     }
     exportRows.push(exportHeaders.join(","));
 
@@ -1262,6 +1281,16 @@ const Table = React.forwardRef((props, ref) => {
     nonce: props.nonce,
   });
   cache.compat = true;
+
+  function renderNoResults(){
+    if ((rows?.length ?? 0) == 0){
+      return(
+        <>
+          No Results Found After Filtering
+        </>
+      );
+    }
+  }
 
   console.debug('Render Table');
   return(
@@ -1298,6 +1327,7 @@ const Table = React.forwardRef((props, ref) => {
               {rows}
             </tbody>
           </table>
+          {renderNoResults()}
         </div>
       </MantineProvider>
     </CacheProvider>
