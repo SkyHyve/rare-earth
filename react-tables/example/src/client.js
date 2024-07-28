@@ -1,5 +1,5 @@
 import { h, render } from 'preact';
-import { Table } from '@rare-earth/react-tables';
+import { Table } from '@rare-earth/react-tables/dist/bundle.esm';
 
 const App = function(){
 
