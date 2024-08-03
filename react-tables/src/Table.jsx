@@ -4,7 +4,7 @@ import React from 'react';
 
 import { css, cx, CacheProvider } from '@emotion/react';
 import createCache from '@emotion/cache';
-import { Avatar, Button, Checkbox, Flex, NumberInput, Pagination, Popover, Select, Stack, Switch, Table, Tabs, Text, TextInput, Tooltip, rem } from '@mantine/core';
+import { Avatar, Button, Checkbox, Divider, Flex, NumberInput, Pagination, Popover, Select, Stack, Switch, Table, Tabs, Text, TextInput, Tooltip, rem } from '@mantine/core';
 import { MantineProvider } from '@mantine/core';
 
 
@@ -181,7 +181,7 @@ const TableControl = ({
   return(
     <Flex
       align="center"
-      gap="xs"
+      gap="md"
     >
       <Tooltip
         label="Export Filtered Data as CSV"
@@ -199,8 +199,9 @@ const TableControl = ({
       <Stack
         spacing="0.0625rem"
       >
-        <Text>{numFilteredRecords} filtered entries</Text>
-        <Text>from {numRecords} total entries</Text>
+        <Text>{numFilteredRecords} filtered</Text>
+        <Divider size="xs"/>
+        <Text>{numRecords} total</Text>
       </Stack>
       <Select
         label={`Page Length`}
@@ -231,9 +232,10 @@ const TableControl = ({
           value={searchInput ?? ''}
           onChange={(event) => setSearchInput((event.target.value?.trim() == '') ? null : event.target.value)}
         />
-        <Tooltip label="Reset Filters and Sorting">
+        <Tooltip label="Reset Table">
           <Avatar
             onClick={(event) => {
+              setPage(1);
               setSearchInput(null);
               setSortFields([]);
               setSearch(initiaDefaultSearch(columns));
