@@ -117,6 +117,7 @@ const TableControl = ({
   columns,
   exportTable,
   numRecords,
+  numFilteredRecords,
   sortFields,
   setSortFields,
   search,
@@ -145,10 +146,20 @@ const TableControl = ({
     });
   }, [searchInput]);
 
-  function _setPageLength(pageLength){
-    let firstEntry = ((page - 1) * pageLength) + 1;
-    let firstEntryPage = Math.ceil(firstEntry / pageLength);
+  React.useEffect(() => {
+    if (parseFloat(pageLength) > numFilteredRecords){
+      setPageLength(Infinity);
+    }
+  }, [pageLength, numFilteredRecords]);
 
+  function _setPageLength(pageLength){
+    var firstEntryPage;
+    if (pageLength === Infinity){
+      firstEntryPage = 1;
+    } else {
+      let firstEntry = ((page - 1) * pageLength) + 1;
+      firstEntryPage = Math.ceil(firstEntry / pageLength);
+    }
     setPage(firstEntryPage);
     setPageLength(pageLength);
   }
@@ -157,19 +168,15 @@ const TableControl = ({
   var addNextPageOption = true;
   for (let i = 0; i < pageLengthChoices.length; i++){
     let pageLength = pageLengthChoices[i];
-    switch (pageLength < numRecords){
-      case true:
-        pageLengthOptions.push({ value: pageLength.toString(), label: pageLength.toString() });
-        break;
-      case false:
-        pageLengthOptions.push({ value: numRecords.toString(), label: 'ALL' });
-        addNextPageOption = false;
-        break;
+    if (pageLength < numFilteredRecords){
+      pageLengthOptions.push({ value: pageLength.toString(), label: pageLength.toString() });
     }
     if (!addNextPageOption){
       break;
     }
   }
+  pageLengthOptions.push({ value: 'Infinity', label: 'ALL' });
+  addNextPageOption = false;
 
   return(
     <Flex
@@ -177,7 +184,7 @@ const TableControl = ({
       gap="xs"
     >
       <Tooltip
-        label="Export Data as CSV"
+        label="Export Filtered Data as CSV"
       >
         <Button
           color='gray.7'
@@ -189,10 +196,16 @@ const TableControl = ({
           </Stack>
         </Button>
       </Tooltip>
+      <Stack
+        spacing="0.0625rem"
+      >
+        <Text>{numFilteredRecords} filtered entries</Text>
+        <Text>from {numRecords} total entries</Text>
+      </Stack>
       <Select
-        label="Page Length"
-        value={(pageLengthOptions.map((x, i) => parseInt(x.value)).includes(parseInt(pageLength)) ? pageLength.toString() : pageLengthOptions[0].value.toString())}
-        onChange={(value) => _setPageLength(parseInt(value))}
+        label={`Page Length`}
+        value={pageLength.toString()}
+        onChange={(value) => _setPageLength(parseFloat(value))}
         data={pageLengthOptions}
       />
       <Flex
@@ -461,7 +474,7 @@ const TableHeader = React.forwardRef((props, ref) => {
       case 'string':
         return(
           <TextInput
-            placeholder={`Filter ${props.column.label ?? props.column_key.toString()}`}
+            placeholder={`Filter`}
             value={searchInput?.string ?? ''}
             onChange={(event) => setSearchInput((_searchInput) => ({
               ..._searchInput,
@@ -490,6 +503,7 @@ const TableHeader = React.forwardRef((props, ref) => {
             css={css`max-width: 10rem;`}
           >
             <NumberInput
+              placeholder="Lower"
               hideControls={true}
               value={searchInput.number?.gt ?? ''}
               onChange={(value) => setSearchInput((_searchInput) => ({
@@ -581,6 +595,7 @@ const TableHeader = React.forwardRef((props, ref) => {
               </Avatar>
             </Flex>
             <NumberInput
+              placeholder="Upper"
               hideControls={true}
               value={searchInput.number?.lt ?? ''}
               onChange={(value) => setSearchInput((_searchInput) => ({
@@ -739,7 +754,7 @@ const TableHeader = React.forwardRef((props, ref) => {
           <Flex gap={0}>
             Hold
             &nbsp;<Text css={`font-weight: bold;`}>Shift</Text>
-            &nbsp;and click to multi-sort.
+            &nbsp;and click to add to multi-sort or change sort direction.
           </Flex>
         </Text>
       </Stack>
@@ -819,9 +834,11 @@ const TableHeader = React.forwardRef((props, ref) => {
                   }}
                   onClick={(event) => setSearchOptionsOpen(!searchOptionsOpen)}
                 >
-                  <Stack spacing="xs" align="center">
+                  <Stack spacing="0.0625rem" align="center">
                     <FaSearchPlus color={(searchOptionsOpen ? '#ffffff' : '#000000')}/>
-                    {((props?.search?.fields?.[props?.column_key]?._type != 'string') ? "123" : "ABC")}
+                    <Text css={css`font-size: 0.5rem`}>
+                      {((props?.search?.fields?.[props?.column_key]?._type != 'string') ? "123" : "ABC")}
+                    </Text>
                   </Stack>
                 </Avatar>
                 {renderSearchInput()}
@@ -1191,7 +1208,12 @@ const DataTable = React.forwardRef((props, ref) => {
 
   let pageCount = Math.max(Math.ceil((filteredSortedRecords?.length ?? 0) / pageLength), 1);
   let rows = [];
-  for (let i = (page - 1) * pageLength; i < Math.min(page * pageLength, filteredSortedRecords.length); i++){
+
+  console.log(pageLength);
+  let lb = (pageLength === Infinity) ? 0 : (page - 1) * pageLength;
+  let ub = (pageLength === Infinity) ? filteredSortedRecords.length : Math.min(page * pageLength, filteredSortedRecords.length);
+
+  for (let i = lb; i < ub; i++){
     let record = filteredSortedRecords[i];
     let cells = [];
     if ((props.index ?? false)){
@@ -1223,7 +1245,7 @@ const DataTable = React.forwardRef((props, ref) => {
     }
     rows.push(<tr key={i}>{cells}</tr>);
   }
-  if ((page > 1) && (filteredSortedRecords.length < ((page - 1) * pageLength + 1))){
+  if ((page > 1) && ((filteredSortedRecords.length < ((page - 1) * pageLength + 1)) || (pageLength === Infinity))){
     setPage(1);
   }
 
@@ -1295,6 +1317,7 @@ const DataTable = React.forwardRef((props, ref) => {
             columns={props?.columns ?? []}
             exportTable={exportTable}
             numRecords={records.length}
+            numFilteredRecords={filteredRecords.length}
             sortFields={sortFields}
             setSortFields={setSortFields}
             search={search}
