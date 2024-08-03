@@ -3,6 +3,8 @@ import nodeResolve from '@rollup/plugin-node-resolve'
 import json from '@rollup/plugin-json'
 import babel from '@rollup/plugin-babel'
 import commonjs from '@rollup/plugin-commonjs';
+import postcss from 'rollup-plugin-postcss';
+import postcssPresetMantine from 'postcss-preset-mantine';
 import replace from '@rollup/plugin-replace';
 
 import pkg from './package.json' assert { type: "json" };
@@ -11,6 +13,11 @@ const INPUT_FILE_PATH = 'src/Table.jsx';
 const OUTPUT_NAME = 'RareEarth';
 
 const PLUGINS = [
+  postcss({
+    plugins: [
+      postcssPresetMantine,
+    ]
+  }),
   replace({
     'process.env.NODE_ENV': JSON.stringify('production'),
     preventAssignment: true,

@@ -1,5 +1,5 @@
 import { h, render } from 'preact';
-import { Table } from '@rare-earth/react-tables/dist/bundle.esm';
+import { DataTable } from '@rare-earth/react-tables/dist/bundle.esm';
 
 const App = function(){
 
@@ -14,32 +14,29 @@ const App = function(){
       type: 'string'
     }
   ];
-  const RECORDS = [
-    {a: 1, b: 'abc'},
-    {a: 2, b: 'DEF'},
-    {a: 1, b: 'abc'},
-    {a: 2, b: 'DEF'},
-    {a: 1, b: 'abc'},
-    {a: 2, b: 'DEF'},
-    {a: 1, b: 'abc'},
-    {a: 2, b: 'DEF'},
-    {a: 1, b: 'abc'},
-    {a: 2, b: 'DEF'},
-    {a: 1, b: 'abc'},
-    {a: 2, b: 'DEF'},
-    {a: 1, b: 'abc'},
-    {a: 2, b: 'DEF'},
-    {a: 1, b: 'abc'},
-    {a: 2, b: 'DEF'},
-    {a: 1, b: 'abc'},
-    {a: 2, b: 'DEF'},
-    {a: 1, b: 'abc'},
-    {a: 2, b: 'DEF'},
-  ];
+  function getRandomNumber(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+  
+  // Function to generate a random string of given length
+  function getRandomString(length) {
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let result = '';
+    for (let i = 0; i < length; i++) {
+      result += characters.charAt(Math.floor(Math.random() * characters.length));
+    }
+    return result;
+  }
+  
+  // Generate an array of 200 objects
+  const RECORDS = Array.from({ length: 200 }, () => ({
+    a: getRandomNumber(1, 100), // Random number between 1 and 100
+    b: getRandomString(10)      // Random string of 10 characters
+  }));
 
   return(
     <div className="App" style="">
-      <Table
+      <DataTable
         columns={COLUMNS}
         records={RECORDS}
       />

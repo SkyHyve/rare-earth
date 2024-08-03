@@ -1,14 +1,16 @@
+// import '@mantine/core/styles.css';
+
 import React from 'react';
 
 import { css, cx, CacheProvider } from '@emotion/react';
 import createCache from '@emotion/cache';
-import { Avatar, Box, Button, Checkbox, Flex, Group, Modal, NumberInput, Popover, Select, Space, Stack, Switch, Tabs, TextInput, Tooltip, rem } from '@mantine/core';
-import {  createEmotionCache, MantineProvider } from '@mantine/core';
+import { Avatar, Button, Checkbox, Flex, NumberInput, Pagination, Popover, Select, Stack, Switch, Table, Tabs, Text, TextInput, Tooltip, rem } from '@mantine/core';
+import { MantineProvider } from '@mantine/core';
+
 
 import { BsTriangleFill } from 'react-icons/bs';
-import { FaGreaterThan, FaGreaterThanEqual, FaLessThan, FaLessThanEqual, FaSearch, FaSearchPlus } from 'react-icons/fa';
-import { FiFilter } from 'react-icons/fi';
-import { TbLetterX, TbTableExport } from 'react-icons/tb';
+import { FaLessThan, FaLessThanEqual, FaSearch, FaSearchPlus } from 'react-icons/fa';
+import { TbLetterX, TbTableExport, TbZoomReset } from 'react-icons/tb';
 
 import { debounce } from 'throttle-debounce';
 
@@ -37,6 +39,7 @@ const containerCss = css`
   width: 100%;
   overflow: scroll;
 `;
+
 const tableCss = css`
   width: 100%;
   max-width: 100%;
@@ -45,7 +48,7 @@ const tableCss = css`
   background-color: #212529;
 
   th, td {
-    padding: 0.375rem;
+    padding: 0.25rem;
     vertical-align: top;
     border-top: 1px solid #495057;
   }
@@ -66,9 +69,52 @@ const tableCss = css`
   tbody tr:nth-of-type(even) {
     background-color: #2c3034;
   }
+
+
+  input[type="checkbox"].rare-earth-Checkbox-input:checked {
+    background-color: #000000 !important;
+    border-color: #000000 !important;
+  }
+  input:checked + .rare-earth-Switch-track {
+    background-color: #000000 !important;
+    border-color: #000000 !important;
+  }
+  button.rare-earth-sort-button:hover {
+    background-color: #ffffff !important;
+  }
 `;
 
+const initiaDefaultSearch = function(columns){
+  return {
+    global: null,
+    fields: Object.fromEntries((columns ?? []).map((x, i) => [
+      x.key,
+      {
+        _type: ((x.type == 'number') ? 'number' : 'string'),
+        string: {
+          text: null,
+          trim: true,
+          caseSensitive: false,
+          isRegex: false
+        },
+        number: {
+          omitNonNumeric: true,
+          gt: {
+            value: null,
+            equals: false,
+          },
+          lt: {
+            value: null,
+            equals: false,
+          }
+        }
+      }
+    ])),
+  };
+};
+
 const TableControl = ({
+  columns,
   exportTable,
   numRecords,
   sortFields,
@@ -125,112 +171,6 @@ const TableControl = ({
     }
   }
 
-  let paginationButtons = [];
-  switch (page <= 4){
-    case false:
-      paginationButtons.push(
-        <Button
-          key="<<"
-          onClick={() => setPage(1)}
-        >
-          <b>{String.fromCharCode(60) + String.fromCharCode(60)}</b>
-        </Button>
-      );
-      break;
-    case true:
-      paginationButtons.push(
-        <Button
-          key="<<"
-          disabled={true}
-          onClick={() => {}}
-          styles={{root: {visibility: 'hidden'}}}
-        >
-          <b>{String.fromCharCode(60) + String.fromCharCode(60)}</b>
-        </Button>
-      );
-      break;
-  }
-  for (let i = page - 3; i < page; i ++){
-    switch (i < 1){
-      case true:
-        paginationButtons.push(
-          <Button
-            key={i}
-            onClick={() => setPage(i)}
-            styles={{root: {visibility: 'hidden'}}}
-          >
-            <b>{i}</b>
-          </Button>
-        );
-        break;
-      case false:
-        paginationButtons.push(
-          <Button
-            key={i}
-            onClick={() => setPage(i)}
-          >
-            <b>{i}</b>
-          </Button>
-        );
-        break;
-    }
-  }
-  paginationButtons.push(
-    <Button
-      key={page}
-    >
-      <b>{"Page " + page + " of " + pageCount}</b>
-    </Button>
-  );
-  for (let i = page + 1; i < page + 4; i ++){
-    switch (i > pageCount){
-      case true:
-        paginationButtons.push(
-          <Button
-            key={i}
-            onClick={() => setPage(i)}
-            styles={{root: {visibility: 'hidden'}}}
-          >
-            <b>{i}</b>
-          </Button>
-        );
-        break;
-      case false:
-        paginationButtons.push(
-          <Button
-            key={i}
-            onClick={() => setPage(i)}
-          >
-            <b>{i}</b>
-          </Button>
-        );
-    }
-  }
-  switch ((page + 4) > pageCount){
-    case false:
-      paginationButtons.push(
-        <Button
-          key=">>"
-          onClick={() => setPage(pageCount)}
-        >
-          <b>{String.fromCharCode(62) + String.fromCharCode(62)}</b>
-        </Button>
-      );
-      break;
-    case true:
-      paginationButtons.push(
-        <Button
-          key=">>"
-          disabled={true}
-          onClick={() => {}}
-          styles={{root: {visibility: 'hidden'}}}
-        >
-          <b>{String.fromCharCode(62) + String.fromCharCode(62)}</b>
-        </Button>
-      );
-      break;
-  }
-
   return(
     <Flex
       align="center"
@@ -240,6 +180,7 @@ const TableControl = ({
         label="Export Data as CSV"
       >
         <Button
+          color='gray.7'
           onClick={(event) => exportTable()}
         >
           <Stack spacing="0.125rem" align="center">
@@ -257,7 +198,12 @@ const TableControl = ({
       <Flex
         gap="xs"
       >
-        {paginationButtons}
+        <Pagination
+          color='gray.7'
+          value={page}
+          onChange={setPage}
+          total={pageCount}
+        />
       </Flex>
       <Flex
         align="center"
@@ -268,9 +214,22 @@ const TableControl = ({
       >
         <FaSearch/>
         <TextInput
-          value={searchInput}
-          onChange={(event) => setSearchInput((event.target.value == '') ? null : event.target.value)}
+          placeholder="Table Search"
+          value={searchInput ?? ''}
+          onChange={(event) => setSearchInput((event.target.value?.trim() == '') ? null : event.target.value)}
         />
+        <Tooltip label="Reset Filters and Sorting">
+          <Avatar
+            onClick={(event) => {
+              setSearchInput(null);
+              setSortFields([]);
+              setSearch(initiaDefaultSearch(columns));
+            }}
+            css={css`cursor: pointer; color: #f03e3e;`}
+          >
+            <TbZoomReset/>
+          </Avatar>
+        </Tooltip>
       </Flex>
     </Flex>
   );
@@ -287,6 +246,15 @@ const TableHeader = React.forwardRef((props, ref) => {
   });
   const [searchOptionsOpen, setSearchOptionsOpen] = React.useState(false);
 
+  React.useEffect(() => {
+    setSearchInput({
+      string: props.search?.fields?.[props.column_key]?.string?.text,
+      number: {
+        gt: props.search?.fields?.[props.column_key]?.number?.gt?.value,
+        lt: props.search?.fields?.[props.column_key]?.number?.lt?.value,
+      }
+    });
+  }, [JSON.stringify(props?.search?.fields?.[props?.column_key])]);
   React.useEffect(() => {
 
     const debounceFunc = debounce(props.debounceTime ?? DEBOUNCE_INPUT_TIME_MS, () => {
@@ -320,7 +288,7 @@ const TableHeader = React.forwardRef((props, ref) => {
     return(() => {
       debounceFunc.cancel();
     });
-  }, [searchInput]);
+  }, [JSON.stringify(searchInput)]);
 
   function sortFieldClick(event){
     var this_field_reverse = null;
@@ -372,9 +340,9 @@ const TableHeader = React.forwardRef((props, ref) => {
     props.setSortFields(new_sort_fields);
   }
 
-  var ascendingIcon = <BsTriangleFill size='0.8rem' css={ascendingDeselectedCss}/>;
+  var ascendingIcon = <BsTriangleFill size='0.8rem'  css={ascendingDeselectedCss}/>;
   var descendingIcon = <BsTriangleFill size='0.8rem' css={descendingDeselectedCss}/>;
-  var column_sort_meta = {
+    var column_sort_meta = {
     'symbol': null,
     'index': null,
   };
@@ -386,7 +354,7 @@ const TableHeader = React.forwardRef((props, ref) => {
           descendingIcon = <BsTriangleFill size='0.8rem' css={descendingSelectedCss}/>;
           break;
         case false:
-          ascendingIcon = <BsTriangleFill css={ascendingSelectedCss}/>;
+          ascendingIcon = <BsTriangleFill size='0.8rem' css={ascendingSelectedCss}/>;
           break;
         case null:
           break;
@@ -489,14 +457,15 @@ const TableHeader = React.forwardRef((props, ref) => {
   }
 
   function renderSearchInput(){
-    switch(props.search.fields[props.column_key]._type){
+    switch(props?.search?.fields?.[props?.column_key]?._type){
       case 'string':
         return(
           <TextInput
+            placeholder={`Filter ${props.column.label ?? props.column_key.toString()}`}
             value={searchInput?.string ?? ''}
             onChange={(event) => setSearchInput((_searchInput) => ({
               ..._searchInput,
-              string: ((event.target.value == '') ? null : event.target.value)
+              string: ((event.target.value?.trim?.() == '') ? null : event.target.value)
             }))}
             size="xs"
             css={css`width: 100%;`}
@@ -527,7 +496,7 @@ const TableHeader = React.forwardRef((props, ref) => {
                 ..._searchInput,
                 number: {
                   ..._searchInput.number,
-                  gt: value,
+                  gt: (isNaN(parseFloat(value)) ? null : parseFloat(value)),
                 }
               }))}
               size="xs"
@@ -618,7 +587,7 @@ const TableHeader = React.forwardRef((props, ref) => {
                 ..._searchInput,
                 number: {
                   ..._searchInput.number,
-                  lt: value,
+                  lt: (isNaN(parseFloat(value)) ? null : parseFloat(value)),
                 }
               }))}
               size="xs"
@@ -639,7 +608,7 @@ const TableHeader = React.forwardRef((props, ref) => {
   }
 
   function renderPopup(){
-    if (props.search.fields[props.column_key]._type == 'string'){
+    if (props?.search?.fields?.[props?.column_key]?._type == 'string'){
       return(
         <Stack spacing="0.125rem">
           <Checkbox
@@ -695,7 +664,7 @@ const TableHeader = React.forwardRef((props, ref) => {
           />
         </Stack>
       );
-    } else if (props.search.fields[props.column_key]._type == 'number'){
+    } else if (props?.search?.fields?.[props?.column_key]?._type == 'number'){
       return(
         <Stack spacing="0.125rem">
           <Checkbox
@@ -760,6 +729,23 @@ const TableHeader = React.forwardRef((props, ref) => {
     }
   }
 
+  function renderTooltip(){
+    return(
+      <Stack spacing="xs" css={`font-weight: normal;`}>
+        <Text>
+          Click to sort by {props.column.label ?? props.column_key.toString()}
+        </Text>
+        <Text>
+          <Flex gap={0}>
+            Hold
+            &nbsp;<Text css={`font-weight: bold;`}>Shift</Text>
+            &nbsp;and click to multi-sort.
+          </Flex>
+        </Text>
+      </Stack>
+    );
+  }
+
   return(
     <th>
       <Stack
@@ -775,23 +761,30 @@ const TableHeader = React.forwardRef((props, ref) => {
           onDrop={(event) => onDropHandle(event)}
         >
           <Flex align="center" gap="0.125rem">
-            <Button
-              className="p-1 m-1"
-              styles={{root: {
-                backgroundColor: "#495057",
-                color: "#212529",
-                padding: '0.125rem',
-              }}}
-              onClick={(event) => sortFieldClick(event)}
+            <Tooltip
+              label={renderTooltip()}
             >
-              <Flex align="center" justify="center">
-                {column_sort_meta.index}
-                <Stack spacing="0.125rem" className="m-1">
-                  {ascendingIcon}
-                  {descendingIcon}
-                </Stack>
-              </Flex>
-            </Button>
+              <Button
+                className="m-1"
+                styles={{root: {
+                  backgroundColor: "#495057",
+                  color: "#212529",
+                  padding: '0.125rem',
+                }}}
+                classNames={{
+                  root: 'rare-earth-sort-button',
+                }}
+                onClick={(event) => sortFieldClick(event)}
+              >
+                <Flex align="center" justify="center">
+                  {column_sort_meta.index}
+                  <Stack spacing="0.125rem" className="m-1">
+                    {ascendingIcon}
+                    {descendingIcon}
+                  </Stack>
+                </Flex>
+              </Button>
+            </Tooltip>
             {props.column.label ?? props.column_key.toString()}
           </Flex>
         </div>
@@ -826,7 +819,10 @@ const TableHeader = React.forwardRef((props, ref) => {
                   }}
                   onClick={(event) => setSearchOptionsOpen(!searchOptionsOpen)}
                 >
-                  <FaSearchPlus color={(searchOptionsOpen ? '#ffffff' : '#000000')}/>
+                  <Stack spacing="xs" align="center">
+                    <FaSearchPlus color={(searchOptionsOpen ? '#ffffff' : '#000000')}/>
+                    {((props?.search?.fields?.[props?.column_key]?._type != 'string') ? "123" : "ABC")}
+                  </Stack>
                 </Avatar>
                 {renderSearchInput()}
               </Flex>
@@ -834,9 +830,10 @@ const TableHeader = React.forwardRef((props, ref) => {
             <Popover.Dropdown css={css`top: 2.375rem !important; left: 0 !important; min-width: 25rem !important;`}>
               <Stack spacing="0.125rem">
                 <Switch
+                  color="black"
                   onLabel="123"
                   offLabel="ABC"
-                  checked={props.search.fields[props.column_key]._type != 'string'}
+                  checked={props?.search?.fields?.[props?.column_key]?._type != 'string'}
                   onChange={(event) => props.setSearch((_search) => ({
                     ..._search,
                     fields: {
@@ -848,6 +845,20 @@ const TableHeader = React.forwardRef((props, ref) => {
                     }
                   }))}
                   size="md"
+                  styles={{
+                    track: {
+                      borderColor: '#000000',
+                      backgroundColor: ((props?.search?.fields?.[props?.column_key]?._type != 'string') ? '#000000' : '#ffffff'),
+                      color: ((props?.search?.fields?.[props?.column_key]?._type != 'string') ? '#ffffff' : '#000000'),
+                    },
+                    thumb: {
+                      backgroundColor: ((props?.search?.fields?.[props?.column_key]?._type != 'string') ? '#ffffff' : '#000000'),
+                    },
+                    trackLabel: {
+                      fontSize: '1rem',
+                      color: ((props?.search?.fields?.[props?.column_key]?._type != 'string') ? '#ffffff' : '#000000'),
+                    }
+                  }}
                 />
                 {renderPopup()}
               </Stack>
@@ -859,7 +870,7 @@ const TableHeader = React.forwardRef((props, ref) => {
   );
 });
 
-const Table = React.forwardRef((props, ref) => {
+const DataTable = React.forwardRef((props, ref) => {
 
   const [columns, setColumns] = React.useState({
     _indexKey: crypto.randomUUID(),
@@ -874,37 +885,12 @@ const Table = React.forwardRef((props, ref) => {
   });
   const [records, setRecords] = React.useState(props.records ?? []);
 
-  const [pageLength, setPageLength] = React.useState(props.initialPageLength ?? 10);
+  const [pageLength, setPageLength] = React.useState(props.initialPageLength ?? 20);
   const [pageLengthChoices, setPageLengthChoices] = React.useState(props.pageLengthChoices ?? [10, 20, 50, 100, Infinity]);
   const [page, setPage] = React.useState(props.initialPage ?? 1);
 
   const [sortFields, setSortFields] = React.useState(props.initialSortFields ?? []);
-  const [search, setSearch] = React.useState({
-    global: null,
-    fields: Object.fromEntries((props.columns ?? []).map((x, i) => [
-      x.key,
-      {
-        _type: ((x.type == 'number') ? 'number' : 'string'),
-        string: {
-          text: null,
-          trim: true,
-          caseSensitive: false,
-          isRegex: false
-        },
-        number: {
-          omitNonNumeric: true,
-          gt: {
-            value: null,
-            equals: false,
-          },
-          lt: {
-            value: null,
-            equals: false,
-          }
-        }
-      }
-    ])),
-  });
+  const [search, setSearch] = React.useState(initiaDefaultSearch(props?.columns ?? []));
 
   const headerRefs = React.useRef({});
 
@@ -1115,7 +1101,7 @@ const Table = React.forwardRef((props, ref) => {
         });
       case 'number':
         return numberDoesMatch({
-          recordNumber: parseFloat((recordCompareStr ?? '').trim()),
+          recordNumber: new Number((recordCompareStr ?? '')?.trim?.()),
           omitNonNumeric: keySearch.number.omitNonNumeric,
           gtNum: keySearch.number.gt.value,
           gtEquals: keySearch.number.gt.equals,
@@ -1128,7 +1114,7 @@ const Table = React.forwardRef((props, ref) => {
   const filteredRecords = React.useMemo(function(){
 
     console.debug('Filtering Records');
-
+    console.log(search);
     var newRecords = [];
     for (let i = 0; i < records.length; i++){
       let record = records[i];
@@ -1154,6 +1140,9 @@ const Table = React.forwardRef((props, ref) => {
           }
         } else if (keySearch._type == 'number'){
           if ((keySearch.number.gt.value == null) && (keySearch.number.lt.value == null)){
+            if ((keySearch.number.omitNonNumeric) && isNaN(new Number((recordCompareStr ?? '')?.trim?.()))){
+              include = false;
+            }
             continue;
           }
         }
@@ -1276,12 +1265,6 @@ const Table = React.forwardRef((props, ref) => {
     window.open(encodedUri);
   }
 
-  const cache = createCache({
-    key: 'rare-earth',
-    nonce: props.nonce,
-  });
-  cache.compat = true;
-
   function renderNoResults(){
     if ((rows?.length ?? 0) == 0){
       return(
@@ -1291,6 +1274,12 @@ const Table = React.forwardRef((props, ref) => {
       );
     }
   }
+
+  const cache = createCache({
+    key: 'rare-earth',
+    nonce: props.nonce,
+  });
+  cache.compat = true;
 
   console.debug('Render Table');
   return(
@@ -1303,6 +1292,7 @@ const Table = React.forwardRef((props, ref) => {
       >
         <div ref={ref} id={props.id} css={containerCss}>
           <TableControl
+            columns={props?.columns ?? []}
             exportTable={exportTable}
             numRecords={records.length}
             sortFields={sortFields}
@@ -1335,5 +1325,5 @@ const Table = React.forwardRef((props, ref) => {
 });
 
 export {
-  Table,
+  DataTable,
 };
