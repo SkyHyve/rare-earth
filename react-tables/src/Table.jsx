@@ -4,7 +4,7 @@ import React from 'react';
 
 import { css, cx, CacheProvider } from '@emotion/react';
 import createCache from '@emotion/cache';
-import { Avatar, Button, Checkbox, Divider, Flex, NumberInput, Pagination, Popover, Select, Stack, Switch, Table, Tabs, Text, TextInput, Tooltip, rem } from '@mantine/core';
+import { Avatar, Button, Checkbox, Chip, Divider, Flex, Group, NumberInput, Pagination, Popover, Select, Stack, Table, Tabs, Text, TextInput, Tooltip, rem } from '@mantine/core';
 import { MantineProvider } from '@mantine/core';
 
 
@@ -763,6 +763,27 @@ const TableHeader = React.forwardRef((props, ref) => {
     );
   }
 
+  function renderSwitchLabel(){
+    let isNumeric = (props?.search?.fields?.[props?.column_key]?._type != 'string');
+    if (isNumeric){
+      return (
+        <Flex gap="xs">
+          <Text css={css`font-weight: normal; text-decoration: line-through;`}>Text</Text>
+          <Text>/</Text>
+          <Text css={css`font-weight: bold;`}>Numeric</Text>
+        </Flex>
+      );
+    } else {
+      return (
+        <Flex gap="xs">
+          <Text css={css`font-weight: bold;`}>Text</Text>
+          <Text> / </Text>
+          <Text css={css`font-weight: normal; text-decoration: line-through;`}>Numeric</Text>
+        </Flex>
+      );
+    }
+  }
+
   return(
     <th>
       <Stack
@@ -848,37 +869,25 @@ const TableHeader = React.forwardRef((props, ref) => {
             </Popover.Target>
             <Popover.Dropdown css={css`top: 2.375rem !important; left: 0 !important; min-width: 25rem !important;`}>
               <Stack spacing="0.125rem">
-                <Switch
-                  color="black"
-                  onLabel="123"
-                  offLabel="ABC"
-                  checked={props?.search?.fields?.[props?.column_key]?._type != 'string'}
-                  onChange={(event) => props.setSearch((_search) => ({
+                <Chip.Group
+                  multiple={false}
+                  value={props?.search?.fields?.[props?.column_key]?._type}
+                  onChange={(value) => props.setSearch((_search) => ({
                     ..._search,
                     fields: {
                       ..._search.fields,
                       [props.column_key]: {
                         ..._search.fields[props.column_key],
-                        _type: (event.currentTarget.checked ? 'number' : 'string'),
-                      }
+                        _type: value,
+                      },
                     }
                   }))}
-                  size="md"
-                  styles={{
-                    track: {
-                      borderColor: '#000000',
-                      backgroundColor: ((props?.search?.fields?.[props?.column_key]?._type != 'string') ? '#000000' : '#ffffff'),
-                      color: ((props?.search?.fields?.[props?.column_key]?._type != 'string') ? '#ffffff' : '#000000'),
-                    },
-                    thumb: {
-                      backgroundColor: ((props?.search?.fields?.[props?.column_key]?._type != 'string') ? '#ffffff' : '#000000'),
-                    },
-                    trackLabel: {
-                      fontSize: '1rem',
-                      color: ((props?.search?.fields?.[props?.column_key]?._type != 'string') ? '#ffffff' : '#000000'),
-                    }
-                  }}
-                />
+                >
+                  <Group position="left" spacing="xs">
+                    <Chip value="string" color="gray.7">Text</Chip>
+                    <Chip value="number" color="gray.7">Numeric</Chip>
+                  </Group>
+                </Chip.Group>
                 {renderPopup()}
               </Stack>
             </Popover.Dropdown>
