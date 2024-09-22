@@ -153,7 +153,7 @@ const TableControl = ({
   // }, [pageLength, numFilteredRecords]);
 
   function _setPageLength(pageLength){
-    var firstEntryPage;
+    let firstEntryPage;
     if (pageLength === Infinity){
       firstEntryPage = 1;
     } else {
@@ -165,18 +165,13 @@ const TableControl = ({
   }
 
   let pageLengthOptions = [];
-  var addNextPageOption = true;
   for (let i = 0; i < pageLengthChoices.length; i++){
     let pageLength = pageLengthChoices[i];
     if (pageLength < numFilteredRecords){
       pageLengthOptions.push({ value: pageLength.toString(), label: pageLength.toString() });
     }
-    if (!addNextPageOption){
-      break;
-    }
   }
   pageLengthOptions.push({ value: 'Infinity', label: 'ALL' });
-  addNextPageOption = false;
 
   return(
     <Flex
@@ -306,58 +301,58 @@ const TableHeader = React.forwardRef((props, ref) => {
   }, [JSON.stringify(searchInput)]);
 
   function sortFieldClick(event){
-    var this_field_reverse = null;
+    let thisFieldReverse = null;
     for (let i = 0; i < props.sortFields?.length ?? 0; i++){
       let sortField = props.sortFields[i];
       if (sortField['key'] == props.column_key){
-        this_field_reverse = sortField['reverse'];
+        thisFieldReverse = sortField['reverse'];
       }
     }
 
-    var new_sort_fields = [];
+    const newSortFields = [];
     switch(event.shiftKey){
       case false:
-        switch (this_field_reverse){
+        switch (thisFieldReverse){
           case false:
-            new_sort_fields.push({'key': props.column_key, 'reverse': true});
+            newSortFields.push({'key': props.column_key, 'reverse': true});
             break;
           case true:
           case null:
-            new_sort_fields.push({'key': props.column_key, 'reverse': false});
+            newSortFields.push({'key': props.column_key, 'reverse': false});
             break;
         };
         break;
       case true:
-        var current_key_included = false;
+        let currentKeyIncluded = false;
         for (let i = 0; i < props.sortFields?.length ?? 0; i++){
           let sortField = props.sortFields[i];
           if (sortField['key'] == props.column_key){
-            current_key_included = true;
-            switch (this_field_reverse){
+            currentKeyIncluded = true;
+            switch (thisFieldReverse){
               case false:
-                new_sort_fields.push({'key': props.column_key, 'reverse': true})
+                newSortFields.push({'key': props.column_key, 'reverse': true})
                 break;
               case true:
               case null:
-                new_sort_fields.push({'key': props.column_key, 'reverse': false})
+                newSortFields.push({'key': props.column_key, 'reverse': false})
                 break;
             }
           } else{
-            new_sort_fields.push(sortField);
+            newSortFields.push(sortField);
           }
         }
-        if (!current_key_included){
-          new_sort_fields.push({'key': props.column_key, 'reverse': false})
+        if (!currentKeyIncluded){
+          newSortFields.push({'key': props.column_key, 'reverse': false})
         }
         break;
     }
 
-    props.setSortFields(new_sort_fields);
+    props.setSortFields(newSortFields);
   }
 
-  var ascendingIcon = <BsTriangleFill size='0.8rem'  css={ascendingDeselectedCss}/>;
-  var descendingIcon = <BsTriangleFill size='0.8rem' css={descendingDeselectedCss}/>;
-    var column_sort_meta = {
+  let ascendingIcon = <BsTriangleFill size='0.8rem'  css={ascendingDeselectedCss}/>;
+  let descendingIcon = <BsTriangleFill size='0.8rem' css={descendingDeselectedCss}/>;
+  const columnSortMeta = {
     'symbol': null,
     'index': null,
   };
@@ -374,7 +369,7 @@ const TableHeader = React.forwardRef((props, ref) => {
         case null:
           break;
       }
-      column_sort_meta.index = i + 1;
+      columnSortMeta.index = i + 1;
     }
   }
 
@@ -450,8 +445,8 @@ const TableHeader = React.forwardRef((props, ref) => {
     let columnA = event.dataTransfer.getData('initiatorKey');
     let indexA = event.dataTransfer.getData('initiatorIndex');
 
-    var target = event.target;
-    var columnB;
+    let target = event.target;
+    let columnB;
     while (!columnB){
       target = target.parentElement;
       if (!target){
@@ -815,7 +810,7 @@ const TableHeader = React.forwardRef((props, ref) => {
                 onClick={(event) => sortFieldClick(event)}
               >
                 <Flex align="center" justify="center">
-                  {column_sort_meta.index}
+                  {columnSortMeta.index}
                   <Stack spacing="0.125rem" className="m-1">
                     {ascendingIcon}
                     {descendingIcon}
@@ -978,7 +973,7 @@ const DataTable = React.forwardRef((props, ref) => {
         }
       }
 
-      var compareVal;
+      let compareVal;
       switch(reverse){
         case false:
           switch (compareFunc == null){
@@ -1024,8 +1019,8 @@ const DataTable = React.forwardRef((props, ref) => {
       return true;
     }
 
-    var _recordCompareStr;
-    var _keySearch;
+    let _recordCompareStr;
+    let _keySearch;
     switch (trim){
       case true:
         _recordCompareStr = recordCompareStr.trim();
@@ -1052,7 +1047,7 @@ const DataTable = React.forwardRef((props, ref) => {
     }
     switch (isRegex){
       case true:
-        var _regex;
+        let _regex;
         switch (caseSensitive){
           case true:
              _regex = new RegExp(_keySearch, "g");
@@ -1147,10 +1142,10 @@ const DataTable = React.forwardRef((props, ref) => {
 
     console.debug('Filtering Records');
     console.log(search);
-    var newRecords = [];
+    const newRecords = [];
     for (let i = 0; i < records.length; i++){
       let record = records[i];
-      var include = !Boolean(search.global);
+      let include = !Boolean(search.global);
       for (let key in search.fields){
         let recordCompareStr = (columns?.attributes?.[key]?.valueFunc?.(record) ?? '')?.toString?.();
 
@@ -1238,7 +1233,7 @@ const DataTable = React.forwardRef((props, ref) => {
       let key = columns.order[j];
       let column = columns.attributes[key];
 
-      var value;
+      let value;
       switch (column.valueFunc == null){
         case false:
           value = column.valueFunc(record);
@@ -1277,13 +1272,13 @@ const DataTable = React.forwardRef((props, ref) => {
     }
     exportRows.push(exportHeaders.join(","));
 
-    for (var i = 0; i < filteredSortedRecords?.length ?? 0; i++){
+    for (let i = 0; i < filteredSortedRecords?.length ?? 0; i++){
       let exportRecord = [];
       let record = filteredSortedRecords[i];
       for (let j = 0; j < columns.order.length; j++){
         let key = columns.order[j];
         let column = columns.attributes[key];
-        var value;
+        let value;
         switch (column.valueFunc == null){
           case false:
             value = column.valueFunc(record);
@@ -1298,7 +1293,7 @@ const DataTable = React.forwardRef((props, ref) => {
     }
 
     csvContent += exportRows.join("\r\n");
-    var encodedUri = encodeURI(csvContent);
+    const encodedUri = encodeURI(csvContent);
     window.open(encodedUri);
   }
 
