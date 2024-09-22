@@ -15,6 +15,9 @@ const App = function(){
     }
   ];
   function getRandomNumber(min, max) {
+    if (Math.random() < 0.15){
+      return null;
+    }
     return Math.floor(Math.random() * (max - min + 1)) + min;
   }
   

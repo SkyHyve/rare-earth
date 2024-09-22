@@ -146,11 +146,11 @@ const TableControl = ({
     });
   }, [searchInput]);
 
-  React.useEffect(() => {
-    if (parseFloat(pageLength) > numFilteredRecords){
-      setPageLength(Infinity);
-    }
-  }, [pageLength, numFilteredRecords]);
+  // React.useEffect(() => {
+  //   if (parseFloat(pageLength) > numFilteredRecords){
+  //     setPageLength(Infinity);
+  //   }
+  // }, [pageLength, numFilteredRecords]);
 
   function _setPageLength(pageLength){
     var firstEntryPage;
@@ -929,12 +929,12 @@ const DataTable = React.forwardRef((props, ref) => {
           case true:
             return 0;
           case false:
-            return 1;
+            return -1;
         }
       case false:
         switch(b == null){
           case true:
-            return -1;
+            return 1;
           case false:
             switch(a == b){
               case true:
@@ -957,8 +957,8 @@ const DataTable = React.forwardRef((props, ref) => {
       let reverse = sortFields[i]['reverse'];
       let compareFunc = columns.attributes[sortField].compareFunc;
 
-      var aVal;
-      var bVal;
+      let aVal;
+      let bVal;
       switch (columns.attributes[sortField].valueFunc == null){
         case false:
           aVal = columns.attributes[sortField].valueFunc(recordA);
@@ -970,8 +970,12 @@ const DataTable = React.forwardRef((props, ref) => {
           break;
       }
       if (columns.attributes[sortField].type == 'number'){
-        aVal = parseFloat(aVal);
-        bVal = parseFloat(bVal);
+        if (aVal != null){
+          aVal = parseFloat(aVal);
+        }
+        if (bVal != null){
+          bVal = parseFloat(bVal);
+        }
       }
 
       var compareVal;
