@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.1] - 2025-01-26
+
+### Added
+- **Full ARIA Accessibility Support**: Comprehensive accessibility attributes throughout all components
+  - Proper ARIA roles for table structure (`role="table"`, `role="rowgroup"`, `role="row"`)
+  - Descriptive `aria-label` attributes for all interactive elements
+  - `aria-current="page"` for active pagination
+  - `aria-pressed` states for sort buttons
+  - `aria-live` regions for dynamic content updates
+  - Semantic HTML elements (`<nav>` for pagination, `<button>` instead of `<div>`)
+  - Screen reader-friendly labels and descriptions
+
+### Fixed
+- **Current Index Column**: Fixed to show position in entire filtered dataset, not just current page
+  - Now correctly shows continuous numbering across pages (e.g., page 2 shows 21-40, not 1-20)
+  - Updated tooltip to clarify "Current position in the filtered and sorted dataset"
+
 ## [0.4.0] - 2025-01-26
 
 ### Added

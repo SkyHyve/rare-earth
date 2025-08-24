@@ -81,12 +81,14 @@ const TableControl: React.FC<TableControlProps> = ({
   }
 
   return(
-    <div className="rare-earth-control">
+    <div className="rare-earth-control" role="group" aria-label="Table controls">
       <div className="rare-earth-control-row">
         <FloatingTooltip content="Export Filtered Data as CSV">
           <button
             className="rare-earth-button"
             onClick={() => exportTable()}
+            aria-label="Export filtered data as CSV"
+            type="button"
           >
             <TbTableExport size="1.25rem"/>
             Export
@@ -100,15 +102,17 @@ const TableControl: React.FC<TableControlProps> = ({
         </div>
         
         <div className="rare-earth-search-container">
-          <FaSearch/>
+          <FaSearch aria-hidden="true"/>
           <input
             className="rare-earth-input"
             placeholder="Table Search"
+            aria-label="Search table"
             value={searchInput ?? ''}
             onChange={(event) => setSearchInput((event.target.value?.trim() == '') ? null : event.target.value)}
+            type="search"
           />
           <FloatingTooltip content="Reset Table">
-            <div
+            <button
               className="rare-earth-avatar danger"
               onClick={() => {
                 setPage(1);
@@ -117,20 +121,24 @@ const TableControl: React.FC<TableControlProps> = ({
                 setSearch(initiaDefaultSearch(columns));
                 resetColumns();
               }}
+              aria-label="Reset table to initial state"
+              type="button"
             >
               <TbZoomReset/>
-            </div>
+            </button>
           </FloatingTooltip>
         </div>
       </div>
       
       <div className="rare-earth-control-row">
         <div className="rare-earth-label">
-          <span>Page Length</span>
+          <label htmlFor="page-length-select">Page Length</label>
           <select
+            id="page-length-select"
             className="rare-earth-select"
             value={pageLength.toString()}
             onChange={(e) => _setPageLength(parseFloat(e.target.value))}
+            aria-label="Number of rows per page"
           >
             {pageLengthOptions.map(opt => (
               <option key={opt.value} value={opt.value}>{opt.label}</option>

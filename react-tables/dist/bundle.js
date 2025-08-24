@@ -3695,7 +3695,9 @@
         pages.push(/*#__PURE__*/React.createElement("button", {
           key: 1,
           className: "rare-earth-page-button",
-          onClick: () => onChange(1)
+          onClick: () => onChange(1),
+          "aria-label": "Go to page 1",
+          type: "button"
         }, "1"));
         if (start > 2) {
           pages.push(/*#__PURE__*/React.createElement("span", {
@@ -3708,7 +3710,10 @@
         pages.push(/*#__PURE__*/React.createElement("button", {
           key: i,
           className: "rare-earth-page-button ".concat(i === value ? 'active' : ''),
-          onClick: () => onChange(i)
+          onClick: () => onChange(i),
+          "aria-label": "Go to page ".concat(i),
+          "aria-current": i === value ? 'page' : undefined,
+          type: "button"
         }, i));
       }
       if (end < total) {
@@ -3721,21 +3726,29 @@
         pages.push(/*#__PURE__*/React.createElement("button", {
           key: total,
           className: "rare-earth-page-button",
-          onClick: () => onChange(total)
+          onClick: () => onChange(total),
+          "aria-label": "Go to page ".concat(total),
+          type: "button"
         }, total));
       }
       return pages;
     };
-    return /*#__PURE__*/React.createElement("div", {
-      className: "rare-earth-pagination"
+    return /*#__PURE__*/React.createElement("nav", {
+      className: "rare-earth-pagination",
+      role: "navigation",
+      "aria-label": "Table pagination"
     }, /*#__PURE__*/React.createElement("button", {
       className: "rare-earth-page-button",
       disabled: value === 1,
-      onClick: () => onChange(Math.max(1, value - 1))
+      onClick: () => onChange(Math.max(1, value - 1)),
+      "aria-label": "Go to previous page",
+      type: "button"
     }, "\u2039"), renderPageNumbers(), /*#__PURE__*/React.createElement("button", {
       className: "rare-earth-page-button",
       disabled: value === total,
-      onClick: () => onChange(Math.min(total, value + 1))
+      onClick: () => onChange(Math.min(total, value + 1)),
+      "aria-label": "Go to next page",
+      type: "button"
     }, "\u203A"));
   });
 
@@ -3797,14 +3810,18 @@
       }
     }
     return /*#__PURE__*/React.createElement("div", {
-      className: "rare-earth-control"
+      className: "rare-earth-control",
+      role: "group",
+      "aria-label": "Table controls"
     }, /*#__PURE__*/React.createElement("div", {
       className: "rare-earth-control-row"
     }, /*#__PURE__*/React.createElement(FloatingTooltip, {
       content: "Export Filtered Data as CSV"
     }, /*#__PURE__*/React.createElement("button", {
       className: "rare-earth-button",
-      onClick: () => exportTable()
+      onClick: () => exportTable(),
+      "aria-label": "Export filtered data as CSV",
+      type: "button"
     }, /*#__PURE__*/React.createElement(TbTableExport, {
       size: "1.25rem"
     }), "Export")), /*#__PURE__*/React.createElement("div", {
@@ -3817,17 +3834,21 @@
       className: "rare-earth-text"
     }, numRecords, " total")), /*#__PURE__*/React.createElement("div", {
       className: "rare-earth-search-container"
-    }, /*#__PURE__*/React.createElement(FaSearch, null), /*#__PURE__*/React.createElement("input", {
+    }, /*#__PURE__*/React.createElement(FaSearch, {
+      "aria-hidden": "true"
+    }), /*#__PURE__*/React.createElement("input", {
       className: "rare-earth-input",
       placeholder: "Table Search",
+      "aria-label": "Search table",
       value: searchInput !== null && searchInput !== void 0 ? searchInput : '',
       onChange: event => {
         var _event$target$value;
         return setSearchInput(((_event$target$value = event.target.value) === null || _event$target$value === void 0 ? void 0 : _event$target$value.trim()) == '' ? null : event.target.value);
-      }
+      },
+      type: "search"
     }), /*#__PURE__*/React.createElement(FloatingTooltip, {
       content: "Reset Table"
-    }, /*#__PURE__*/React.createElement("div", {
+    }, /*#__PURE__*/React.createElement("button", {
       className: "rare-earth-avatar danger",
       onClick: () => {
         setPage(1);
@@ -3835,15 +3856,21 @@
         setSortFields([]);
         setSearch(initiaDefaultSearch(columns));
         resetColumns();
-      }
+      },
+      "aria-label": "Reset table to initial state",
+      type: "button"
     }, /*#__PURE__*/React.createElement(TbZoomReset, null))))), /*#__PURE__*/React.createElement("div", {
       className: "rare-earth-control-row"
     }, /*#__PURE__*/React.createElement("div", {
       className: "rare-earth-label"
-    }, /*#__PURE__*/React.createElement("span", null, "Page Length"), /*#__PURE__*/React.createElement("select", {
+    }, /*#__PURE__*/React.createElement("label", {
+      htmlFor: "page-length-select"
+    }, "Page Length"), /*#__PURE__*/React.createElement("select", {
+      id: "page-length-select",
       className: "rare-earth-select",
       value: pageLength.toString(),
-      onChange: e => _setPageLength(parseFloat(e.target.value))
+      onChange: e => _setPageLength(parseFloat(e.target.value)),
+      "aria-label": "Number of rows per page"
     }, pageLengthOptions.map(opt => (/*#__PURE__*/React.createElement("option", {
       key: opt.value,
       value: opt.value
@@ -3855,7 +3882,7 @@
   };
 
   const TableHeader = function (props, ref) {
-    var _props$search, _props$search$fields$, _props$search2, _props$search$fields$2, _props$search3, _props$search4, _props$search5, _props$search6, _props$search7, _props$search8, _props$search9, _props$search17, _props$column$label, _props$column$label2, _props$search23, _props$search24, _props$search25;
+    var _props$search, _props$search$fields$, _props$search2, _props$search$fields$2, _props$search3, _props$search4, _props$search5, _props$search6, _props$search7, _props$search8, _props$search9, _props$search17, _props$column$label, _props$column$label2, _props$column$label3, _props$search23, _props$search24, _props$search25;
     const [searchInput, setSearchInput] = React.useState({
       string: (_props$search = props.search) === null || _props$search === void 0 || (_props$search = _props$search.fields) === null || _props$search === void 0 || (_props$search = _props$search[props.column_key]) === null || _props$search === void 0 || (_props$search = _props$search.string) === null || _props$search === void 0 ? void 0 : _props$search.text,
       number: {
@@ -4361,16 +4388,21 @@
       }, /*#__PURE__*/React.createElement("span", null, "Click to sort by ", (_props$column$label = props.column.label) !== null && _props$column$label !== void 0 ? _props$column$label : props.column_key.toString()), /*#__PURE__*/React.createElement("span", null, "Hold ", /*#__PURE__*/React.createElement("strong", null, "Shift"), " and click to add to multi-sort or change sort direction."))
     }, /*#__PURE__*/React.createElement("button", {
       className: "rare-earth-sort-button",
-      onClick: event => sortFieldClick(event)
+      onClick: event => sortFieldClick(event),
+      "aria-label": "Sort by ".concat((_props$column$label2 = props.column.label) !== null && _props$column$label2 !== void 0 ? _props$column$label2 : props.column_key, ". Currently ").concat(ascendingActive ? 'ascending' : descendingActive ? 'descending' : 'not sorted'),
+      "aria-pressed": ascendingActive || descendingActive,
+      type: "button"
     }, /*#__PURE__*/React.createElement("div", {
       className: "rare-earth-flex-xs"
     }, sortIndex, /*#__PURE__*/React.createElement("div", {
       className: "rare-earth-stack"
     }, /*#__PURE__*/React.createElement("div", {
-      className: "rare-earth-triangle ".concat(ascendingActive ? 'active' : '')
+      className: "rare-earth-triangle ".concat(ascendingActive ? 'active' : ''),
+      "aria-hidden": "true"
     }), /*#__PURE__*/React.createElement("div", {
-      className: "rare-earth-triangle descending ".concat(descendingActive ? 'active' : '')
-    }))))), (_props$column$label2 = props.column.label) !== null && _props$column$label2 !== void 0 ? _props$column$label2 : props.column_key.toString())), /*#__PURE__*/React.createElement("div", {
+      className: "rare-earth-triangle descending ".concat(descendingActive ? 'active' : ''),
+      "aria-hidden": "true"
+    }))))), (_props$column$label3 = props.column.label) !== null && _props$column$label3 !== void 0 ? _props$column$label3 : props.column_key.toString())), /*#__PURE__*/React.createElement("div", {
       className: "rare-earth-popover"
     }, /*#__PURE__*/React.createElement("div", {
       className: "rare-earth-flex-xs"
@@ -4747,7 +4779,7 @@
         key: "index-current",
         className: "index-sub-header"
       }, /*#__PURE__*/React.createElement(FloatingTooltip, {
-        content: "Current display position after filtering and sorting"
+        content: "Current position in the filtered and sorted dataset"
       }, /*#__PURE__*/React.createElement("span", null, "Current"))));
     }
     for (let i = 0; i < columns.order.length; i++) {
@@ -4784,7 +4816,7 @@
         cells.push(/*#__PURE__*/React.createElement("td", {
           key: "index-current",
           className: "index-column"
-        }, i - lb + 1));
+        }, i + 1));
       }
       for (let j = 0; j < columns.order.length; j++) {
         let key = columns.order[j];
@@ -4807,7 +4839,9 @@
         }
       }
       rows.push(/*#__PURE__*/React.createElement("tr", {
-        key: i
+        key: i,
+        role: "row",
+        "aria-rowindex": i + 1
       }, cells));
     }
     if (page > 1 && (filteredSortedRecords.length < (page - 1) * pageLength + 1 || pageLength === Infinity)) {
@@ -4849,7 +4883,9 @@
       ref: ref,
       id: props.id,
       className: "rare-earth-container".concat(props.className ? " ".concat(props.className) : ''),
-      style: props.style
+      style: props.style,
+      role: "region",
+      "aria-label": "Data table with sorting and filtering"
     }, /*#__PURE__*/React.createElement(TableControl, {
       columns: (_props$columns8 = props === null || props === void 0 ? void 0 : props.columns) !== null && _props$columns8 !== void 0 ? _props$columns8 : [],
       exportTable: exportTable,
@@ -4869,8 +4905,15 @@
       resetColumns: resetColumns,
       initiaDefaultSearch: initiaDefaultSearch
     }), /*#__PURE__*/React.createElement("table", {
-      className: "rare-earth-table"
-    }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, main_headers), props.index !== false && (/*#__PURE__*/React.createElement("tr", null, sub_headers))), /*#__PURE__*/React.createElement("tbody", null, rows)), rows.length === 0 && (/*#__PURE__*/React.createElement("div", {
+      className: "rare-earth-table",
+      role: "table",
+      "aria-label": "Data table",
+      "aria-rowcount": filteredSortedRecords.length
+    }, /*#__PURE__*/React.createElement("thead", {
+      role: "rowgroup"
+    }, /*#__PURE__*/React.createElement("tr", null, main_headers), props.index !== false && (/*#__PURE__*/React.createElement("tr", null, sub_headers))), /*#__PURE__*/React.createElement("tbody", {
+      role: "rowgroup"
+    }, rows)), rows.length === 0 && (/*#__PURE__*/React.createElement("div", {
       className: "rare-earth-no-results"
     }, "No Results Found After Filtering")));
   });

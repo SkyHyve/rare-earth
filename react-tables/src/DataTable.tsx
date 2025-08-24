@@ -295,7 +295,7 @@ const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>((props, ref) 
     );
     sub_headers.push(
       <th key="index-current" className="index-sub-header">
-        <FloatingTooltip content="Current display position after filtering and sorting">
+        <FloatingTooltip content="Current position in the filtered and sorted dataset">
           <span>Current</span>
         </FloatingTooltip>
       </th>
@@ -335,7 +335,7 @@ const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>((props, ref) 
     let cells = [];
     if (props.index !== false){
       cells.push(<td key="index-source" className="index-column">{record[columns._indexKey] + 1}</td>);
-      cells.push(<td key="index-current" className="index-column">{(i - lb) + 1}</td>);
+      cells.push(<td key="index-current" className="index-column">{i + 1}</td>);
     }
     for (let j = 0; j < columns.order.length; j++){
       let key = columns.order[j];
@@ -355,7 +355,15 @@ const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>((props, ref) 
         cells.push(<td key={key}>{value}</td>);
       }
     }
-    rows.push(<tr key={i}>{cells}</tr>);
+    rows.push(
+      <tr 
+        key={i} 
+        role="row"
+        aria-rowindex={i + 1}
+      >
+        {cells}
+      </tr>
+    );
   }
   
   if ((page > 1) && ((filteredSortedRecords.length < ((page - 1) * pageLength + 1)) || (pageLength === Infinity))){
@@ -397,7 +405,14 @@ const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>((props, ref) 
   }
 
   return(
-    <div ref={ref} id={props.id} className={`rare-earth-container${props.className ? ` ${props.className}` : ''}`} style={props.style}>
+    <div 
+      ref={ref} 
+      id={props.id} 
+      className={`rare-earth-container${props.className ? ` ${props.className}` : ''}`} 
+      style={props.style}
+      role="region"
+      aria-label="Data table with sorting and filtering"
+    >
       <TableControl
         columns={props?.columns ?? []}
         exportTable={exportTable}
@@ -417,8 +432,13 @@ const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>((props, ref) 
         resetColumns={resetColumns}
         initiaDefaultSearch={initiaDefaultSearch}
       />
-      <table className="rare-earth-table">
-        <thead>
+      <table 
+        className="rare-earth-table"
+        role="table"
+        aria-label="Data table"
+        aria-rowcount={filteredSortedRecords.length}
+      >
+        <thead role="rowgroup">
           <tr>
             {main_headers}
           </tr>
@@ -428,12 +448,12 @@ const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>((props, ref) 
             </tr>
           )}
         </thead>
-        <tbody>
+        <tbody role="rowgroup">
           {rows}
         </tbody>
       </table>
       {rows.length === 0 && (
-        <div className="rare-earth-no-results">
+        <div className="rare-earth-no-results" role="status" aria-live="polite">
           No Results Found After Filtering
         </div>
       )}

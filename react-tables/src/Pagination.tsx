@@ -19,7 +19,13 @@ const Pagination = React.memo<PaginationProps>(({ value, onChange, total }) => {
 
     if (start > 1) {
       pages.push(
-        <button key={1} className="rare-earth-page-button" onClick={() => onChange(1)}>
+        <button 
+          key={1} 
+          className="rare-earth-page-button" 
+          onClick={() => onChange(1)}
+          aria-label="Go to page 1"
+          type="button"
+        >
           1
         </button>
       );
@@ -34,6 +40,9 @@ const Pagination = React.memo<PaginationProps>(({ value, onChange, total }) => {
           key={i}
           className={`rare-earth-page-button ${i === value ? 'active' : ''}`}
           onClick={() => onChange(i)}
+          aria-label={`Go to page ${i}`}
+          aria-current={i === value ? 'page' : undefined}
+          type="button"
         >
           {i}
         </button>
@@ -45,7 +54,13 @@ const Pagination = React.memo<PaginationProps>(({ value, onChange, total }) => {
         pages.push(<span key="dots2" className="rare-earth-pagination-dots">...</span>);
       }
       pages.push(
-        <button key={total} className="rare-earth-page-button" onClick={() => onChange(total)}>
+        <button 
+          key={total} 
+          className="rare-earth-page-button" 
+          onClick={() => onChange(total)}
+          aria-label={`Go to page ${total}`}
+          type="button"
+        >
           {total}
         </button>
       );
@@ -55,11 +70,13 @@ const Pagination = React.memo<PaginationProps>(({ value, onChange, total }) => {
   };
 
   return (
-    <div className="rare-earth-pagination">
+    <nav className="rare-earth-pagination" role="navigation" aria-label="Table pagination">
       <button
         className="rare-earth-page-button"
         disabled={value === 1}
         onClick={() => onChange(Math.max(1, value - 1))}
+        aria-label="Go to previous page"
+        type="button"
       >
         ‹
       </button>
@@ -68,10 +85,12 @@ const Pagination = React.memo<PaginationProps>(({ value, onChange, total }) => {
         className="rare-earth-page-button"
         disabled={value === total}
         onClick={() => onChange(Math.min(total, value + 1))}
+        aria-label="Go to next page"
+        type="button"
       >
         ›
       </button>
-    </div>
+    </nav>
   );
 });
 

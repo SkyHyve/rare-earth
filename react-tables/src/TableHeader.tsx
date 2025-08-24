@@ -628,12 +628,15 @@ const TableHeader = function(props: any, ref: any){
               <button
                 className="rare-earth-sort-button"
                 onClick={(event) => sortFieldClick(event)}
+                aria-label={`Sort by ${props.column.label ?? props.column_key}. Currently ${ascendingActive ? 'ascending' : descendingActive ? 'descending' : 'not sorted'}`}
+                aria-pressed={ascendingActive || descendingActive}
+                type="button"
               >
                 <div className="rare-earth-flex-xs">
                   {sortIndex}
                   <div className="rare-earth-stack">
-                    <div className={`rare-earth-triangle ${ascendingActive ? 'active' : ''}`}></div>
-                    <div className={`rare-earth-triangle descending ${descendingActive ? 'active' : ''}`}></div>
+                    <div className={`rare-earth-triangle ${ascendingActive ? 'active' : ''}`} aria-hidden="true"></div>
+                    <div className={`rare-earth-triangle descending ${descendingActive ? 'active' : ''}`} aria-hidden="true"></div>
                   </div>
                 </div>
               </button>
