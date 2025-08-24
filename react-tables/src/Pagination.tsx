@@ -1,12 +1,13 @@
 import React from 'react';
 
 interface PaginationProps {
+  tableId: string;
   value: number;
   onChange: (value: number) => void;
   total: number;
 }
 
-const Pagination = React.memo<PaginationProps>(({ value, onChange, total }) => {
+const Pagination = React.memo<PaginationProps>(({ tableId, value, onChange, total }) => {
   const renderPageNumbers = () => {
     const pages = [];
     const maxVisible = 5;
@@ -24,7 +25,10 @@ const Pagination = React.memo<PaginationProps>(({ value, onChange, total }) => {
           className="rare-earth-page-button" 
           onClick={() => onChange(1)}
           aria-label="Go to page 1"
+          aria-setsize={total}
+          aria-posinset={1}
           type="button"
+          data-testid={`pagination-page-1-${tableId}`}
         >
           1
         </button>
@@ -42,7 +46,10 @@ const Pagination = React.memo<PaginationProps>(({ value, onChange, total }) => {
           onClick={() => onChange(i)}
           aria-label={`Go to page ${i}`}
           aria-current={i === value ? 'page' : undefined}
+          aria-setsize={total}
+          aria-posinset={i}
           type="button"
+          data-testid={`pagination-page-${i}-${tableId}`}
         >
           {i}
         </button>
@@ -59,7 +66,10 @@ const Pagination = React.memo<PaginationProps>(({ value, onChange, total }) => {
           className="rare-earth-page-button" 
           onClick={() => onChange(total)}
           aria-label={`Go to page ${total}`}
+          aria-setsize={total}
+          aria-posinset={total}
           type="button"
+          data-testid={`pagination-page-${total}-${tableId}`}
         >
           {total}
         </button>
@@ -77,6 +87,9 @@ const Pagination = React.memo<PaginationProps>(({ value, onChange, total }) => {
         onClick={() => onChange(Math.max(1, value - 1))}
         aria-label="Go to previous page"
         type="button"
+        data-testid={`pagination-previous-${tableId}`}
+        data-action="previous"
+        title="Go to previous page"
       >
         ‹
       </button>
@@ -87,6 +100,9 @@ const Pagination = React.memo<PaginationProps>(({ value, onChange, total }) => {
         onClick={() => onChange(Math.min(total, value + 1))}
         aria-label="Go to next page"
         type="button"
+        data-testid={`pagination-next-${tableId}`}
+        data-action="next"
+        title="Go to next page"
       >
         ›
       </button>

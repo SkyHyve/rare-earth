@@ -16,6 +16,7 @@ import { FloatingTooltip } from './FloatingTooltip';
 import { SearchState, SortField, DEBOUNCE_INPUT_TIME_MS } from './types';
 
 const TableHeader = function(props: any, ref: any){
+  const { tableId } = props;
   const [searchInput, setSearchInput] = React.useState({
     string: props.search?.fields?.[props.column_key]?.string?.text,
     number: {
@@ -249,14 +250,18 @@ const TableHeader = function(props: any, ref: any){
       case 'string':
         return(
           <input
-            className="rare-earth-input"
+            className="rare-earth-input rare-earth-input-sm"
             placeholder="Filter"
             value={searchInput?.string ?? ''}
             onChange={(event) => setSearchInput((_searchInput) => ({
               ..._searchInput,
               string: ((event.target.value?.trim?.() == '') ? null : event.target.value)
             }))}
-            className="rare-earth-input rare-earth-input-sm"
+            type="text"
+            name={`filter-${tableId}-${props.column_key}`}
+            autoComplete="off"
+            data-testid={`filter-input-${tableId}-${props.column_key}`}
+            data-filter-type="string"
           />
         );
       case 'number':
@@ -294,6 +299,12 @@ const TableHeader = function(props: any, ref: any){
                   type="text"
                   placeholder="Min"
                   value={searchInput.number?.gtRaw ?? ''}
+                  aria-invalid={gtHasError}
+                  aria-describedby={gtHasError ? `gt-error-${tableId}-${props.column_key}` : undefined}
+                  name={`filter-${tableId}-${props.column_key}-min`}
+                  autoComplete="off"
+                  data-testid={`filter-min-${tableId}-${props.column_key}`}
+                  data-filter-type="number"
                   onChange={(event) => {
                     const value = event.target.value;
                     // Just update the raw value - validation happens in useEffect
@@ -330,7 +341,7 @@ const TableHeader = function(props: any, ref: any){
                   Inclusive
                 </label>
               </div>
-              {gtHasError && <div className="rare-earth-error-text">
+              {gtHasError && <div id={`gt-error-${tableId}-${props.column_key}`} className="rare-earth-error-text" role="alert">
                 {hasMinMaxMismatch ? 'Min cannot be greater than max' : 
                  gtIsIntermediateState ? 'Incomplete number' : 'Invalid number format'}
               </div>}
@@ -343,6 +354,12 @@ const TableHeader = function(props: any, ref: any){
                   type="text"
                   placeholder="Max"
                   value={searchInput.number?.ltRaw ?? ''}
+                  aria-invalid={ltHasError}
+                  aria-describedby={ltHasError ? `lt-error-${tableId}-${props.column_key}` : undefined}
+                  name={`filter-${tableId}-${props.column_key}-max`}
+                  autoComplete="off"
+                  data-testid={`filter-max-${tableId}-${props.column_key}`}
+                  data-filter-type="number"
                   onChange={(event) => {
                     const value = event.target.value;
                     // Just update the raw value - validation happens in useEffect
@@ -379,7 +396,7 @@ const TableHeader = function(props: any, ref: any){
                   Inclusive
                 </label>
               </div>
-              {ltHasError && <div className="rare-earth-error-text">
+              {ltHasError && <div id={`lt-error-${tableId}-${props.column_key}`} className="rare-earth-error-text" role="alert">
                 {hasMinMaxMismatch ? 'Max cannot be less than min' : 
                  ltIsIntermediateState ? 'Incomplete number' : 'Invalid number format'}
               </div>}
@@ -613,6 +630,13 @@ const TableHeader = function(props: any, ref: any){
           data-rare-earth-column-key={props.column_key}
           className="rare-earth-draggable"
           draggable={true}
+          role="button"
+          tabIndex={0}
+          aria-label={`Drag to reorder column ${props.column.label ?? props.column_key}`}
+          title={`Drag to reorder column ${props.column.label ?? props.column_key}`}
+          data-testid={`column-header-${tableId}-${props.column_key}`}
+          data-column={props.column_key}
+          data-draggable="true"
           onDragStart={(event) => onDragStartHandle(event, props.column_key, props.column_index)}
           onDragOver={(event) => event.preventDefault()}
           onDragEnter={(event) => event.preventDefault()}
@@ -630,7 +654,12 @@ const TableHeader = function(props: any, ref: any){
                 onClick={(event) => sortFieldClick(event)}
                 aria-label={`Sort by ${props.column.label ?? props.column_key}. Currently ${ascendingActive ? 'ascending' : descendingActive ? 'descending' : 'not sorted'}`}
                 aria-pressed={ascendingActive || descendingActive}
+                aria-sort={ascendingActive ? 'ascending' : descendingActive ? 'descending' : 'none'}
                 type="button"
+                data-testid={`sort-button-${tableId}-${props.column_key}`}
+                data-column={props.column_key}
+                data-sort-state={ascendingActive ? 'ascending' : descendingActive ? 'descending' : 'none'}
+                title={`Sort by ${props.column.label ?? props.column_key}`}
               >
                 <div className="rare-earth-flex-xs">
                   {sortIndex}
@@ -651,6 +680,12 @@ const TableHeader = function(props: any, ref: any){
                 ref={refs.setReference}
                 className={`rare-earth-search-icon ${searchOptionsOpen ? 'active' : ''}`}
                 {...getReferenceProps()}
+                role="button"
+                tabIndex={0}
+                aria-haspopup="dialog"
+                aria-expanded={searchOptionsOpen}
+                aria-controls={`filter-popup-${tableId}-${props.column_key}`}
+                aria-label="Open filter options"
               >
                 <div className="rare-earth-stack">
                   <FaSearchPlus/>
@@ -665,7 +700,10 @@ const TableHeader = function(props: any, ref: any){
           {searchOptionsOpen && (
             <div 
               ref={refs.setFloating}
+              id={`filter-popup-${tableId}-${props.column_key}`}
               className="rare-earth-popover-content"
+              role="dialog"
+              aria-label="Filter options"
               {...getFloatingProps()}
             >
               <div className="rare-earth-stack">

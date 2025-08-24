@@ -53,6 +53,9 @@ const initiaDefaultSearch = function(columns: ColumnDefinition[]): SearchState {
 };
 
 const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>((props, ref) => {
+  const tableId = props.id || `rare-earth-table-${React.useId()}`;
+  const tableDescriptionId = `${tableId}-description`;
+  const tableStatsId = `${tableId}-stats`;
   const [columns, setColumns] = React.useState({
     _indexKey: crypto.randomUUID(),
     order: (props.columns ?? []).map((x, i) => x.key),
@@ -309,6 +312,7 @@ const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>((props, ref) 
       <TableHeader 
         ref={headerRefs} 
         key={key} 
+        tableId={tableId}
         columns={columns} 
         setColumns={setColumns} 
         sortFields={sortFields} 
@@ -333,9 +337,10 @@ const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>((props, ref) 
   for (let i = lb; i < ub; i++){
     let record = filteredSortedRecords[i];
     let cells = [];
+    let colIndex = 1;
     if (props.index !== false){
-      cells.push(<td key="index-source" className="index-column">{record[columns._indexKey] + 1}</td>);
-      cells.push(<td key="index-current" className="index-column">{i + 1}</td>);
+      cells.push(<td key="index-source" className="index-column" aria-colindex={colIndex++}>{record[columns._indexKey] + 1}</td>);
+      cells.push(<td key="index-current" className="index-column" aria-colindex={colIndex++}>{i + 1}</td>);
     }
     for (let j = 0; j < columns.order.length; j++){
       let key = columns.order[j];
@@ -350,9 +355,9 @@ const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>((props, ref) 
 
       if (column.displayFunc != null){
         let cellDisplay = column.displayFunc(record, value);
-        cells.push(<td key={key}>{cellDisplay}</td>);
+        cells.push(<td key={key} aria-colindex={colIndex++}>{cellDisplay}</td>);
       } else {
-        cells.push(<td key={key}>{value}</td>);
+        cells.push(<td key={key} aria-colindex={colIndex++}>{value}</td>);
       }
     }
     rows.push(
@@ -360,6 +365,8 @@ const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>((props, ref) 
         key={i} 
         role="row"
         aria-rowindex={i + 1}
+        data-testid={`table-row-${tableId}-${i}`}
+        data-row-index={i}
       >
         {cells}
       </tr>
@@ -382,7 +389,7 @@ const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>((props, ref) 
     }
     exportRows.push(exportHeaders.join(","));
 
-    for (let i = 0; i < filteredSortedRecords?.length ?? 0; i++){
+    for (let i = 0; i < filteredSortedRecords.length; i++){
       let exportRecord = [];
       let record = filteredSortedRecords[i];
       for (let j = 0; j < columns.order.length; j++){
@@ -412,8 +419,18 @@ const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>((props, ref) 
       style={props.style}
       role="region"
       aria-label="Data table with sorting and filtering"
+      aria-describedby={`${tableDescriptionId} ${tableStatsId}`}
+      data-testid={`data-table-${tableId}`}
+      data-component="rare-earth-table"
     >
+      <div id={tableDescriptionId} className="sr-only" translate="yes">
+        Interactive data table with sorting, filtering, and pagination capabilities. Use column headers to sort data and filter controls to narrow results.
+      </div>
+      <div id={tableStatsId} className="sr-only" aria-live="polite" aria-atomic="true">
+        Showing {lb + 1} to {ub} of {filteredSortedRecords.length} filtered results (from {records.length} total records)
+      </div>
       <TableControl
+        tableId={tableId}
         columns={props?.columns ?? []}
         exportTable={exportTable}
         numRecords={records.length}
@@ -437,6 +454,8 @@ const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>((props, ref) 
         role="table"
         aria-label="Data table"
         aria-rowcount={filteredSortedRecords.length}
+        aria-colcount={columns.order.length + (props.index !== false ? 2 : 0)}
+        aria-describedby={tableDescriptionId}
       >
         <thead role="rowgroup">
           <tr>
@@ -453,7 +472,7 @@ const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>((props, ref) 
         </tbody>
       </table>
       {rows.length === 0 && (
-        <div className="rare-earth-no-results" role="status" aria-live="polite">
+        <div className="rare-earth-no-results" role="status" aria-live="polite" aria-atomic="true" translate="yes">
           No Results Found After Filtering
         </div>
       )}

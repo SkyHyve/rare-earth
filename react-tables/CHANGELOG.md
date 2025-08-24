@@ -5,6 +5,53 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.2] - 2025-01-26
+
+### Added
+- **Comprehensive ARIA Attributes**: Extended accessibility support with additional ARIA attributes
+  - `aria-describedby` for complex table descriptions and relationships
+  - `aria-sort` for explicit sort state indicators (`ascending`, `descending`, `none`)
+  - `aria-colindex` and `aria-colcount` for column positioning in screen readers
+  - `aria-haspopup` and `aria-expanded` for filter dropdown states
+  - `aria-controls` linking filter buttons to their popup dialogs
+  - `aria-invalid` and error message IDs for form validation feedback
+  - `aria-atomic="true"` for complete live region announcements
+  - `aria-labelledby` for proper label relationships
+  - `aria-setsize` and `aria-posinset` for pagination button positioning
+
+- **Production-Ready HTML Attributes**: Complete attribute coverage for robust library usage
+  - `tabindex="0"` for proper keyboard navigation on interactive elements
+  - Comprehensive `data-testid` attributes for automated testing
+  - `data-*` attributes for component identification and state tracking
+  - `autoComplete="off"` on filter inputs to prevent browser autocomplete
+  - `name` attributes for proper form field identification
+  - `title` attributes for enhanced tooltips and context
+  - `translate="yes"` on user-facing text for internationalization support
+  - Enhanced drag-and-drop attributes for column reordering
+
+- **Multiple Table Instance Support**: Unique IDs and test identifiers for concurrent tables
+  - All IDs now include unique table identifier to prevent conflicts
+  - Test IDs follow pattern: `{element}-{tableId}-{context}`
+  - ARIA relationships maintain uniqueness across multiple table instances
+  - Form field names are scoped per table instance
+  - Error message IDs are unique per table and column
+
+### Enhanced
+- **Accessibility**: Screen readers now receive more detailed table structure information
+- **Testing**: Every interactive element has unique, predictable test identifiers
+- **Internationalization**: Text elements properly marked for translation tools
+- **Multi-Table Support**: Libraries can now safely render multiple tables on the same page
+- **Developer Experience**: Enhanced debugging with comprehensive data attributes
+
+### Technical Details
+- **Unique Table IDs**: Uses `props.id` or generates `rare-earth-table-{React.useId()}`
+- **Cascading IDs**: Table ID propagated to all child components (TableControl, TableHeader, Pagination)
+- **TypeScript Updates**: All interfaces updated to handle `tableId` parameter
+- **Naming Patterns**: 
+  - Test IDs: `data-testid="{component}-{tableId}-{context}"`
+  - Form names: `name="filter-{tableId}-{columnKey}-{type}"`
+  - Error IDs: `id="{type}-error-{tableId}-{columnKey}"`
+
 ## [0.4.1] - 2025-01-26
 
 ### Added

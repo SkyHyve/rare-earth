@@ -7,6 +7,7 @@ import { Pagination } from './Pagination';
 import { ColumnDefinition, SortField, SearchState, DEBOUNCE_INPUT_TIME_MS } from './types';
 
 interface TableControlProps {
+  tableId: string;
   columns: ColumnDefinition[];
   exportTable: () => void;
   numRecords: number;
@@ -27,6 +28,7 @@ interface TableControlProps {
 }
 
 const TableControl: React.FC<TableControlProps> = ({
+  tableId,
   columns,
   exportTable,
   numRecords,
@@ -110,6 +112,9 @@ const TableControl: React.FC<TableControlProps> = ({
             value={searchInput ?? ''}
             onChange={(event) => setSearchInput((event.target.value?.trim() == '') ? null : event.target.value)}
             type="search"
+            name="table-search"
+            autoComplete="off"
+            data-testid={`global-search-input-${tableId}`}
           />
           <FloatingTooltip content="Reset Table">
             <button
@@ -132,13 +137,14 @@ const TableControl: React.FC<TableControlProps> = ({
       
       <div className="rare-earth-control-row">
         <div className="rare-earth-label">
-          <label htmlFor="page-length-select">Page Length</label>
+          <label id={`page-length-label-${tableId}`} htmlFor={`page-length-select-${tableId}`}>Page Length</label>
           <select
-            id="page-length-select"
+            id={`page-length-select-${tableId}`}
             className="rare-earth-select"
             value={pageLength.toString()}
             onChange={(e) => _setPageLength(parseFloat(e.target.value))}
-            aria-label="Number of rows per page"
+            aria-labelledby={`page-length-label-${tableId}`}
+            data-testid={`page-length-select-${tableId}`}
           >
             {pageLengthOptions.map(opt => (
               <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -147,6 +153,7 @@ const TableControl: React.FC<TableControlProps> = ({
         </div>
         
         <Pagination
+          tableId={tableId}
           value={page}
           onChange={setPage}
           total={pageCount}

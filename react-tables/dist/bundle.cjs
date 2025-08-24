@@ -3678,6 +3678,7 @@ const FloatingTooltip = _ref => {
 
 const Pagination = /*#__PURE__*/React.memo(_ref => {
   let {
+    tableId,
     value,
     onChange,
     total
@@ -3696,7 +3697,10 @@ const Pagination = /*#__PURE__*/React.memo(_ref => {
         className: "rare-earth-page-button",
         onClick: () => onChange(1),
         "aria-label": "Go to page 1",
-        type: "button"
+        "aria-setsize": total,
+        "aria-posinset": 1,
+        type: "button",
+        "data-testid": "pagination-page-1-".concat(tableId)
       }, "1"));
       if (start > 2) {
         pages.push(/*#__PURE__*/React.createElement("span", {
@@ -3712,7 +3716,10 @@ const Pagination = /*#__PURE__*/React.memo(_ref => {
         onClick: () => onChange(i),
         "aria-label": "Go to page ".concat(i),
         "aria-current": i === value ? 'page' : undefined,
-        type: "button"
+        "aria-setsize": total,
+        "aria-posinset": i,
+        type: "button",
+        "data-testid": "pagination-page-".concat(i, "-").concat(tableId)
       }, i));
     }
     if (end < total) {
@@ -3727,7 +3734,10 @@ const Pagination = /*#__PURE__*/React.memo(_ref => {
         className: "rare-earth-page-button",
         onClick: () => onChange(total),
         "aria-label": "Go to page ".concat(total),
-        type: "button"
+        "aria-setsize": total,
+        "aria-posinset": total,
+        type: "button",
+        "data-testid": "pagination-page-".concat(total, "-").concat(tableId)
       }, total));
     }
     return pages;
@@ -3741,13 +3751,19 @@ const Pagination = /*#__PURE__*/React.memo(_ref => {
     disabled: value === 1,
     onClick: () => onChange(Math.max(1, value - 1)),
     "aria-label": "Go to previous page",
-    type: "button"
+    type: "button",
+    "data-testid": "pagination-previous-".concat(tableId),
+    "data-action": "previous",
+    title: "Go to previous page"
   }, "\u2039"), renderPageNumbers(), /*#__PURE__*/React.createElement("button", {
     className: "rare-earth-page-button",
     disabled: value === total,
     onClick: () => onChange(Math.min(total, value + 1)),
     "aria-label": "Go to next page",
-    type: "button"
+    type: "button",
+    "data-testid": "pagination-next-".concat(tableId),
+    "data-action": "next",
+    title: "Go to next page"
   }, "\u203A"));
 });
 
@@ -3755,6 +3771,7 @@ const DEBOUNCE_INPUT_TIME_MS = 500;
 
 const TableControl = _ref => {
   let {
+    tableId,
     columns,
     exportTable,
     numRecords,
@@ -3844,7 +3861,10 @@ const TableControl = _ref => {
       var _event$target$value;
       return setSearchInput(((_event$target$value = event.target.value) === null || _event$target$value === void 0 ? void 0 : _event$target$value.trim()) == '' ? null : event.target.value);
     },
-    type: "search"
+    type: "search",
+    name: "table-search",
+    autoComplete: "off",
+    "data-testid": "global-search-input-".concat(tableId)
   }), /*#__PURE__*/React.createElement(FloatingTooltip, {
     content: "Reset Table"
   }, /*#__PURE__*/React.createElement("button", {
@@ -3863,17 +3883,20 @@ const TableControl = _ref => {
   }, /*#__PURE__*/React.createElement("div", {
     className: "rare-earth-label"
   }, /*#__PURE__*/React.createElement("label", {
-    htmlFor: "page-length-select"
+    id: "page-length-label-".concat(tableId),
+    htmlFor: "page-length-select-".concat(tableId)
   }, "Page Length"), /*#__PURE__*/React.createElement("select", {
-    id: "page-length-select",
+    id: "page-length-select-".concat(tableId),
     className: "rare-earth-select",
     value: pageLength.toString(),
     onChange: e => _setPageLength(parseFloat(e.target.value)),
-    "aria-label": "Number of rows per page"
+    "aria-labelledby": "page-length-label-".concat(tableId),
+    "data-testid": "page-length-select-".concat(tableId)
   }, pageLengthOptions.map(opt => (/*#__PURE__*/React.createElement("option", {
     key: opt.value,
     value: opt.value
   }, opt.label))))), /*#__PURE__*/React.createElement(Pagination, {
+    tableId: tableId,
     value: page,
     onChange: setPage,
     total: pageCount
@@ -3881,7 +3904,10 @@ const TableControl = _ref => {
 };
 
 const TableHeader = function (props, ref) {
-  var _props$search, _props$search$fields$, _props$search2, _props$search$fields$2, _props$search3, _props$search4, _props$search5, _props$search6, _props$search7, _props$search8, _props$search9, _props$search17, _props$column$label, _props$column$label2, _props$column$label3, _props$search23, _props$search24, _props$search25;
+  var _props$search, _props$search$fields$, _props$search2, _props$search$fields$2, _props$search3, _props$search4, _props$search5, _props$search6, _props$search7, _props$search8, _props$search9, _props$search17, _props$column$label, _props$column$label2, _props$column$label3, _props$column$label4, _props$column$label5, _props$column$label6, _props$search23, _props$search24, _props$search25;
+  const {
+    tableId
+  } = props;
   const [searchInput, setSearchInput] = React.useState({
     string: (_props$search = props.search) === null || _props$search === void 0 || (_props$search = _props$search.fields) === null || _props$search === void 0 || (_props$search = _props$search[props.column_key]) === null || _props$search === void 0 || (_props$search = _props$search.string) === null || _props$search === void 0 ? void 0 : _props$search.text,
     number: {
@@ -4096,7 +4122,7 @@ const TableHeader = function (props, ref) {
     switch (props === null || props === void 0 || (_props$search18 = props.search) === null || _props$search18 === void 0 || (_props$search18 = _props$search18.fields) === null || _props$search18 === void 0 || (_props$search18 = _props$search18[props === null || props === void 0 ? void 0 : props.column_key]) === null || _props$search18 === void 0 ? void 0 : _props$search18._type) {
       case 'string':
         return /*#__PURE__*/React.createElement("input", {
-          className: "rare-earth-input",
+          className: "rare-earth-input rare-earth-input-sm",
           placeholder: "Filter",
           value: (_searchInput$string = searchInput === null || searchInput === void 0 ? void 0 : searchInput.string) !== null && _searchInput$string !== void 0 ? _searchInput$string : '',
           onChange: event => setSearchInput(_searchInput => {
@@ -4105,7 +4131,11 @@ const TableHeader = function (props, ref) {
               string: ((_event$target$value = event.target.value) === null || _event$target$value === void 0 || (_event$target$value$t = _event$target$value.trim) === null || _event$target$value$t === void 0 ? void 0 : _event$target$value$t.call(_event$target$value)) == '' ? null : event.target.value
             });
           }),
-          className: "rare-earth-input rare-earth-input-sm"
+          type: "text",
+          name: "filter-".concat(tableId, "-").concat(props.column_key),
+          autoComplete: "off",
+          "data-testid": "filter-input-".concat(tableId, "-").concat(props.column_key),
+          "data-filter-type": "string"
         });
       case 'number':
         // Check if the input contains only valid characters but is still invalid as a number
@@ -4132,6 +4162,12 @@ const TableHeader = function (props, ref) {
           type: "text",
           placeholder: "Min",
           value: (_searchInput$number$g2 = (_searchInput$number15 = searchInput.number) === null || _searchInput$number15 === void 0 ? void 0 : _searchInput$number15.gtRaw) !== null && _searchInput$number$g2 !== void 0 ? _searchInput$number$g2 : '',
+          "aria-invalid": gtHasError,
+          "aria-describedby": gtHasError ? "gt-error-".concat(tableId, "-").concat(props.column_key) : undefined,
+          name: "filter-".concat(tableId, "-").concat(props.column_key, "-min"),
+          autoComplete: "off",
+          "data-testid": "filter-min-".concat(tableId, "-").concat(props.column_key),
+          "data-filter-type": "number",
           onChange: event => {
             const value = event.target.value;
             // Just update the raw value - validation happens in useEffect
@@ -4158,7 +4194,9 @@ const TableHeader = function (props, ref) {
             })
           }))
         }), "Inclusive")), gtHasError && /*#__PURE__*/React.createElement("div", {
-          className: "rare-earth-error-text"
+          id: "gt-error-".concat(tableId, "-").concat(props.column_key),
+          className: "rare-earth-error-text",
+          role: "alert"
         }, hasMinMaxMismatch ? 'Min cannot be greater than max' : gtIsIntermediateState ? 'Incomplete number' : 'Invalid number format')), /*#__PURE__*/React.createElement("div", {
           className: "rare-earth-stack-sm"
         }, /*#__PURE__*/React.createElement("div", {
@@ -4168,6 +4206,12 @@ const TableHeader = function (props, ref) {
           type: "text",
           placeholder: "Max",
           value: (_searchInput$number$l2 = (_searchInput$number16 = searchInput.number) === null || _searchInput$number16 === void 0 ? void 0 : _searchInput$number16.ltRaw) !== null && _searchInput$number$l2 !== void 0 ? _searchInput$number$l2 : '',
+          "aria-invalid": ltHasError,
+          "aria-describedby": ltHasError ? "lt-error-".concat(tableId, "-").concat(props.column_key) : undefined,
+          name: "filter-".concat(tableId, "-").concat(props.column_key, "-max"),
+          autoComplete: "off",
+          "data-testid": "filter-max-".concat(tableId, "-").concat(props.column_key),
+          "data-filter-type": "number",
           onChange: event => {
             const value = event.target.value;
             // Just update the raw value - validation happens in useEffect
@@ -4194,7 +4238,9 @@ const TableHeader = function (props, ref) {
             })
           }))
         }), "Inclusive")), ltHasError && /*#__PURE__*/React.createElement("div", {
-          className: "rare-earth-error-text"
+          id: "lt-error-".concat(tableId, "-").concat(props.column_key),
+          className: "rare-earth-error-text",
+          role: "alert"
         }, hasMinMaxMismatch ? 'Max cannot be less than min' : ltIsIntermediateState ? 'Incomplete number' : 'Invalid number format')));
       default:
         return null;
@@ -4375,6 +4421,13 @@ const TableHeader = function (props, ref) {
     "data-rare-earth-column-key": props.column_key,
     className: "rare-earth-draggable",
     draggable: true,
+    role: "button",
+    tabIndex: 0,
+    "aria-label": "Drag to reorder column ".concat((_props$column$label = props.column.label) !== null && _props$column$label !== void 0 ? _props$column$label : props.column_key),
+    title: "Drag to reorder column ".concat((_props$column$label2 = props.column.label) !== null && _props$column$label2 !== void 0 ? _props$column$label2 : props.column_key),
+    "data-testid": "column-header-".concat(tableId, "-").concat(props.column_key),
+    "data-column": props.column_key,
+    "data-draggable": "true",
     onDragStart: event => onDragStartHandle(event, props.column_key, props.column_index),
     onDragOver: event => event.preventDefault(),
     onDragEnter: event => event.preventDefault(),
@@ -4384,13 +4437,18 @@ const TableHeader = function (props, ref) {
   }, /*#__PURE__*/React.createElement(FloatingTooltip, {
     content: /*#__PURE__*/React.createElement("div", {
       className: "rare-earth-stack"
-    }, /*#__PURE__*/React.createElement("span", null, "Click to sort by ", (_props$column$label = props.column.label) !== null && _props$column$label !== void 0 ? _props$column$label : props.column_key.toString()), /*#__PURE__*/React.createElement("span", null, "Hold ", /*#__PURE__*/React.createElement("strong", null, "Shift"), " and click to add to multi-sort or change sort direction."))
+    }, /*#__PURE__*/React.createElement("span", null, "Click to sort by ", (_props$column$label3 = props.column.label) !== null && _props$column$label3 !== void 0 ? _props$column$label3 : props.column_key.toString()), /*#__PURE__*/React.createElement("span", null, "Hold ", /*#__PURE__*/React.createElement("strong", null, "Shift"), " and click to add to multi-sort or change sort direction."))
   }, /*#__PURE__*/React.createElement("button", {
     className: "rare-earth-sort-button",
     onClick: event => sortFieldClick(event),
-    "aria-label": "Sort by ".concat((_props$column$label2 = props.column.label) !== null && _props$column$label2 !== void 0 ? _props$column$label2 : props.column_key, ". Currently ").concat(ascendingActive ? 'ascending' : descendingActive ? 'descending' : 'not sorted'),
+    "aria-label": "Sort by ".concat((_props$column$label4 = props.column.label) !== null && _props$column$label4 !== void 0 ? _props$column$label4 : props.column_key, ". Currently ").concat(ascendingActive ? 'ascending' : descendingActive ? 'descending' : 'not sorted'),
     "aria-pressed": ascendingActive || descendingActive,
-    type: "button"
+    "aria-sort": ascendingActive ? 'ascending' : descendingActive ? 'descending' : 'none',
+    type: "button",
+    "data-testid": "sort-button-".concat(tableId, "-").concat(props.column_key),
+    "data-column": props.column_key,
+    "data-sort-state": ascendingActive ? 'ascending' : descendingActive ? 'descending' : 'none',
+    title: "Sort by ".concat((_props$column$label5 = props.column.label) !== null && _props$column$label5 !== void 0 ? _props$column$label5 : props.column_key)
   }, /*#__PURE__*/React.createElement("div", {
     className: "rare-earth-flex-xs"
   }, sortIndex, /*#__PURE__*/React.createElement("div", {
@@ -4401,22 +4459,32 @@ const TableHeader = function (props, ref) {
   }), /*#__PURE__*/React.createElement("div", {
     className: "rare-earth-triangle descending ".concat(descendingActive ? 'active' : ''),
     "aria-hidden": "true"
-  }))))), (_props$column$label3 = props.column.label) !== null && _props$column$label3 !== void 0 ? _props$column$label3 : props.column_key.toString())), /*#__PURE__*/React.createElement("div", {
+  }))))), (_props$column$label6 = props.column.label) !== null && _props$column$label6 !== void 0 ? _props$column$label6 : props.column_key.toString())), /*#__PURE__*/React.createElement("div", {
     className: "rare-earth-popover"
   }, /*#__PURE__*/React.createElement("div", {
     className: "rare-earth-flex-xs"
   }, /*#__PURE__*/React.createElement(FloatingTooltip, {
     content: "Click to open filter options and change filter type"
-  }, /*#__PURE__*/React.createElement("div", _objectSpread2({
+  }, /*#__PURE__*/React.createElement("div", _objectSpread2(_objectSpread2({
     ref: refs.setReference,
     className: "rare-earth-search-icon ".concat(searchOptionsOpen ? 'active' : '')
-  }, getReferenceProps()), /*#__PURE__*/React.createElement("div", {
+  }, getReferenceProps()), {}, {
+    role: "button",
+    tabIndex: 0,
+    "aria-haspopup": "dialog",
+    "aria-expanded": searchOptionsOpen,
+    "aria-controls": "filter-popup-".concat(tableId, "-").concat(props.column_key),
+    "aria-label": "Open filter options"
+  }), /*#__PURE__*/React.createElement("div", {
     className: "rare-earth-stack"
   }, /*#__PURE__*/React.createElement(FaSearchPlus, null), /*#__PURE__*/React.createElement("span", {
     className: "rare-earth-filter-type-indicator"
   }, (props === null || props === void 0 || (_props$search23 = props.search) === null || _props$search23 === void 0 || (_props$search23 = _props$search23.fields) === null || _props$search23 === void 0 || (_props$search23 = _props$search23[props === null || props === void 0 ? void 0 : props.column_key]) === null || _props$search23 === void 0 ? void 0 : _props$search23._type) != 'string' ? "123" : "ABC")))), renderSearchInput()), searchOptionsOpen && (/*#__PURE__*/React.createElement("div", _objectSpread2({
     ref: refs.setFloating,
-    className: "rare-earth-popover-content"
+    id: "filter-popup-".concat(tableId, "-").concat(props.column_key),
+    className: "rare-earth-popover-content",
+    role: "dialog",
+    "aria-label": "Filter options"
   }, getFloatingProps()), /*#__PURE__*/React.createElement("div", {
     className: "rare-earth-stack"
   }, /*#__PURE__*/React.createElement("div", {
@@ -4514,6 +4582,9 @@ const initiaDefaultSearch = function (columns) {
 };
 const DataTable = /*#__PURE__*/React.forwardRef((props, ref) => {
   var _props$columns, _props$columns2, _props$records, _props$initialPageLen, _props$pageLengthChoi, _props$initialPage, _props$initialSortFie, _props$columns3, _filteredSortedRecord, _props$columns8;
+  const tableId = props.id || "rare-earth-table-".concat(React.useId());
+  const tableDescriptionId = "".concat(tableId, "-description");
+  const tableStatsId = "".concat(tableId, "-stats");
   const [columns, setColumns] = React.useState({
     _indexKey: crypto.randomUUID(),
     order: ((_props$columns = props.columns) !== null && _props$columns !== void 0 ? _props$columns : []).map((x, i) => x.key),
@@ -4787,6 +4858,7 @@ const DataTable = /*#__PURE__*/React.forwardRef((props, ref) => {
     main_headers.push(/*#__PURE__*/React.createElement(TableHeader, {
       ref: headerRefs,
       key: key,
+      tableId: tableId,
       columns: columns,
       setColumns: setColumns,
       sortFields: sortFields,
@@ -4807,14 +4879,17 @@ const DataTable = /*#__PURE__*/React.forwardRef((props, ref) => {
   for (let i = lb; i < ub; i++) {
     let record = filteredSortedRecords[i];
     let cells = [];
+    let colIndex = 1;
     if (props.index !== false) {
       cells.push(/*#__PURE__*/React.createElement("td", {
         key: "index-source",
-        className: "index-column"
+        className: "index-column",
+        "aria-colindex": colIndex++
       }, record[columns._indexKey] + 1));
       cells.push(/*#__PURE__*/React.createElement("td", {
         key: "index-current",
-        className: "index-column"
+        className: "index-column",
+        "aria-colindex": colIndex++
       }, i + 1));
     }
     for (let j = 0; j < columns.order.length; j++) {
@@ -4829,18 +4904,22 @@ const DataTable = /*#__PURE__*/React.forwardRef((props, ref) => {
       if (column.displayFunc != null) {
         let cellDisplay = column.displayFunc(record, value);
         cells.push(/*#__PURE__*/React.createElement("td", {
-          key: key
+          key: key,
+          "aria-colindex": colIndex++
         }, cellDisplay));
       } else {
         cells.push(/*#__PURE__*/React.createElement("td", {
-          key: key
+          key: key,
+          "aria-colindex": colIndex++
         }, value));
       }
     }
     rows.push(/*#__PURE__*/React.createElement("tr", {
       key: i,
       role: "row",
-      "aria-rowindex": i + 1
+      "aria-rowindex": i + 1,
+      "data-testid": "table-row-".concat(tableId, "-").concat(i),
+      "data-row-index": i
     }, cells));
   }
   if (page > 1 && (filteredSortedRecords.length < (page - 1) * pageLength + 1 || pageLength === Infinity)) {
@@ -4857,8 +4936,7 @@ const DataTable = /*#__PURE__*/React.forwardRef((props, ref) => {
       exportHeaders.push((_column$label = column.label) !== null && _column$label !== void 0 ? _column$label : column.key);
     }
     exportRows.push(exportHeaders.join(","));
-    for (let i = 0; (_ref7 = i < (filteredSortedRecords === null || filteredSortedRecords === void 0 ? void 0 : filteredSortedRecords.length)) !== null && _ref7 !== void 0 ? _ref7 : 0; i++) {
-      var _ref7;
+    for (let i = 0; i < filteredSortedRecords.length; i++) {
       let exportRecord = [];
       let record = filteredSortedRecords[i];
       for (let j = 0; j < columns.order.length; j++) {
@@ -4884,8 +4962,21 @@ const DataTable = /*#__PURE__*/React.forwardRef((props, ref) => {
     className: "rare-earth-container".concat(props.className ? " ".concat(props.className) : ''),
     style: props.style,
     role: "region",
-    "aria-label": "Data table with sorting and filtering"
-  }, /*#__PURE__*/React.createElement(TableControl, {
+    "aria-label": "Data table with sorting and filtering",
+    "aria-describedby": "".concat(tableDescriptionId, " ").concat(tableStatsId),
+    "data-testid": "data-table-".concat(tableId),
+    "data-component": "rare-earth-table"
+  }, /*#__PURE__*/React.createElement("div", {
+    id: tableDescriptionId,
+    className: "sr-only",
+    translate: "yes"
+  }, "Interactive data table with sorting, filtering, and pagination capabilities. Use column headers to sort data and filter controls to narrow results."), /*#__PURE__*/React.createElement("div", {
+    id: tableStatsId,
+    className: "sr-only",
+    "aria-live": "polite",
+    "aria-atomic": "true"
+  }, "Showing ", lb + 1, " to ", ub, " of ", filteredSortedRecords.length, " filtered results (from ", records.length, " total records)"), /*#__PURE__*/React.createElement(TableControl, {
+    tableId: tableId,
     columns: (_props$columns8 = props === null || props === void 0 ? void 0 : props.columns) !== null && _props$columns8 !== void 0 ? _props$columns8 : [],
     exportTable: exportTable,
     numRecords: records.length,
@@ -4907,13 +4998,19 @@ const DataTable = /*#__PURE__*/React.forwardRef((props, ref) => {
     className: "rare-earth-table",
     role: "table",
     "aria-label": "Data table",
-    "aria-rowcount": filteredSortedRecords.length
+    "aria-rowcount": filteredSortedRecords.length,
+    "aria-colcount": columns.order.length + (props.index !== false ? 2 : 0),
+    "aria-describedby": tableDescriptionId
   }, /*#__PURE__*/React.createElement("thead", {
     role: "rowgroup"
   }, /*#__PURE__*/React.createElement("tr", null, main_headers), props.index !== false && (/*#__PURE__*/React.createElement("tr", null, sub_headers))), /*#__PURE__*/React.createElement("tbody", {
     role: "rowgroup"
   }, rows)), rows.length === 0 && (/*#__PURE__*/React.createElement("div", {
-    className: "rare-earth-no-results"
+    className: "rare-earth-no-results",
+    role: "status",
+    "aria-live": "polite",
+    "aria-atomic": "true",
+    translate: "yes"
   }, "No Results Found After Filtering")));
 });
 
