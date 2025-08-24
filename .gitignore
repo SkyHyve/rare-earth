@@ -1,6 +1,8 @@
 **/node_modules
 **/public/*
+**/dist/*
 **/build/*
+*.png
 package-lock.json
 
 !**/.gitkeep

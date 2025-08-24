@@ -4,23 +4,27 @@ import json from '@rollup/plugin-json'
 import babel from '@rollup/plugin-babel'
 import commonjs from '@rollup/plugin-commonjs';
 import postcss from 'rollup-plugin-postcss';
-import postcssPresetMantine from 'postcss-preset-mantine';
 import replace from '@rollup/plugin-replace';
+import typescript from '@rollup/plugin-typescript';
 
 import pkg from './package.json' assert { type: "json" };
 
-const INPUT_FILE_PATH = 'src/Table.jsx';
+const INPUT_FILE_PATH = 'src/index.ts';
 const OUTPUT_NAME = 'RareEarth';
 
 const PLUGINS = [
   postcss({
-    plugins: [
-      postcssPresetMantine,
-    ]
+    extract: 'css/react-tables.css',
+    minimize: true,
   }),
   replace({
     'process.env.NODE_ENV': JSON.stringify('production'),
     preventAssignment: true,
+  }),
+  typescript({
+    tsconfig: './tsconfig.json',
+    declaration: true,
+    declarationDir: './dist',
   }),
   nodeResolve({
     //browser: true,
@@ -36,7 +40,8 @@ const PLUGINS = [
     babelrc: true,
     babelHelpers: 'bundled',
     exclude: 'node_modules/**',
-    presets: ['@babel/preset-react'],
+    extensions: ['.js', '.jsx', '.ts', '.tsx'],
+    presets: ['@babel/preset-react', '@babel/preset-typescript'],
   }),
   commonjs({
     include: 'node_modules/**',

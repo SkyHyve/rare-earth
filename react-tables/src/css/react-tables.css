@@ -1,0 +1,739 @@
+/* Color palette */
+:root {
+  /* Primary colors */
+  --re-primary-blue: #667eea;
+  --re-primary-purple: #764ba2;
+  --re-primary-indigo: #4f46e5;
+  --re-primary-violet: #7c3aed;
+  
+  /* Neutral colors - Light */
+  --re-white: #ffffff;
+  --re-gray-50: #f9fafb;
+  --re-gray-100: #f3f4f6;
+  --re-gray-200: #e5e7eb;
+  --re-gray-300: #d1d5db;
+  --re-gray-400: #9ca3af;
+  --re-gray-500: #6b7280;
+  --re-gray-700: #374151;
+  --re-gray-800: #1f2937;
+  --re-gray-900: #111827;
+  
+  /* Neutral colors - Slate */
+  --re-slate-100: #f1f5f9;
+  --re-slate-200: #e2e8f0;
+  --re-slate-700: #334155;
+  --re-slate-800: #1e293b;
+  --re-slate-900: #0f172a;
+  
+  /* Dark theme colors */
+  --re-dark-gray-600: #4b5563;
+  --re-dark-gray-700: #374151;
+  --re-dark-gray-800: #1f2937;
+  
+  /* Accent colors */
+  --re-blue-100: #dbeafe;
+  --re-blue-500: #3b82f6;
+  --re-blue-700: #1d4ed8;
+  --re-cyan-100: #e0f2fe;
+  --re-cyan-400: #22d3ee;
+  --re-cyan-500: #06b6d4;
+  --re-teal-400: #2dd4bf;
+  --re-teal-500: #14b8a6;
+  --re-red-500: #ef4444;
+  --re-red-600: #dc2626;
+}
+
+/* CSS Custom Properties for theming */
+.rare-earth-container {
+  --rare-earth-primary-gradient: linear-gradient(135deg, var(--re-primary-blue) 0%, var(--re-primary-purple) 100%);
+  --rare-earth-table-bg: var(--re-white);
+  --rare-earth-table-stripe-bg: var(--re-slate-200);
+  --rare-earth-table-hover-bg: var(--re-cyan-100);
+  --rare-earth-table-text: var(--re-gray-700);
+  --rare-earth-table-border: var(--re-gray-200);
+  --rare-earth-control-bg: var(--re-white);
+  --rare-earth-input-bg: var(--re-white);
+  --rare-earth-input-text: var(--re-gray-700);
+  --rare-earth-input-border: var(--re-gray-300);
+  --rare-earth-page-button-bg: var(--re-white);
+  --rare-earth-page-button-text: var(--re-gray-700);
+  --rare-earth-page-button-border: var(--re-gray-200);
+  --rare-earth-popup-bg: var(--re-white);
+  --rare-earth-popup-text: var(--re-gray-700);
+  --rare-earth-popup-border: var(--re-gray-200);
+  --rare-earth-chip-bg: var(--re-gray-100);
+  --rare-earth-chip-text: var(--re-gray-700);
+  --rare-earth-chip-hover-bg: var(--re-gray-200);
+  --rare-earth-search-icon-bg: var(--re-gray-100);
+  --rare-earth-icon-color: var(--re-gray-900);
+  --rare-earth-search-icon-color: var(--re-gray-500);
+  --rare-earth-triangle-inactive: rgba(255, 255, 255, 0.4);
+  --rare-earth-triangle-active: var(--re-white);
+}
+
+/* Dark mode theme */
+.rare-earth-container.dark-mode {
+  --rare-earth-primary-gradient: linear-gradient(135deg, var(--re-primary-indigo) 0%, var(--re-primary-violet) 100%);
+  --rare-earth-table-bg: var(--re-gray-800);
+  --rare-earth-table-stripe-bg: var(--re-dark-gray-700);
+  --rare-earth-table-hover-bg: var(--re-blue-700);
+  --rare-earth-table-text: var(--re-gray-50);
+  --rare-earth-table-border: var(--re-dark-gray-600);
+  --rare-earth-control-bg: var(--re-gray-800);
+  --rare-earth-input-bg: var(--re-dark-gray-700);
+  --rare-earth-input-text: var(--re-gray-50);
+  --rare-earth-input-border: var(--re-gray-500);
+  --rare-earth-page-button-bg: var(--re-dark-gray-700);
+  --rare-earth-page-button-text: var(--re-gray-50);
+  --rare-earth-page-button-border: var(--re-dark-gray-600);
+  --rare-earth-popup-bg: var(--re-gray-800);
+  --rare-earth-popup-text: var(--re-gray-50);
+  --rare-earth-popup-border: var(--re-dark-gray-600);
+  --rare-earth-chip-bg: var(--re-dark-gray-700);
+  --rare-earth-chip-text: var(--re-gray-50);
+  --rare-earth-chip-hover-bg: var(--re-dark-gray-600);
+  --rare-earth-search-icon-bg: var(--re-dark-gray-700);
+  --rare-earth-icon-color: var(--re-white);
+  --rare-earth-search-icon-color: var(--re-gray-50);
+  --rare-earth-triangle-inactive: rgba(255, 255, 255, 0.3);
+  --rare-earth-triangle-active: var(--re-white);
+}
+
+.rare-earth-container {
+  min-height: 200px;
+  width: 100%;
+  overflow: auto;
+  padding: 4px;
+  background: var(--rare-earth-primary-gradient);
+  border-radius: 6px;
+}
+
+.rare-earth-table {
+  width: 100%;
+  max-width: 100%;
+  margin-bottom: 0.5rem;
+  background-color: var(--rare-earth-table-bg);
+  border-collapse: separate;
+  border-spacing: 0;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.rare-earth-table th,
+.rare-earth-table td {
+  padding: 0.25rem 0.25rem;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--rare-earth-table-border);
+}
+
+/* Regular column headers with rowspan should align content to top */
+.rare-earth-table th.rare-earth-header-cell[rowspan="2"] {
+  vertical-align: top;
+}
+
+/* Index columns should be as narrow as possible */
+.rare-earth-table th.index-column,
+.rare-earth-table td.index-column {
+  width: 0;
+  white-space: nowrap;
+  padding: 0.25rem 0.5rem;
+}
+
+/* Index main header spans both sub-columns */
+.rare-earth-table th.index-main-header {
+  text-align: center;
+  width: 0;
+  white-space: nowrap;
+  padding: 0.25rem 0.5rem;
+}
+
+/* Index sub-headers */
+.rare-earth-table th.index-sub-header {
+  font-size: 0.75rem;
+  text-align: center;
+  width: 0;
+  white-space: nowrap;
+  padding: 0.125rem 0.25rem;
+}
+
+/* Index sub-headers with tooltips should show help cursor */
+.rare-earth-table th.index-sub-header span {
+  cursor: help;
+  display: block;
+  width: 100%;
+  min-height: 100%;
+  padding: 0.125rem 0.25rem;
+  margin: -0.125rem -0.25rem;
+}
+
+.rare-earth-table thead th {
+  background: var(--rare-earth-primary-gradient);
+  color: white;
+  font-weight: 600;
+  font-size: 0.875rem;
+  letter-spacing: 0.025em;
+  border-bottom: none;
+  text-align: left;
+}
+
+.rare-earth-table td {
+  font-size: 0.8rem;
+  color: var(--rare-earth-table-text);
+}
+
+.rare-earth-table tbody tr {
+  transition: all 0.2s ease;
+}
+
+.rare-earth-table tbody tr:nth-child(even) {
+  background-color: var(--rare-earth-table-stripe-bg);
+}
+
+.rare-earth-table tbody tr:hover {
+  background-color: var(--rare-earth-table-hover-bg) !important;
+  transform: scale(1.01);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.rare-earth-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.rare-earth-table tbody + tbody {
+  border-top: 2px solid #e5e7eb;
+}
+
+.rare-earth-control {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  background: var(--rare-earth-control-bg);
+  border-radius: 6px;
+  margin-bottom: 0.25rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.rare-earth-control-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.rare-earth-button {
+  background: linear-gradient(135deg, var(--re-primary-blue) 0%, var(--re-primary-purple) 100%);
+  color: white;
+  border: none;
+  padding: 0.5rem 1.25rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.rare-earth-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.rare-earth-button:active {
+  transform: translateY(0);
+}
+
+.rare-earth-sort-button {
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 0.25rem;
+  border-radius: 4px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  margin-left: 0.5rem;
+  backdrop-filter: blur(2px);
+}
+
+.rare-earth-sort-button:hover {
+  background-color: rgba(255, 255, 255, 0.4);
+  border-color: rgba(255, 255, 255, 0.6);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.rare-earth-sort-button:hover .rare-earth-triangle:not(.active) {
+  border-bottom-color: rgba(255, 255, 255, 0.7);
+}
+
+.rare-earth-sort-button.active {
+  background-color: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.rare-earth-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.rare-earth-stack-sm {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.rare-earth-flex {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.rare-earth-flex-xs {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.rare-earth-search-container {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  min-width: 150px;
+}
+
+.rare-earth-flex-xs svg {
+  color: var(--rare-earth-table-text);
+}
+
+.rare-earth-input {
+  background-color: var(--rare-earth-input-bg);
+  color: var(--rare-earth-input-text);
+  border: 2px solid var(--rare-earth-input-border);
+  padding: 0.25rem 0.5rem;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  transition: all 0.2s ease;
+}
+
+.rare-earth-input:focus {
+  outline: none;
+  border-color: var(--re-primary-blue);
+  background-color: var(--rare-earth-input-bg);
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.rare-earth-select {
+  background-color: var(--rare-earth-input-bg);
+  color: var(--rare-earth-input-text);
+  border: 2px solid var(--rare-earth-input-border);
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.rare-earth-select:focus {
+  outline: none;
+  border-color: var(--re-primary-blue);
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.rare-earth-label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.875rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.rare-earth-pagination {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.rare-earth-pagination-dots {
+  color: var(--rare-earth-page-button-text);
+  font-weight: 500;
+  padding: 0 0.25rem;
+}
+
+.rare-earth-page-button {
+  background-color: var(--rare-earth-page-button-bg);
+  color: var(--rare-earth-page-button-text);
+  border: 2px solid var(--rare-earth-page-button-border);
+  padding: 0.375rem 0.75rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  min-width: 2.5rem;
+  text-align: center;
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+.rare-earth-page-button:hover:not(:disabled) {
+  background: linear-gradient(135deg, var(--re-primary-blue) 0%, var(--re-primary-purple) 100%);
+  color: white;
+  border-color: transparent;
+  transform: translateY(-2px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.rare-earth-page-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.rare-earth-page-button.active {
+  background: linear-gradient(135deg, var(--re-primary-blue) 0%, var(--re-primary-purple) 100%);
+  color: white;
+  border-color: transparent;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.rare-earth-avatar {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--re-primary-blue) 0%, var(--re-primary-purple) 100%);
+  color: white;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.rare-earth-avatar:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.rare-earth-avatar.danger {
+  background: linear-gradient(135deg, var(--re-red-500) 0%, var(--re-red-600) 100%);
+}
+
+.rare-earth-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #e5e7eb, transparent);
+  margin: 0.5rem 0;
+}
+
+.rare-earth-text {
+  color: var(--rare-earth-table-text);
+  font-size: 0.875rem;
+}
+
+.rare-earth-tooltip {
+  position: relative;
+  display: inline-block;
+}
+
+.rare-earth-tooltip-content {
+  background-color: #1f2937;
+  color: white;
+  text-align: center;
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  white-space: nowrap;
+  font-size: 0.75rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+.rare-earth-floating-tooltip-wrapper {
+  display: inline-block;
+}
+
+.rare-earth-floating-tooltip {
+  background-color: #212529;
+  color: #dee2e6;
+  text-align: center;
+  border-radius: 0.25rem;
+  padding: 0.5rem;
+  border: 1px solid #495057;
+  white-space: nowrap;
+  font-size: 0.875rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  z-index: 10000;
+}
+
+.rare-earth-popover {
+  position: relative;
+}
+
+.rare-earth-header-cell {
+  position: relative;
+  overflow: visible;
+}
+
+.rare-earth-popover-content {
+  background-color: var(--rare-earth-popup-bg);
+  color: var(--rare-earth-popup-text);
+  border: 1px solid var(--rare-earth-popup-border);
+  border-radius: 12px;
+  padding: 1rem;
+  z-index: 10000;
+  min-width: 25rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+.rare-earth-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--rare-earth-popup-text);
+}
+
+.rare-earth-checkbox input[type="checkbox"] {
+  width: 1.25rem;
+  height: 1.25rem;
+  accent-color: var(--re-cyan-400);
+  cursor: pointer;
+}
+
+.rare-earth-chip-group {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.rare-earth-chip {
+  background-color: var(--rare-earth-chip-bg);
+  color: var(--rare-earth-chip-text);
+  border: 2px solid transparent;
+  padding: 0.375rem 1rem;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.rare-earth-chip:hover {
+  background-color: var(--rare-earth-chip-hover-bg);
+  transform: translateY(-2px);
+}
+
+.rare-earth-chip.active {
+  background: linear-gradient(135deg, var(--re-primary-blue) 0%, var(--re-primary-purple) 100%);
+  color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.rare-earth-search-icon {
+  width: 2.25rem;
+  height: 2.25rem;
+  background-color: var(--rare-earth-search-icon-bg);
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: var(--rare-earth-search-icon-color);
+}
+
+.rare-earth-search-icon svg {
+  color: var(--rare-earth-search-icon-color);
+}
+
+.rare-earth-search-icon span {
+  color: var(--rare-earth-search-icon-color);
+}
+
+.rare-earth-search-icon:hover {
+  background: linear-gradient(135deg, var(--re-primary-blue) 0%, var(--re-primary-purple) 100%);
+  transform: scale(1.1);
+}
+
+.rare-earth-search-icon:hover svg {
+  color: white;
+}
+
+.rare-earth-search-icon.active {
+  background: linear-gradient(135deg, var(--re-primary-blue) 0%, var(--re-primary-purple) 100%);
+}
+
+.rare-earth-search-icon.active svg {
+  color: white;
+}
+
+.rare-earth-number-input {
+  background-color: var(--rare-earth-input-bg);
+  color: var(--rare-earth-input-text);
+  border: 2px solid var(--rare-earth-input-border);
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  width: 5rem;
+  transition: all 0.2s ease;
+}
+
+.rare-earth-number-input:focus {
+  outline: none;
+  border-color: var(--re-primary-blue);
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.rare-earth-number-input.error {
+  border-color: var(--re-red-500);
+  background-color: rgba(239, 68, 68, 0.1);
+  color: var(--re-red-500);
+}
+
+.rare-earth-number-input.error:focus {
+  border-color: var(--re-red-600);
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+/* Numeric filter specific styles */
+.rare-earth-numeric-filter-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+  max-width: 12rem;
+}
+
+.rare-earth-numeric-filter-row {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.rare-earth-numeric-filter-input {
+  width: 4rem;
+}
+
+.rare-earth-checkbox-sm {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.65rem;
+  white-space: nowrap;
+  color: var(--re-white);
+}
+
+.rare-earth-checkbox-sm input[type="checkbox"] {
+  width: 1rem;
+  height: 1rem;
+  cursor: pointer;
+  appearance: none;
+  background-color: transparent;
+  border: 2px solid var(--re-cyan-400);
+  border-radius: 2px;
+  position: relative;
+}
+
+.rare-earth-checkbox-sm input[type="checkbox"]:checked {
+  background-color: var(--re-cyan-400);
+}
+
+.rare-earth-checkbox-sm input[type="checkbox"]:checked::after {
+  content: '✓';
+  color: white;
+  font-size: 0.75rem;
+  font-weight: bold;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.rare-earth-error-text {
+  color: var(--re-red-500);
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.rare-earth-input-sm {
+  width: 8rem;
+  max-width: 12rem;
+}
+
+/* Numeric filter gt/gte/lt/lte toggle buttons */
+.rare-earth-avatar.filter-toggle {
+  background: var(--rare-earth-input-bg);
+  color: var(--rare-earth-input-text);
+  border: 2px solid var(--rare-earth-input-border);
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.rare-earth-avatar.filter-toggle:hover {
+  background: linear-gradient(135deg, var(--re-primary-blue) 0%, var(--re-primary-purple) 100%);
+  color: white;
+  border-color: transparent;
+  box-shadow: 0 2px 6px rgba(102, 126, 234, 0.3);
+}
+
+/* Fix search icon text visibility when active in dark mode */
+.rare-earth-search-icon.active span {
+  color: white !important;
+}
+
+/* Filter type indicator (123/ABC) */
+.rare-earth-filter-type-indicator {
+  font-size: 0.5rem;
+  font-weight: bold;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  font-family: monospace;
+}
+
+/* Fix search icon hover state text visibility */
+.rare-earth-search-icon:hover span {
+  color: white !important;
+}
+
+.rare-earth-no-results {
+  text-align: center;
+  padding: 3rem;
+  color: #9ca3af;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.rare-earth-header-cell {
+  position: relative;
+}
+
+.rare-earth-draggable {
+  cursor: move;
+}
+
+.rare-earth-triangle {
+  width: 0;
+  height: 0;
+  border-left: 0.4rem solid transparent;
+  border-right: 0.4rem solid transparent;
+  border-bottom: 0.8rem solid var(--rare-earth-triangle-inactive);
+  display: inline-block;
+  transition: all 0.2s ease-in-out;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.3));
+}
+
+.rare-earth-triangle.active {
+  border-bottom-color: var(--rare-earth-triangle-active);
+}
+
+.rare-earth-triangle.descending {
+  transform: rotate(180deg);
+}
+
+.rare-earth-triangle.active.descending {
+  transform: rotate(180deg);
+}

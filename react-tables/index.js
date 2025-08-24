@@ -1,1 +1,1 @@
-export { Table } from './dist/bundle.js';
+export { DataTable } from './dist/bundle.js';

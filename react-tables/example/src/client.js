@@ -1,5 +1,5 @@
 import { h, render } from 'preact';
-import { DataTable } from '@rare-earth/react-tables/dist/bundle.esm';
+import { DataTable } from '@rare-earth/react-tables';
 
 const App = function(){
 
@@ -38,8 +38,10 @@ const App = function(){
   }));
 
   return(
-    <div className="App" style="">
+    <div>
       <DataTable
+        // className="dark-mode"
+        index={true}
         columns={COLUMNS}
         records={RECORDS}
       />
