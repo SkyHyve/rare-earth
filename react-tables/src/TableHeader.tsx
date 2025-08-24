@@ -15,8 +15,8 @@ import {
 import { FloatingTooltip } from './FloatingTooltip';
 import { SearchState, SortField, DEBOUNCE_INPUT_TIME_MS } from './types';
 
-const TableHeader = function(props: any, ref: any){
-  const { tableId } = props;
+const TableHeader = function(props: any){
+  const { tableId, ref } = props;
   const [searchInput, setSearchInput] = React.useState({
     string: props.search?.fields?.[props.column_key]?.string?.text,
     number: {
@@ -623,7 +623,7 @@ const TableHeader = function(props: any, ref: any){
       <div className="rare-earth-stack">
         <div
           ref={(element: HTMLDivElement | null) => {
-            if (element && ref.current) {
+            if (element && ref && ref.current){
               ref.current[props.column_index] = element;
             }
           }}

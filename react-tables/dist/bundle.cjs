@@ -3903,10 +3903,11 @@ const TableControl = _ref => {
   })));
 };
 
-const TableHeader = function (props, ref) {
+const TableHeader = function (props) {
   var _props$search, _props$search$fields$, _props$search2, _props$search$fields$2, _props$search3, _props$search4, _props$search5, _props$search6, _props$search7, _props$search8, _props$search9, _props$search17, _props$column$label, _props$column$label2, _props$column$label3, _props$column$label4, _props$column$label5, _props$column$label6, _props$search23, _props$search24, _props$search25;
   const {
-    tableId
+    tableId,
+    ref
   } = props;
   const [searchInput, setSearchInput] = React.useState({
     string: (_props$search = props.search) === null || _props$search === void 0 || (_props$search = _props$search.fields) === null || _props$search === void 0 || (_props$search = _props$search[props.column_key]) === null || _props$search === void 0 || (_props$search = _props$search.string) === null || _props$search === void 0 ? void 0 : _props$search.text,
@@ -4414,7 +4415,7 @@ const TableHeader = function (props, ref) {
     className: "rare-earth-stack"
   }, /*#__PURE__*/React.createElement("div", {
     ref: element => {
-      if (element && ref.current) {
+      if (element && ref && ref.current) {
         ref.current[props.column_index] = element;
       }
     },

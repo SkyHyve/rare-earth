@@ -310,17 +310,17 @@ const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>((props, ref) 
     let column = columns.attributes[key];
     main_headers.push(
       <TableHeader 
-        ref={headerRefs} 
-        key={key} 
+        ref={headerRefs}
+        key={key}
         tableId={tableId}
-        columns={columns} 
-        setColumns={setColumns} 
-        sortFields={sortFields} 
-        setSortFields={setSortFields} 
-        search={search} 
-        setSearch={setSearch} 
-        column_index={i} 
-        column_key={key} 
+        columns={columns}
+        setColumns={setColumns}
+        sortFields={sortFields}
+        setSortFields={setSortFields}
+        search={search}
+        setSearch={setSearch}
+        column_index={i}
+        column_key={key}
         column={column}
         debounceTime={props.debounceTime}
         rowSpan={2}

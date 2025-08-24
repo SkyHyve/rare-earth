@@ -1,6 +1,6 @@
 {
   "name": "@rare-earth/react-tables",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "description": "A feature-rich, lightweight React table component with advanced sorting, filtering, pagination, and data export capabilities.",
   "main": "./dist/bundle.cjs",
   "module": "./dist/bundle.esm",
