@@ -279,6 +279,17 @@
   transition: all 0.2s ease;
   margin-left: 0.5rem;
   backdrop-filter: blur(2px);
+  position: relative;
+}
+
+.rare-earth-sort-button:focus {
+  outline: 2px solid var(--re-cyan-400);
+  outline-offset: 2px;
+  background-color: rgba(255, 255, 255, 0.35);
+}
+
+.rare-earth-sort-button:focus:not(:focus-visible) {
+  outline: none;
 }
 
 .rare-earth-sort-button:hover {
@@ -563,6 +574,16 @@
   cursor: pointer;
   transition: all 0.3s ease;
   color: var(--rare-earth-search-icon-color);
+  position: relative;
+}
+
+.rare-earth-search-icon:focus {
+  outline: 2px solid var(--re-cyan-400);
+  outline-offset: 2px;
+}
+
+.rare-earth-search-icon:focus:not(:focus-visible) {
+  outline: none;
 }
 
 .rare-earth-search-icon svg {
@@ -732,6 +753,19 @@
 
 .rare-earth-draggable {
   cursor: move;
+  border-radius: 4px;
+  padding: 0.25rem;
+  transition: background-color 0.2s ease;
+}
+
+.rare-earth-draggable:focus {
+  outline: 2px solid var(--re-cyan-400);
+  outline-offset: 2px;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.rare-earth-draggable:focus:not(:focus-visible) {
+  outline: none;
 }
 
 .rare-earth-triangle {

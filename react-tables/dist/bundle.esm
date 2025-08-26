@@ -3951,7 +3951,7 @@ const TableControl = _ref => {
 };
 
 const TableHeader = function (props) {
-  var _props$search, _props$search$fields$, _props$search2, _props$search$fields$2, _props$search3, _props$search4, _props$search5, _props$search6, _props$search7, _props$search8, _props$search9, _props$search17, _props$column$label, _props$column$label2, _props$column$label3, _props$column$label4, _props$column$label5, _props$column$label6, _props$search23, _props$search24, _props$search25;
+  var _props$search, _props$search$fields$, _props$search2, _props$search$fields$2, _props$search3, _props$search4, _props$search5, _props$search6, _props$search7, _props$search8, _props$search9, _props$search17, _props$column$label, _props$column$label2, _props$column$label3, _props$column$label4, _props$column$label5, _props$column$label6, _props$column$label7, _props$search23, _props$search24, _props$search25, _props$search26;
   const {
     tableId,
     ref
@@ -4463,7 +4463,8 @@ const TableHeader = function (props) {
   }, [swapColumns]);
   return /*#__PURE__*/React__default.createElement("th", {
     className: "rare-earth-header-cell",
-    rowSpan: props.rowSpan || 1
+    rowSpan: props.rowSpan || 1,
+    scope: "col"
   }, /*#__PURE__*/React__default.createElement("div", {
     className: "rare-earth-stack"
   }, /*#__PURE__*/React__default.createElement("div", {
@@ -4475,9 +4476,9 @@ const TableHeader = function (props) {
     "data-rare-earth-column-key": props.column_key,
     className: "rare-earth-draggable",
     draggable: true,
-    role: "button",
+    role: "columnheader",
     tabIndex: 0,
-    "aria-label": "Drag to reorder column ".concat((_props$column$label = props.column.label) !== null && _props$column$label !== void 0 ? _props$column$label : props.column_key),
+    "aria-label": "Column: ".concat((_props$column$label = props.column.label) !== null && _props$column$label !== void 0 ? _props$column$label : props.column_key, ". Drag to reorder."),
     title: "Drag to reorder column ".concat((_props$column$label2 = props.column.label) !== null && _props$column$label2 !== void 0 ? _props$column$label2 : props.column_key),
     "data-testid": "column-header-".concat(tableId, "-").concat(props.column_key),
     "data-column": props.column_key,
@@ -4495,7 +4496,7 @@ const TableHeader = function (props) {
   }, /*#__PURE__*/React__default.createElement("button", {
     className: "rare-earth-sort-button",
     onClick: event => sortFieldClick(event),
-    "aria-label": "Sort by ".concat((_props$column$label4 = props.column.label) !== null && _props$column$label4 !== void 0 ? _props$column$label4 : props.column_key, ". Currently ").concat(ascendingActive ? 'ascending' : descendingActive ? 'descending' : 'not sorted'),
+    "aria-label": "Sort by ".concat((_props$column$label4 = props.column.label) !== null && _props$column$label4 !== void 0 ? _props$column$label4 : props.column_key, ". Currently ").concat(ascendingActive ? 'sorted ascending' : descendingActive ? 'sorted descending' : 'not sorted').concat(sortIndex ? ", sort priority ".concat(sortIndex) : '', ". Click to ").concat(ascendingActive ? 'sort descending' : 'sort ascending', ". Hold Shift and click to add to multi-sort."),
     "aria-pressed": ascendingActive || descendingActive,
     "aria-sort": ascendingActive ? 'ascending' : descendingActive ? 'descending' : 'none',
     type: "button",
@@ -4505,7 +4506,14 @@ const TableHeader = function (props) {
     title: "Sort by ".concat((_props$column$label5 = props.column.label) !== null && _props$column$label5 !== void 0 ? _props$column$label5 : props.column_key)
   }, /*#__PURE__*/React__default.createElement("div", {
     className: "rare-earth-flex-xs"
-  }, sortIndex, /*#__PURE__*/React__default.createElement("div", {
+  }, /*#__PURE__*/React__default.createElement("span", {
+    "aria-live": "polite",
+    "aria-atomic": "true"
+  }, /*#__PURE__*/React__default.createElement("span", {
+    className: "sr-only"
+  }, ascendingActive ? 'Sorted ascending' : descendingActive ? 'Sorted descending' : '', sortIndex ? ", priority ".concat(sortIndex) : ''), /*#__PURE__*/React__default.createElement("span", {
+    "aria-hidden": "true"
+  }, sortIndex)), /*#__PURE__*/React__default.createElement("div", {
     className: "rare-earth-stack"
   }, /*#__PURE__*/React__default.createElement("div", {
     className: "rare-earth-triangle ".concat(ascendingActive ? 'active' : ''),
@@ -4528,12 +4536,12 @@ const TableHeader = function (props) {
     "aria-haspopup": "dialog",
     "aria-expanded": searchOptionsOpen,
     "aria-controls": "filter-popup-".concat(tableId, "-").concat(props.column_key),
-    "aria-label": "Open filter options"
+    "aria-label": "Open filter options for ".concat((_props$column$label7 = props.column.label) !== null && _props$column$label7 !== void 0 ? _props$column$label7 : props.column_key, ". Current filter type: ").concat((props === null || props === void 0 || (_props$search23 = props.search) === null || _props$search23 === void 0 || (_props$search23 = _props$search23.fields) === null || _props$search23 === void 0 || (_props$search23 = _props$search23[props === null || props === void 0 ? void 0 : props.column_key]) === null || _props$search23 === void 0 ? void 0 : _props$search23._type) === 'number' ? 'numeric' : 'text')
   }), /*#__PURE__*/React__default.createElement("div", {
     className: "rare-earth-stack"
   }, /*#__PURE__*/React__default.createElement(FaSearchPlus, null), /*#__PURE__*/React__default.createElement("span", {
     className: "rare-earth-filter-type-indicator"
-  }, (props === null || props === void 0 || (_props$search23 = props.search) === null || _props$search23 === void 0 || (_props$search23 = _props$search23.fields) === null || _props$search23 === void 0 || (_props$search23 = _props$search23[props === null || props === void 0 ? void 0 : props.column_key]) === null || _props$search23 === void 0 ? void 0 : _props$search23._type) != 'string' ? "123" : "ABC")))), renderSearchInput()), searchOptionsOpen && (/*#__PURE__*/React__default.createElement("div", _objectSpread2({
+  }, (props === null || props === void 0 || (_props$search24 = props.search) === null || _props$search24 === void 0 || (_props$search24 = _props$search24.fields) === null || _props$search24 === void 0 || (_props$search24 = _props$search24[props === null || props === void 0 ? void 0 : props.column_key]) === null || _props$search24 === void 0 ? void 0 : _props$search24._type) != 'string' ? "123" : "ABC")))), renderSearchInput()), searchOptionsOpen && (/*#__PURE__*/React__default.createElement("div", _objectSpread2({
     ref: refs.setFloating,
     id: "filter-popup-".concat(tableId, "-").concat(props.column_key),
     className: "rare-earth-popover-content",
@@ -4544,7 +4552,7 @@ const TableHeader = function (props) {
   }, /*#__PURE__*/React__default.createElement("div", {
     className: "rare-earth-chip-group"
   }, /*#__PURE__*/React__default.createElement("button", {
-    className: "rare-earth-chip ".concat((props === null || props === void 0 || (_props$search24 = props.search) === null || _props$search24 === void 0 || (_props$search24 = _props$search24.fields) === null || _props$search24 === void 0 || (_props$search24 = _props$search24[props === null || props === void 0 ? void 0 : props.column_key]) === null || _props$search24 === void 0 ? void 0 : _props$search24._type) === 'string' ? 'active' : ''),
+    className: "rare-earth-chip ".concat((props === null || props === void 0 || (_props$search25 = props.search) === null || _props$search25 === void 0 || (_props$search25 = _props$search25.fields) === null || _props$search25 === void 0 || (_props$search25 = _props$search25[props === null || props === void 0 ? void 0 : props.column_key]) === null || _props$search25 === void 0 ? void 0 : _props$search25._type) === 'string' ? 'active' : ''),
     onClick: () => {
       props.setSearch(_search => _objectSpread2(_objectSpread2({}, _search), {}, {
         fields: _objectSpread2(_objectSpread2({}, _search.fields), {}, {
@@ -4575,7 +4583,7 @@ const TableHeader = function (props) {
       });
     }
   }, "Text"), /*#__PURE__*/React__default.createElement("button", {
-    className: "rare-earth-chip ".concat((props === null || props === void 0 || (_props$search25 = props.search) === null || _props$search25 === void 0 || (_props$search25 = _props$search25.fields) === null || _props$search25 === void 0 || (_props$search25 = _props$search25[props === null || props === void 0 ? void 0 : props.column_key]) === null || _props$search25 === void 0 ? void 0 : _props$search25._type) === 'number' ? 'active' : ''),
+    className: "rare-earth-chip ".concat((props === null || props === void 0 || (_props$search26 = props.search) === null || _props$search26 === void 0 || (_props$search26 = _props$search26.fields) === null || _props$search26 === void 0 || (_props$search26 = _props$search26[props === null || props === void 0 ? void 0 : props.column_key]) === null || _props$search26 === void 0 ? void 0 : _props$search26._type) === 'number' ? 'active' : ''),
     onClick: () => {
       props.setSearch(_search => _objectSpread2(_objectSpread2({}, _search), {}, {
         fields: _objectSpread2(_objectSpread2({}, _search.fields), {}, {

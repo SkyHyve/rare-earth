@@ -637,7 +637,7 @@ const TableHeader = function(props: any){
   }, [swapColumns]);
 
   return(
-    <th className="rare-earth-header-cell" rowSpan={props.rowSpan || 1}>
+    <th className="rare-earth-header-cell" rowSpan={props.rowSpan || 1} scope="col">
       <div className="rare-earth-stack">
         <div
           ref={(element: HTMLDivElement | null) => {
@@ -648,9 +648,9 @@ const TableHeader = function(props: any){
           data-rare-earth-column-key={props.column_key}
           className="rare-earth-draggable"
           draggable={true}
-          role="button"
+          role="columnheader"
           tabIndex={0}
-          aria-label={`Drag to reorder column ${props.column.label ?? props.column_key}`}
+          aria-label={`Column: ${props.column.label ?? props.column_key}. Drag to reorder.`}
           title={`Drag to reorder column ${props.column.label ?? props.column_key}`}
           data-testid={`column-header-${tableId}-${props.column_key}`}
           data-column={props.column_key}
@@ -670,7 +670,7 @@ const TableHeader = function(props: any){
               <button
                 className="rare-earth-sort-button"
                 onClick={(event) => sortFieldClick(event)}
-                aria-label={`Sort by ${props.column.label ?? props.column_key}. Currently ${ascendingActive ? 'ascending' : descendingActive ? 'descending' : 'not sorted'}`}
+                aria-label={`Sort by ${props.column.label ?? props.column_key}. Currently ${ascendingActive ? 'sorted ascending' : descendingActive ? 'sorted descending' : 'not sorted'}${sortIndex ? `, sort priority ${sortIndex}` : ''}. Click to ${ascendingActive ? 'sort descending' : 'sort ascending'}. Hold Shift and click to add to multi-sort.`}
                 aria-pressed={ascendingActive || descendingActive}
                 aria-sort={ascendingActive ? 'ascending' : descendingActive ? 'descending' : 'none'}
                 type="button"
@@ -680,7 +680,13 @@ const TableHeader = function(props: any){
                 title={`Sort by ${props.column.label ?? props.column_key}`}
               >
                 <div className="rare-earth-flex-xs">
-                  {sortIndex}
+                  <span aria-live="polite" aria-atomic="true">
+                    <span className="sr-only">
+                      {ascendingActive ? 'Sorted ascending' : descendingActive ? 'Sorted descending' : ''}
+                      {sortIndex ? `, priority ${sortIndex}` : ''}
+                    </span>
+                    <span aria-hidden="true">{sortIndex}</span>
+                  </span>
                   <div className="rare-earth-stack">
                     <div className={`rare-earth-triangle ${ascendingActive ? 'active' : ''}`} aria-hidden="true"></div>
                     <div className={`rare-earth-triangle descending ${descendingActive ? 'active' : ''}`} aria-hidden="true"></div>
@@ -703,7 +709,7 @@ const TableHeader = function(props: any){
                 aria-haspopup="dialog"
                 aria-expanded={searchOptionsOpen}
                 aria-controls={`filter-popup-${tableId}-${props.column_key}`}
-                aria-label="Open filter options"
+                aria-label={`Open filter options for ${props.column.label ?? props.column_key}. Current filter type: ${props?.search?.fields?.[props?.column_key]?._type === 'number' ? 'numeric' : 'text'}`}
               >
                 <div className="rare-earth-stack">
                   <FaSearchPlus/>

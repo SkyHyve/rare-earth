@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.5] - 2025-01-26
+
+### Accessibility Improvements
+- **Enhanced Screen Reader Support for Sort Buttons**
+  - Added comprehensive `aria-label` descriptions including current sort state and available actions
+  - Added `aria-live` regions with screen reader-only text to announce sort changes
+  - Improved labeling to indicate sort priority in multi-column sorting
+  - Clear instructions for keyboard interaction (Shift+Click for multi-sort)
+
+- **Improved ARIA Roles and Semantics**
+  - Changed draggable column headers from `role="button"` to `role="columnheader"` for better semantic meaning
+  - Added `scope="col"` to table header cells for proper column association
+  - Enhanced filter button labels with context about current filter type
+
+- **Visual Focus Indicators**
+  - Added visible focus outlines for all interactive elements (sort buttons, filter buttons, draggable headers)
+  - Implemented `:focus-visible` for keyboard-only focus indicators
+  - Added high-contrast cyan focus rings (2px solid) with proper offset
+  - Ensures all interactive elements are clearly identifiable when navigating via keyboard
+
+- **Screen Reader Announcements**
+  - Sort state changes are now announced via `aria-live="polite"` regions
+  - Hidden visual sort indicators (triangles) properly marked with `aria-hidden="true"`
+  - Added screen reader-only text class (.sr-only) for additional context
+
 ## [0.4.4] - 2025-01-26
 
 ### Performance Improvements
