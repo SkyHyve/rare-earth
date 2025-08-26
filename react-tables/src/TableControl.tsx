@@ -75,10 +75,15 @@ const TableControl: React.FC<TableControlProps> = ({
   }
 
   let pageLengthOptions = [];
+  let addedOneAbove = false;
   for (let i = 0; i < pageLengthChoices.length; i++){
     let pageLen = pageLengthChoices[i];
-    if (pageLen !== Infinity && (pageLen < numFilteredRecords || i === pageLengthChoices.length - 1)){
+    // Add all options up to the filtered count, plus one option above it
+    if (pageLen <= numFilteredRecords || !addedOneAbove){
       pageLengthOptions.push({ value: pageLen.toString(), label: pageLen.toString() });
+      if (pageLen > numFilteredRecords){
+        addedOneAbove = true;
+      }
     }
   }
 

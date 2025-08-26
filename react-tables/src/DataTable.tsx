@@ -56,8 +56,10 @@ const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>((props, ref) 
   const tableId = props.id || `rare-earth-table-${React.useId()}`;
   const tableDescriptionId = `${tableId}-description`;
   const tableStatsId = `${tableId}-stats`;
+  // Use a stable key that doesn't change unless necessary
+  const indexKeyRef = React.useRef(`__index_${Date.now()}`);
   const [columns, setColumns] = React.useState({
-    _indexKey: crypto.randomUUID(),
+    _indexKey: indexKeyRef.current,
     order: (props.columns ?? []).map((x, i) => x.key),
     attributes: Object.fromEntries((props.columns ?? []).map((x, i) => [x.key, {...x, valueFunc: x?.valueFunc ?? ((record) => {
       switch (x.type == 'number'){
@@ -78,7 +80,7 @@ const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>((props, ref) 
   
   const resetColumns = React.useCallback(() => {
     setColumns({
-      _indexKey: crypto.randomUUID(),
+      _indexKey: indexKeyRef.current,
       order: (props.columns ?? []).map((x) => x.key),
       attributes: Object.fromEntries((props.columns ?? []).map((x) => [x.key, {...x, valueFunc: x?.valueFunc ?? ((record) => {
         switch (x.type == 'number'){
@@ -93,7 +95,7 @@ const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>((props, ref) 
 
   const headerRefs = React.useRef({});
 
-  function defaultCompareFunc(a: any, b: any){
+  const defaultCompareFunc = React.useCallback((a: any, b: any) => {
     if (a == null) {
       return b == null ? 0 : -1;
     }
@@ -104,9 +106,9 @@ const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>((props, ref) 
       return 0;
     }
     return a < b ? -1 : 1;
-  }
+  }, []);
 
-  function compareRecords(recordA: any, recordB: any){
+  const compareRecords = React.useCallback((recordA: any, recordB: any) => {
     for (let i = 0; i < sortFields.length; i++){
       let sortField = sortFields[i]['key'];
       let reverse = sortFields[i]['reverse'];
@@ -143,11 +145,11 @@ const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>((props, ref) 
       }
     }
     return 0;
-  }
+  }, [sortFields, columns.attributes, defaultCompareFunc]);
 
   React.useEffect(() => {
     setColumns({
-      _indexKey: crypto.randomUUID(),
+      _indexKey: indexKeyRef.current,
       order: (props.columns ?? []).map((x, i) => x.key),
       attributes: Object.fromEntries((props.columns ?? []).map((x, i) => [x.key, {...x, valueFunc: x?.valueFunc ?? ((record) => record?.[x.key])}])),
     });
@@ -276,7 +278,7 @@ const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>((props, ref) 
     }
 
     return newRecords;
-  }, [search, records]);
+  }, [search, records, columns._indexKey]);
 
   const filteredSortedRecords = React.useMemo(function(){
     const sortedRecords = [...filteredRecords].sort(compareRecords);
@@ -377,7 +379,7 @@ const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>((props, ref) 
     setPage(1);
   }
 
-  function exportTable(){
+  const exportTable = React.useCallback(() => {
     let csvContent = "data:text/csv;charset=utf-8,";
     let exportRows = [];
 
@@ -409,7 +411,7 @@ const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>((props, ref) 
     csvContent += exportRows.join("\r\n");
     const encodedUri = encodeURI(csvContent);
     window.open(encodedUri);
-  }
+  }, [columns, filteredSortedRecords]);
 
   return(
     <div 

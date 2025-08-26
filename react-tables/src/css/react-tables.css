@@ -205,8 +205,14 @@
 
 .rare-earth-table tbody tr:hover {
   background-color: var(--rare-earth-table-hover-bg) !important;
-  transform: scale(1.01);
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25);
+}
+
+/* Special hover effect for index columns only */
+.rare-earth-table tbody tr:hover td.index-column {
+  font-weight: bold;
+  transform: scale(1.1);
+  transition: all 0.2s ease;
 }
 
 .rare-earth-table tbody tr:last-child td {

@@ -3686,16 +3686,11 @@
     } = _ref;
     const renderPageNumbers = () => {
       const pages = [];
-      const maxVisible = 5;
-      let start = Math.max(1, value - Math.floor(maxVisible / 2));
-      let end = Math.min(total, start + maxVisible - 1);
-      if (end - start < maxVisible - 1) {
-        start = Math.max(1, end - maxVisible + 1);
-      }
-      if (start > 1) {
+      // If only 1 page, just show it
+      if (total === 1) {
         pages.push(/*#__PURE__*/React.createElement("button", {
           key: 1,
-          className: "rare-earth-page-button",
+          className: "rare-earth-page-button active",
           onClick: () => onChange(1),
           "aria-label": "Go to page 1",
           "aria-setsize": total,
@@ -3703,44 +3698,112 @@
           type: "button",
           "data-testid": "pagination-page-1-".concat(tableId)
         }, "1"));
-        if (start > 2) {
-          pages.push(/*#__PURE__*/React.createElement("span", {
-            key: "dots1",
-            className: "rare-earth-pagination-dots"
-          }, "..."));
+        return pages;
+      }
+      // For 7 or fewer pages, show all of them
+      if (total <= 7) {
+        for (let i = 1; i <= total; i++) {
+          pages.push(/*#__PURE__*/React.createElement("button", {
+            key: i,
+            className: "rare-earth-page-button ".concat(i === value ? 'active' : ''),
+            onClick: () => onChange(i),
+            "aria-label": "Go to page ".concat(i),
+            "aria-current": i === value ? 'page' : undefined,
+            "aria-setsize": total,
+            "aria-posinset": i,
+            type: "button",
+            "data-testid": "pagination-page-".concat(i, "-").concat(tableId)
+          }, i));
         }
+        return pages;
       }
-      for (let i = start; i <= end; i++) {
-        pages.push(/*#__PURE__*/React.createElement("button", {
-          key: i,
-          className: "rare-earth-page-button ".concat(i === value ? 'active' : ''),
-          onClick: () => onChange(i),
-          "aria-label": "Go to page ".concat(i),
-          "aria-current": i === value ? 'page' : undefined,
-          "aria-setsize": total,
-          "aria-posinset": i,
-          type: "button",
-          "data-testid": "pagination-page-".concat(i, "-").concat(tableId)
-        }, i));
-      }
-      if (end < total) {
-        if (end < total - 1) {
-          pages.push(/*#__PURE__*/React.createElement("span", {
-            key: "dots2",
-            className: "rare-earth-pagination-dots"
-          }, "..."));
+      // For more than 7 pages, we always show exactly 7 slots
+      // Pattern: [1] [2 or ...] [x] [current] [y] [... or n-1] [n]
+      // Always slot 1: first page
+      pages.push(/*#__PURE__*/React.createElement("button", {
+        key: 1,
+        className: "rare-earth-page-button ".concat(1 === value ? 'active' : ''),
+        onClick: () => onChange(1),
+        "aria-label": "Go to page 1",
+        "aria-setsize": total,
+        "aria-posinset": 1,
+        type: "button",
+        "data-testid": "pagination-page-1-".concat(tableId)
+      }, "1"));
+      // Determine what goes in slots 2-6
+      if (value <= 4) {
+        // Near start: [1] [2] [3] [4] [5] [...] [n]
+        for (let i = 2; i <= 5; i++) {
+          pages.push(/*#__PURE__*/React.createElement("button", {
+            key: i,
+            className: "rare-earth-page-button ".concat(i === value ? 'active' : ''),
+            onClick: () => onChange(i),
+            "aria-label": "Go to page ".concat(i),
+            "aria-current": i === value ? 'page' : undefined,
+            "aria-setsize": total,
+            "aria-posinset": i,
+            type: "button",
+            "data-testid": "pagination-page-".concat(i, "-").concat(tableId)
+          }, i));
         }
-        pages.push(/*#__PURE__*/React.createElement("button", {
-          key: total,
-          className: "rare-earth-page-button",
-          onClick: () => onChange(total),
-          "aria-label": "Go to page ".concat(total),
-          "aria-setsize": total,
-          "aria-posinset": total,
-          type: "button",
-          "data-testid": "pagination-page-".concat(total, "-").concat(tableId)
-        }, total));
+        pages.push(/*#__PURE__*/React.createElement("span", {
+          key: "dots2",
+          className: "rare-earth-pagination-dots"
+        }, "..."));
+      } else if (value >= total - 3) {
+        // Near end: [1] [...] [n-4] [n-3] [n-2] [n-1] [n]
+        pages.push(/*#__PURE__*/React.createElement("span", {
+          key: "dots1",
+          className: "rare-earth-pagination-dots"
+        }, "..."));
+        for (let i = total - 4; i <= total - 1; i++) {
+          pages.push(/*#__PURE__*/React.createElement("button", {
+            key: i,
+            className: "rare-earth-page-button ".concat(i === value ? 'active' : ''),
+            onClick: () => onChange(i),
+            "aria-label": "Go to page ".concat(i),
+            "aria-current": i === value ? 'page' : undefined,
+            "aria-setsize": total,
+            "aria-posinset": i,
+            type: "button",
+            "data-testid": "pagination-page-".concat(i, "-").concat(tableId)
+          }, i));
+        }
+      } else {
+        // In middle: [1] [...] [current-1] [current] [current+1] [...] [n]
+        pages.push(/*#__PURE__*/React.createElement("span", {
+          key: "dots1",
+          className: "rare-earth-pagination-dots"
+        }, "..."));
+        for (let i = value - 1; i <= value + 1; i++) {
+          pages.push(/*#__PURE__*/React.createElement("button", {
+            key: i,
+            className: "rare-earth-page-button ".concat(i === value ? 'active' : ''),
+            onClick: () => onChange(i),
+            "aria-label": "Go to page ".concat(i),
+            "aria-current": i === value ? 'page' : undefined,
+            "aria-setsize": total,
+            "aria-posinset": i,
+            type: "button",
+            "data-testid": "pagination-page-".concat(i, "-").concat(tableId)
+          }, i));
+        }
+        pages.push(/*#__PURE__*/React.createElement("span", {
+          key: "dots2",
+          className: "rare-earth-pagination-dots"
+        }, "..."));
       }
+      // Always slot 7: last page
+      pages.push(/*#__PURE__*/React.createElement("button", {
+        key: total,
+        className: "rare-earth-page-button ".concat(total === value ? 'active' : ''),
+        onClick: () => onChange(total),
+        "aria-label": "Go to page ".concat(total),
+        "aria-setsize": total,
+        "aria-posinset": total,
+        type: "button",
+        "data-testid": "pagination-page-".concat(total, "-").concat(tableId)
+      }, total));
       return pages;
     };
     return /*#__PURE__*/React.createElement("nav", {
@@ -3817,13 +3880,18 @@
       setPageLength(newPageLength);
     }
     let pageLengthOptions = [];
+    let addedOneAbove = false;
     for (let i = 0; i < pageLengthChoices.length; i++) {
       let pageLen = pageLengthChoices[i];
-      if (pageLen !== Infinity && (pageLen < numFilteredRecords || i === pageLengthChoices.length - 1)) {
+      // Add all options up to the filtered count, plus one option above it
+      if (pageLen <= numFilteredRecords || !addedOneAbove) {
         pageLengthOptions.push({
           value: pageLen.toString(),
           label: pageLen.toString()
         });
+        if (pageLen > numFilteredRecords) {
+          addedOneAbove = true;
+        }
       }
     }
     return /*#__PURE__*/React.createElement("div", {
@@ -3920,6 +3988,26 @@
       }
     });
     const [searchOptionsOpen, setSearchOptionsOpen] = React.useState(false);
+    // Memoized event handlers for inputs
+    const handleStringFilterChange = React.useCallback(value => {
+      setSearchInput(prev => _objectSpread2(_objectSpread2({}, prev), {}, {
+        string: (value === null || value === void 0 ? void 0 : value.trim()) === '' ? null : value
+      }));
+    }, []);
+    const handleNumberGtChange = React.useCallback(value => {
+      setSearchInput(prev => _objectSpread2(_objectSpread2({}, prev), {}, {
+        number: _objectSpread2(_objectSpread2({}, prev.number), {}, {
+          gtRaw: value
+        })
+      }));
+    }, []);
+    const handleNumberLtChange = React.useCallback(value => {
+      setSearchInput(prev => _objectSpread2(_objectSpread2({}, prev), {}, {
+        number: _objectSpread2(_objectSpread2({}, prev.number), {}, {
+          ltRaw: value
+        })
+      }));
+    }, []);
     // Validate raw numeric inputs and update actual values
     React.useEffect(() => {
       setSearchInput(_searchInput => {
@@ -4012,21 +4100,22 @@
         };
       });
     }, [JSON.stringify(props === null || props === void 0 || (_props$search17 = props.search) === null || _props$search17 === void 0 || (_props$search17 = _props$search17.fields) === null || _props$search17 === void 0 ? void 0 : _props$search17[props === null || props === void 0 ? void 0 : props.column_key])]);
-    React.useEffect(() => {
+    // Create a stable debounced function
+    const debouncedSetSearch = React.useMemo(() => {
       var _props$debounceTime;
-      const debounceFunc = debounce((_props$debounceTime = props.debounceTime) !== null && _props$debounceTime !== void 0 ? _props$debounceTime : DEBOUNCE_INPUT_TIME_MS, () => {
+      return debounce((_props$debounceTime = props.debounceTime) !== null && _props$debounceTime !== void 0 ? _props$debounceTime : DEBOUNCE_INPUT_TIME_MS, newSearchInput => {
         props.setSearch(_search => _objectSpread2(_objectSpread2({}, _search), {}, {
           fields: _objectSpread2(_objectSpread2({}, _search.fields), {}, {
             [props.column_key]: _objectSpread2(_objectSpread2({}, _search.fields[props.column_key]), {}, {
               string: _objectSpread2(_objectSpread2({}, _search.fields[props.column_key].string), {}, {
-                text: searchInput.string
+                text: newSearchInput.string
               }),
               number: _objectSpread2(_objectSpread2({}, _search.fields[props.column_key].number), {}, {
                 gt: _objectSpread2(_objectSpread2({}, _search.fields[props.column_key].number.gt), {}, {
-                  value: searchInput.number.gt
+                  value: newSearchInput.number.gt
                 }),
                 lt: _objectSpread2(_objectSpread2({}, _search.fields[props.column_key].number.lt), {}, {
-                  value: searchInput.number.lt
+                  value: newSearchInput.number.lt
                 })
               })
             })
@@ -4035,12 +4124,18 @@
       }, {
         atBegin: false
       });
-      debounceFunc();
+    }, [props.debounceTime, props.column_key, props.setSearch]);
+    // Use the debounced function when searchInput changes
+    React.useEffect(() => {
+      debouncedSetSearch(searchInput);
+    }, [searchInput, debouncedSetSearch]);
+    // Cleanup on unmount
+    React.useEffect(() => {
       return () => {
-        debounceFunc.cancel();
+        debouncedSetSearch.cancel();
       };
-    }, [JSON.stringify(searchInput)]);
-    function sortFieldClick(event) {
+    }, [debouncedSetSearch]);
+    const sortFieldClick = React.useCallback(event => {
       let thisFieldReverse = null;
       for (let i = 0; (_ref = i < ((_props$sortFields = props.sortFields) === null || _props$sortFields === void 0 ? void 0 : _props$sortFields.length)) !== null && _ref !== void 0 ? _ref : 0; i++) {
         var _ref, _props$sortFields;
@@ -4103,7 +4198,7 @@
           break;
       }
       props.setSortFields(newSortFields);
-    }
+    }, [props.sortFields, props.column_key, props.setSortFields]);
     let ascendingActive = false;
     let descendingActive = false;
     let sortIndex = null;
@@ -4127,12 +4222,7 @@
             className: "rare-earth-input rare-earth-input-sm",
             placeholder: "Filter",
             value: (_searchInput$string = searchInput === null || searchInput === void 0 ? void 0 : searchInput.string) !== null && _searchInput$string !== void 0 ? _searchInput$string : '',
-            onChange: event => setSearchInput(_searchInput => {
-              var _event$target$value, _event$target$value$t;
-              return _objectSpread2(_objectSpread2({}, _searchInput), {}, {
-                string: ((_event$target$value = event.target.value) === null || _event$target$value === void 0 || (_event$target$value$t = _event$target$value.trim) === null || _event$target$value$t === void 0 ? void 0 : _event$target$value$t.call(_event$target$value)) == '' ? null : event.target.value
-              });
-            }),
+            onChange: event => handleStringFilterChange(event.target.value),
             type: "text",
             name: "filter-".concat(tableId, "-").concat(props.column_key),
             autoComplete: "off",
@@ -4170,15 +4260,7 @@
             autoComplete: "off",
             "data-testid": "filter-min-".concat(tableId, "-").concat(props.column_key),
             "data-filter-type": "number",
-            onChange: event => {
-              const value = event.target.value;
-              // Just update the raw value - validation happens in useEffect
-              setSearchInput(_searchInput => _objectSpread2(_objectSpread2({}, _searchInput), {}, {
-                number: _objectSpread2(_objectSpread2({}, _searchInput.number), {}, {
-                  gtRaw: value
-                })
-              }));
-            }
+            onChange: event => handleNumberGtChange(event.target.value)
           }), /*#__PURE__*/React.createElement("label", {
             className: "rare-earth-checkbox-sm"
           }, /*#__PURE__*/React.createElement("input", {
@@ -4214,15 +4296,7 @@
             autoComplete: "off",
             "data-testid": "filter-max-".concat(tableId, "-").concat(props.column_key),
             "data-filter-type": "number",
-            onChange: event => {
-              const value = event.target.value;
-              // Just update the raw value - validation happens in useEffect
-              setSearchInput(_searchInput => _objectSpread2(_objectSpread2({}, _searchInput), {}, {
-                number: _objectSpread2(_objectSpread2({}, _searchInput.number), {}, {
-                  ltRaw: value
-                })
-              }));
-            }
+            onChange: event => handleNumberLtChange(event.target.value)
           }), /*#__PURE__*/React.createElement("label", {
             className: "rare-earth-checkbox-sm"
           }, /*#__PURE__*/React.createElement("input", {
@@ -4350,30 +4424,11 @@
       }
       return null;
     }
-    function onDragStartHandle(event, column_key, column_index) {
+    const onDragStartHandle = React.useCallback((event, column_key, column_index) => {
       event.dataTransfer.setData('initiatorKey', column_key);
       event.dataTransfer.setData('initiatorIndex', column_index.toString());
-    }
-    function onDropHandle(event) {
-      event.preventDefault();
-      let columnA = event.dataTransfer.getData('initiatorKey');
-      let indexA = parseInt(event.dataTransfer.getData('initiatorIndex'));
-      let target = event.target;
-      let columnB;
-      while (!columnB) {
-        target = target.parentElement;
-        if (!target) {
-          return;
-        }
-        columnB = target.getAttribute('data-rare-earth-column-key');
-      }
-      let boundingBox = target.getBoundingClientRect();
-      let before = event.clientX <= (boundingBox.left + boundingBox.right) / 2;
-      if (columnB != null) {
-        swapColumns(columnA, columnB, indexA, before);
-      }
-    }
-    function swapColumns(columnA, columnB, indexA, before) {
+    }, []);
+    const swapColumns = React.useCallback((columnA, columnB, indexA, before) => {
       if (columnA == columnB) {
         return;
       }
@@ -4408,7 +4463,26 @@
       props.setColumns(_objectSpread2(_objectSpread2({}, props.columns), {}, {
         order: newColumnOrder
       }));
-    }
+    }, [props.columns, props.setColumns]);
+    const onDropHandle = React.useCallback(event => {
+      event.preventDefault();
+      let columnA = event.dataTransfer.getData('initiatorKey');
+      let indexA = parseInt(event.dataTransfer.getData('initiatorIndex'));
+      let target = event.target;
+      let columnB;
+      while (!columnB) {
+        target = target.parentElement;
+        if (!target) {
+          return;
+        }
+        columnB = target.getAttribute('data-rare-earth-column-key');
+      }
+      let boundingBox = target.getBoundingClientRect();
+      let before = event.clientX <= (boundingBox.left + boundingBox.right) / 2;
+      if (columnB != null) {
+        swapColumns(columnA, columnB, indexA, before);
+      }
+    }, [swapColumns]);
     return /*#__PURE__*/React.createElement("th", {
       className: "rare-earth-header-cell",
       rowSpan: props.rowSpan || 1
@@ -4587,8 +4661,10 @@
     const tableId = props.id || "rare-earth-table-".concat(React.useId());
     const tableDescriptionId = "".concat(tableId, "-description");
     const tableStatsId = "".concat(tableId, "-stats");
+    // Use a stable key that doesn't change unless necessary
+    const indexKeyRef = React.useRef("__index_".concat(Date.now()));
     const [columns, setColumns] = React.useState({
-      _indexKey: crypto.randomUUID(),
+      _indexKey: indexKeyRef.current,
       order: ((_props$columns = props.columns) !== null && _props$columns !== void 0 ? _props$columns : []).map((x, i) => x.key),
       attributes: Object.fromEntries(((_props$columns2 = props.columns) !== null && _props$columns2 !== void 0 ? _props$columns2 : []).map((x, i) => {
         var _x$valueFunc;
@@ -4613,7 +4689,7 @@
     const resetColumns = React.useCallback(() => {
       var _props$columns4, _props$columns5;
       setColumns({
-        _indexKey: crypto.randomUUID(),
+        _indexKey: indexKeyRef.current,
         order: ((_props$columns4 = props.columns) !== null && _props$columns4 !== void 0 ? _props$columns4 : []).map(x => x.key),
         attributes: Object.fromEntries(((_props$columns5 = props.columns) !== null && _props$columns5 !== void 0 ? _props$columns5 : []).map(x => {
           var _x$valueFunc2;
@@ -4632,7 +4708,7 @@
       });
     }, [props.columns]);
     const headerRefs = React.useRef({});
-    function defaultCompareFunc(a, b) {
+    const defaultCompareFunc = React.useCallback((a, b) => {
       if (a == null) {
         return b == null ? 0 : -1;
       }
@@ -4643,8 +4719,8 @@
         return 0;
       }
       return a < b ? -1 : 1;
-    }
-    function compareRecords(recordA, recordB) {
+    }, []);
+    const compareRecords = React.useCallback((recordA, recordB) => {
       for (let i = 0; i < sortFields.length; i++) {
         let sortField = sortFields[i]['key'];
         let reverse = sortFields[i]['reverse'];
@@ -4677,11 +4753,11 @@
         }
       }
       return 0;
-    }
+    }, [sortFields, columns.attributes, defaultCompareFunc]);
     React.useEffect(() => {
       var _props$columns6, _props$columns7;
       setColumns({
-        _indexKey: crypto.randomUUID(),
+        _indexKey: indexKeyRef.current,
         order: ((_props$columns6 = props.columns) !== null && _props$columns6 !== void 0 ? _props$columns6 : []).map((x, i) => x.key),
         attributes: Object.fromEntries(((_props$columns7 = props.columns) !== null && _props$columns7 !== void 0 ? _props$columns7 : []).map((x, i) => {
           var _x$valueFunc3;
@@ -4827,7 +4903,7 @@
         }
       }
       return newRecords;
-    }, [search, records]);
+    }, [search, records, columns._indexKey]);
     const filteredSortedRecords = React.useMemo(function () {
       const sortedRecords = [...filteredRecords].sort(compareRecords);
       return sortedRecords;
@@ -4927,7 +5003,7 @@
     if (page > 1 && (filteredSortedRecords.length < (page - 1) * pageLength + 1 || pageLength === Infinity)) {
       setPage(1);
     }
-    function exportTable() {
+    const exportTable = React.useCallback(() => {
       let csvContent = "data:text/csv;charset=utf-8,";
       let exportRows = [];
       let exportHeaders = [];
@@ -4957,7 +5033,7 @@
       csvContent += exportRows.join("\r\n");
       const encodedUri = encodeURI(csvContent);
       window.open(encodedUri);
-    }
+    }, [columns, filteredSortedRecords]);
     return /*#__PURE__*/React.createElement("div", {
       ref: ref,
       id: props.id,

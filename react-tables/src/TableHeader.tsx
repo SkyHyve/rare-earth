@@ -34,6 +34,34 @@ const TableHeader = function(props: any){
   });
   const [searchOptionsOpen, setSearchOptionsOpen] = React.useState(false);
 
+  // Memoized event handlers for inputs
+  const handleStringFilterChange = React.useCallback((value: string) => {
+    setSearchInput(prev => ({
+      ...prev,
+      string: value?.trim() === '' ? null : value
+    }));
+  }, []);
+
+  const handleNumberGtChange = React.useCallback((value: string) => {
+    setSearchInput(prev => ({
+      ...prev,
+      number: {
+        ...prev.number,
+        gtRaw: value
+      }
+    }));
+  }, []);
+
+  const handleNumberLtChange = React.useCallback((value: string) => {
+    setSearchInput(prev => ({
+      ...prev,
+      number: {
+        ...prev.number,
+        ltRaw: value
+      }
+    }));
+  }, []);
+
   // Validate raw numeric inputs and update actual values
   React.useEffect(() => {
     setSearchInput((_searchInput) => {
@@ -145,41 +173,54 @@ const TableHeader = function(props: any){
     }));
   }, [JSON.stringify(props?.search?.fields?.[props?.column_key])]);
 
-  React.useEffect(() => {
-    const debounceFunc = debounce(props.debounceTime ?? DEBOUNCE_INPUT_TIME_MS, () => {
-      props.setSearch((_search: SearchState) => ({
-        ..._search,
-        fields: {
-          ..._search.fields,
-          [props.column_key]: {
-            ..._search.fields[props.column_key],
-            string: {
-              ..._search.fields[props.column_key].string,
-              text: searchInput.string,
-            },
-            number: {
-              ..._search.fields[props.column_key].number,
-              gt: {
-                ..._search.fields[props.column_key].number.gt!,
-                value: searchInput.number.gt
+  // Create a stable debounced function
+  const debouncedSetSearch = React.useMemo(
+    () => debounce(
+      props.debounceTime ?? DEBOUNCE_INPUT_TIME_MS,
+      (newSearchInput: typeof searchInput) => {
+        props.setSearch((_search: SearchState) => ({
+          ..._search,
+          fields: {
+            ..._search.fields,
+            [props.column_key]: {
+              ..._search.fields[props.column_key],
+              string: {
+                ..._search.fields[props.column_key].string,
+                text: newSearchInput.string,
               },
-              lt: {
-                ..._search.fields[props.column_key].number.lt!,
-                value: searchInput.number.lt
-              },
+              number: {
+                ..._search.fields[props.column_key].number,
+                gt: {
+                  ..._search.fields[props.column_key].number.gt!,
+                  value: newSearchInput.number.gt
+                },
+                lt: {
+                  ..._search.fields[props.column_key].number.lt!,
+                  value: newSearchInput.number.lt
+                },
+              }
             }
           }
-        }
-      }));
-    }, {atBegin: false});
+        }));
+      },
+      { atBegin: false }
+    ),
+    [props.debounceTime, props.column_key, props.setSearch]
+  );
 
-    debounceFunc();
-    return(() => {
-      debounceFunc.cancel();
-    });
-  }, [JSON.stringify(searchInput)]);
+  // Use the debounced function when searchInput changes
+  React.useEffect(() => {
+    debouncedSetSearch(searchInput);
+  }, [searchInput, debouncedSetSearch]);
 
-  function sortFieldClick(event: React.MouseEvent){
+  // Cleanup on unmount
+  React.useEffect(() => {
+    return () => {
+      debouncedSetSearch.cancel();
+    };
+  }, [debouncedSetSearch]);
+
+  const sortFieldClick = React.useCallback((event: React.MouseEvent) => {
     let thisFieldReverse = null;
     for (let i = 0; i < props.sortFields?.length ?? 0; i++){
       let sortField = props.sortFields[i];
@@ -227,7 +268,7 @@ const TableHeader = function(props: any){
     }
 
     props.setSortFields(newSortFields);
-  }
+  }, [props.sortFields, props.column_key, props.setSortFields]);
 
   let ascendingActive = false;
   let descendingActive = false;
@@ -253,10 +294,7 @@ const TableHeader = function(props: any){
             className="rare-earth-input rare-earth-input-sm"
             placeholder="Filter"
             value={searchInput?.string ?? ''}
-            onChange={(event) => setSearchInput((_searchInput) => ({
-              ..._searchInput,
-              string: ((event.target.value?.trim?.() == '') ? null : event.target.value)
-            }))}
+            onChange={(event) => handleStringFilterChange(event.target.value)}
             type="text"
             name={`filter-${tableId}-${props.column_key}`}
             autoComplete="off"
@@ -305,17 +343,7 @@ const TableHeader = function(props: any){
                   autoComplete="off"
                   data-testid={`filter-min-${tableId}-${props.column_key}`}
                   data-filter-type="number"
-                  onChange={(event) => {
-                    const value = event.target.value;
-                    // Just update the raw value - validation happens in useEffect
-                    setSearchInput((_searchInput) => ({
-                      ..._searchInput,
-                      number: {
-                        ..._searchInput.number,
-                        gtRaw: value
-                      }
-                    }));
-                  }}
+                  onChange={(event) => handleNumberGtChange(event.target.value)}
                 />
                 <label className="rare-earth-checkbox-sm">
                   <input
@@ -360,17 +388,7 @@ const TableHeader = function(props: any){
                   autoComplete="off"
                   data-testid={`filter-max-${tableId}-${props.column_key}`}
                   data-filter-type="number"
-                  onChange={(event) => {
-                    const value = event.target.value;
-                    // Just update the raw value - validation happens in useEffect
-                    setSearchInput((_searchInput) => ({
-                      ..._searchInput,
-                      number: {
-                        ..._searchInput.number,
-                        ltRaw: value
-                      }
-                    }));
-                  }}
+                  onChange={(event) => handleNumberLtChange(event.target.value)}
                 />
                 <label className="rare-earth-checkbox-sm">
                   <input
@@ -549,35 +567,12 @@ const TableHeader = function(props: any){
     return null;
   }
 
-  function onDragStartHandle(event: React.DragEvent, column_key: string, column_index: number){
+  const onDragStartHandle = React.useCallback((event: React.DragEvent, column_key: string, column_index: number) => {
     event.dataTransfer.setData('initiatorKey', column_key);
     event.dataTransfer.setData('initiatorIndex', column_index.toString());
-  }
+  }, []);
 
-  function onDropHandle(event: React.DragEvent){
-    event.preventDefault();
-    let columnA = event.dataTransfer.getData('initiatorKey');
-    let indexA = parseInt(event.dataTransfer.getData('initiatorIndex'));
-
-    let target = event.target as HTMLElement;
-    let columnB;
-    while (!columnB){
-      target = target.parentElement!;
-      if (!target){
-        return;
-      }
-      columnB = target.getAttribute('data-rare-earth-column-key');
-    }
-
-    let boundingBox = target.getBoundingClientRect();
-    let before = event.clientX <= ((boundingBox.left + boundingBox.right) / 2);
-
-    if (columnB != null){
-      swapColumns(columnA, columnB, indexA, before);
-    }
-  }
-
-  function swapColumns(columnA: string, columnB: string, indexA: number, before: boolean){
+  const swapColumns = React.useCallback((columnA: string, columnB: string, indexA: number, before: boolean) => {
     if (columnA == columnB){
       return;
     }
@@ -616,7 +611,30 @@ const TableHeader = function(props: any){
       ...props.columns,
       order: newColumnOrder,
     });
-  }
+  }, [props.columns, props.setColumns]);
+
+  const onDropHandle = React.useCallback((event: React.DragEvent) => {
+    event.preventDefault();
+    let columnA = event.dataTransfer.getData('initiatorKey');
+    let indexA = parseInt(event.dataTransfer.getData('initiatorIndex'));
+
+    let target = event.target as HTMLElement;
+    let columnB;
+    while (!columnB){
+      target = target.parentElement!;
+      if (!target){
+        return;
+      }
+      columnB = target.getAttribute('data-rare-earth-column-key');
+    }
+
+    let boundingBox = target.getBoundingClientRect();
+    let before = event.clientX <= ((boundingBox.left + boundingBox.right) / 2);
+
+    if (columnB != null){
+      swapColumns(columnA, columnB, indexA, before);
+    }
+  }, [swapColumns]);
 
   return(
     <th className="rare-earth-header-cell" rowSpan={props.rowSpan || 1}>

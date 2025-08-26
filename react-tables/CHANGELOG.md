@@ -5,6 +5,49 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.4] - 2025-01-26
+
+### Performance Improvements
+- **Memoized Callbacks**: Fixed excessive inline function creation causing unnecessary re-renders
+  - Memoized `compareRecords` and `defaultCompareFunc` in DataTable
+  - Memoized `exportTable` callback in DataTable
+  - Memoized all event handlers in TableHeader (sorting, dragging, input changes)
+  
+- **Fixed Debounce Implementation**: Corrected debounce logic that was defeating its purpose
+  - Created stable debounced function using `useMemo` instead of recreating on every render
+  - Debounce now properly delays API calls during rapid typing
+  - Significant reduction in filter/sort operations
+
+- **Optimized Index Key Generation**: Replaced `crypto.randomUUID()` with stable ref
+  - Eliminated UUID regeneration on every column change
+  - Improved memoization effectiveness
+  - Fixed missing dependency in `filteredRecords` useMemo
+
+### UI/UX Improvements
+- **Pagination Consistency**: Fixed shifting "Next" button position
+  - Implemented consistent 7-slot layout for pagination
+  - Shows all pages when total ≤ 7
+  - Predictable patterns for start/middle/end navigation
+  
+- **Page Length Selector**: Improved option visibility logic
+  - Shows all options up to filtered count plus one above
+  - Removed confusing Infinity option
+  
+- **Table Row Hover Effects**: Refined visual feedback
+  - Removed scaling effects that caused button position shifts
+  - Enhanced shadow effects for better depth perception
+  - Special hover effect only for index columns (bold + scale)
+  
+- **CSS Refinements**: Various visual improvements
+  - Index columns properly styled with hover effects
+  - Removed problematic row scaling
+  - Better shadow effects on hover
+
+### Bug Fixes
+- **Fixed NaN in Index Columns**: Resolved issue showing NaN on initial render
+  - Added proper dependency tracking for index key
+  - Fixed timing issues in filtered records calculation
+
 ## [0.4.3] - 2025-01-26
 
 ### Fixed
