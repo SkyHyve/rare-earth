@@ -15,9 +15,8 @@ interface DataTableProps {
   initialSortFields?: SortField[];
   debounceTime?: number;
   theme?: any;
-  nonce?: string;
   onExport?: (data: any[]) => void;
-  className?: string;
+  darkMode?: boolean;
   style?: React.CSSProperties;
   index?: boolean;
 }
@@ -61,7 +60,7 @@ const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>((props, ref) 
   const [columns, setColumns] = React.useState({
     _indexKey: indexKeyRef.current,
     order: (props.columns ?? []).map((x, i) => x.key),
-    attributes: Object.fromEntries((props.columns ?? []).map((x, i) => [x.key, {...x, valueFunc: x?.valueFunc ?? ((record) => {
+    attributes: Object.fromEntries((props.columns ?? []).map((x, i) => [x.key, {...x, typeToggleable: x.typeToggleable ?? true, valueFunc: x?.valueFunc ?? ((record) => {
       switch (x.type == 'number'){
         case true:
           return parseFloat(record?.[x.key]);
@@ -82,7 +81,7 @@ const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>((props, ref) 
     setColumns({
       _indexKey: indexKeyRef.current,
       order: (props.columns ?? []).map((x) => x.key),
-      attributes: Object.fromEntries((props.columns ?? []).map((x) => [x.key, {...x, valueFunc: x?.valueFunc ?? ((record) => {
+      attributes: Object.fromEntries((props.columns ?? []).map((x) => [x.key, {...x, typeToggleable: x.typeToggleable ?? true, valueFunc: x?.valueFunc ?? ((record) => {
         switch (x.type == 'number'){
           case true:
             const numValue = parseFloat(record?.[x.key]);
@@ -151,7 +150,7 @@ const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>((props, ref) 
     setColumns({
       _indexKey: indexKeyRef.current,
       order: (props.columns ?? []).map((x, i) => x.key),
-      attributes: Object.fromEntries((props.columns ?? []).map((x, i) => [x.key, {...x, valueFunc: x?.valueFunc ?? ((record) => record?.[x.key])}])),
+      attributes: Object.fromEntries((props.columns ?? []).map((x, i) => [x.key, {...x, typeToggleable: x.typeToggleable ?? true, valueFunc: x?.valueFunc ?? ((record) => record?.[x.key])}])),
     });
   }, [props.columns]);
   
@@ -294,14 +293,14 @@ const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>((props, ref) 
     sub_headers.push(
       <th key="index-source" className="index-sub-header">
         <FloatingTooltip content="Original row number from the source dataset">
-          <span>Source</span>
+          <span>Src</span>
         </FloatingTooltip>
       </th>
     );
     sub_headers.push(
       <th key="index-current" className="index-sub-header">
         <FloatingTooltip content="Current position in the filtered and sorted dataset">
-          <span>Current</span>
+          <span>Cur</span>
         </FloatingTooltip>
       </th>
     );
@@ -417,7 +416,7 @@ const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>((props, ref) 
     <div 
       ref={ref} 
       id={props.id} 
-      className={`rare-earth-container${props.className ? ` ${props.className}` : ''}`} 
+      className={`rare-earth-container${props.darkMode ? ' dark-mode' : ''}`} 
       style={props.style}
       role="region"
       aria-label="Data table with sorting and filtering"
@@ -452,7 +451,7 @@ const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>((props, ref) 
         initiaDefaultSearch={initiaDefaultSearch}
       />
       <table 
-        className="rare-earth-table"
+        className={`rare-earth-table${props.darkMode ? ' dark-mode' : ''}`}
         role="table"
         aria-label="Data table"
         aria-rowcount={filteredSortedRecords.length}

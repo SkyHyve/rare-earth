@@ -1,3 +1,16 @@
+/* Accessibility utility class */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 /* Color palette */
 :root {
   /* Primary colors */
@@ -41,6 +54,568 @@
   --re-teal-500: #14b8a6;
   --re-red-500: #ef4444;
   --re-red-600: #dc2626;
+}
+
+/* Database Component Styles */
+.rare-earth-database {
+  background: var(--re-white);
+  border: 1px solid var(--re-gray-200);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.rare-earth-database.dark-mode {
+  background: var(--re-dark-gray-800);
+  border-color: var(--re-dark-gray-700);
+}
+
+.rare-earth-database-header {
+  background: var(--re-gray-50);
+  border-bottom: 1px solid var(--re-gray-200);
+  padding: 0;
+}
+
+.rare-earth-database.dark-mode .rare-earth-database-header {
+  background: var(--re-dark-gray-700);
+  border-bottom-color: var(--re-dark-gray-600);
+}
+
+.rare-earth-database-tabs {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 8px;
+  overflow-x: auto;
+}
+
+.rare-earth-database-tab {
+  display: flex;
+  align-items: center;
+  background: var(--re-white);
+  border: 1px solid var(--re-gray-300);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.rare-earth-database-tab.active {
+  background: linear-gradient(135deg, var(--re-primary-blue), var(--re-primary-purple));
+  border-color: transparent;
+}
+
+.rare-earth-database.dark-mode .rare-earth-database-tab {
+  background: var(--re-dark-gray-600);
+  border-color: var(--re-dark-gray-600);
+}
+
+.rare-earth-database.dark-mode .rare-earth-database-tab:hover:not(.active) {
+  background: var(--re-dark-gray-500);
+  transform: translateY(-1px);
+}
+
+.rare-earth-database.dark-mode .rare-earth-database-tab.active {
+  background: linear-gradient(135deg, var(--re-primary-blue), var(--re-primary-purple));
+}
+
+.rare-earth-database-tab-button {
+  padding: 8px 16px;
+  background: transparent;
+  border: none;
+  color: var(--re-gray-700);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+
+.rare-earth-database-tab.active .rare-earth-database-tab-button {
+  color: var(--re-white);
+}
+
+.rare-earth-database.dark-mode .rare-earth-database-tab-button {
+  color: var(--re-gray-200);
+}
+
+.rare-earth-database.dark-mode .rare-earth-database-tab.active .rare-earth-database-tab-button {
+  color: var(--re-white);
+  font-weight: 600;
+}
+
+.rare-earth-database-tab-button:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.rare-earth-database-tab.active .rare-earth-database-tab-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.rare-earth-database-tab-actions {
+  display: flex;
+  align-items: center;
+  padding-right: 4px;
+}
+
+.rare-earth-database-action-button {
+  padding: 4px 8px;
+  background: transparent;
+  border: none;
+  color: var(--re-gray-500);
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.rare-earth-database-tab.active .rare-earth-database-action-button {
+  color: var(--re-white);
+  opacity: 0.8;
+}
+
+.rare-earth-database-action-button:hover {
+  color: var(--re-gray-700);
+  transform: scale(1.1);
+}
+
+.rare-earth-database-tab.active .rare-earth-database-action-button:hover {
+  opacity: 1;
+}
+
+.rare-earth-database-rename-input {
+  padding: 8px 12px;
+  border: none;
+  background: var(--re-white);
+  color: var(--re-gray-700);
+  font-size: 14px;
+  font-weight: 500;
+  outline: none;
+  min-width: 100px;
+}
+
+.rare-earth-database.dark-mode .rare-earth-database-rename-input {
+  background: var(--re-dark-gray-600);
+  color: var(--re-white);
+}
+
+.rare-earth-database-add-button {
+  padding: 8px 16px;
+  background: transparent;
+  border: 2px dashed var(--re-gray-300);
+  border-radius: 6px;
+  color: var(--re-gray-600);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.rare-earth-database-add-button:hover {
+  border-color: var(--re-primary-blue);
+  color: var(--re-primary-blue);
+  background: var(--re-blue-100);
+}
+
+.rare-earth-database.dark-mode .rare-earth-database-add-button {
+  border-color: var(--re-dark-gray-600);
+  color: var(--re-gray-300);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.rare-earth-database.dark-mode .rare-earth-database-add-button:hover {
+  border-color: var(--re-primary-blue);
+  color: var(--re-primary-blue);
+  background: rgba(102, 126, 234, 0.15);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+}
+
+.rare-earth-database-content {
+  padding: 16px;
+}
+
+.rare-earth-database.dark-mode .rare-earth-database-content {
+  background: var(--re-dark-gray-800);
+}
+
+/* Database Loading State */
+.rare-earth-database-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  color: var(--re-gray-600);
+  font-size: 16px;
+}
+
+.rare-earth-database.dark-mode .rare-earth-database-loading {
+  color: var(--re-gray-400);
+}
+
+/* Database Popover Styles */
+.rare-earth-database-popover-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.rare-earth-database-popover {
+  background: var(--re-white);
+  border-radius: 6px;
+  padding: 16px;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+/* Responsive modal widths based on screen size */
+@media (min-width: 768px) {
+  .rare-earth-database-popover {
+    max-width: 600px;
+    width: 80%;
+  }
+}
+
+@media (min-width: 1024px) {
+  .rare-earth-database-popover {
+    max-width: 700px;
+    width: 70%;
+  }
+}
+
+@media (min-width: 1440px) {
+  .rare-earth-database-popover {
+    max-width: 800px;
+    width: 60%;
+  }
+}
+
+@media (min-width: 1920px) {
+  .rare-earth-database-popover {
+    max-width: 900px;
+    width: 50%;
+  }
+}
+
+.rare-earth-database.dark-mode .rare-earth-database-popover {
+  background: var(--re-dark-gray-700);
+  color: var(--re-white);
+}
+
+.rare-earth-database-popover h3 {
+  margin: 0 0 12px 0;
+  color: var(--re-gray-900);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.rare-earth-database.dark-mode .rare-earth-database-popover h3 {
+  color: var(--re-white);
+}
+
+.rare-earth-database-popover-field {
+  margin-bottom: 10px;
+}
+
+.rare-earth-database-popover-field label {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--re-gray-700);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.rare-earth-database.dark-mode .rare-earth-database-popover-field label {
+  color: var(--re-gray-300);
+}
+
+.rare-earth-database-popover-input,
+.rare-earth-database-popover-textarea {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid var(--re-gray-300);
+  border-radius: 4px;
+  font-size: 12px;
+  font-family: monospace;
+  box-sizing: border-box;
+}
+
+.rare-earth-database-popover-textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.rare-earth-database.dark-mode .rare-earth-database-popover-input,
+.rare-earth-database.dark-mode .rare-earth-database-popover-textarea {
+  background: var(--re-dark-gray-600);
+  border-color: var(--re-dark-gray-500);
+  color: var(--re-white);
+}
+
+.rare-earth-database.dark-mode .rare-earth-database-popover-input:focus,
+.rare-earth-database.dark-mode .rare-earth-database-popover-textarea:focus {
+  border-color: var(--re-primary-blue);
+  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+  outline: none;
+}
+
+.rare-earth-database-popover-error {
+  background: var(--re-red-500);
+  color: var(--re-white);
+  padding: 6px 8px;
+  border-radius: 4px;
+  margin-bottom: 10px;
+  font-size: 12px;
+}
+
+.rare-earth-database-popover-buttons {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 12px;
+}
+
+.rare-earth-database-popover-button {
+  padding: 6px 12px;
+  border: 1px solid var(--re-gray-300);
+  border-radius: 4px;
+  background: var(--re-white);
+  color: var(--re-gray-700);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.rare-earth-database-popover-button.primary {
+  background: linear-gradient(135deg, var(--re-primary-blue), var(--re-primary-purple));
+  color: var(--re-white);
+  border: none;
+}
+
+.rare-earth-database-popover-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.rare-earth-database.dark-mode .rare-earth-database-popover-button {
+  background: var(--re-dark-gray-600);
+  border-color: var(--re-dark-gray-500);
+  color: var(--re-gray-200);
+}
+
+.rare-earth-database.dark-mode .rare-earth-database-popover-button:hover {
+  background: var(--re-dark-gray-500);
+  border-color: var(--re-dark-gray-400);
+  color: var(--re-white);
+}
+
+.rare-earth-database.dark-mode .rare-earth-database-popover-button.primary {
+  background: linear-gradient(135deg, var(--re-primary-blue), var(--re-primary-purple));
+}
+
+/* Database Schema Section Styles */
+.rare-earth-database-schema-section {
+  margin-bottom: 10px;
+}
+
+/* Dark mode improvements for action buttons */
+.rare-earth-database.dark-mode .rare-earth-database-action-button {
+  color: var(--re-gray-300);
+  opacity: 0.8;
+  transition: all 0.2s ease;
+}
+
+.rare-earth-database.dark-mode .rare-earth-database-action-button:hover {
+  color: var(--re-white);
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+/* Improved error state styling for dark mode */
+.rare-earth-database.dark-mode .rare-earth-database-error {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #fca5a5;
+}
+
+/* Better loading state for dark mode */
+.rare-earth-database.dark-mode .rare-earth-database-loading {
+  color: var(--re-gray-300);
+  font-weight: 500;
+}
+
+/* Enhanced focus indicators for dark mode */
+.rare-earth-database.dark-mode .rare-earth-database-tab-button:focus {
+  outline: 2px solid var(--re-primary-blue);
+  outline-offset: 2px;
+}
+
+.rare-earth-database.dark-mode .rare-earth-database-add-button:focus {
+  outline: 2px solid var(--re-primary-blue);
+  outline-offset: 2px;
+}
+
+.rare-earth-database-schema-toggle {
+  width: 100%;
+  padding: 6px 10px;
+  background: var(--re-gray-100);
+  color: var(--re-gray-700);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 500;
+  transition: background-color 0.8s ease, color 0.8s ease;
+  position: relative;
+}
+
+.rare-earth-database-schema-toggle.active {
+  background: var(--re-primary-indigo);
+  color: var(--re-white);
+}
+
+.rare-earth-database-schema-toggle:hover:not(.active) {
+  background-color: var(--re-gray-200);
+}
+
+.rare-earth-database.dark-mode .rare-earth-database-schema-toggle {
+  background: var(--re-dark-gray-600);
+  color: var(--re-gray-200);
+  border: 1px solid var(--re-dark-gray-600);
+}
+
+.rare-earth-database.dark-mode .rare-earth-database-schema-toggle.active {
+  background: var(--re-primary-indigo);
+  color: var(--re-white);
+}
+
+.rare-earth-database.dark-mode .rare-earth-database-schema-toggle:hover:not(.active) {
+  background-color: var(--re-dark-gray-500);
+  border-color: var(--re-dark-gray-500);
+  color: var(--re-gray-100);
+}
+
+.rare-earth-database-schema-toggle-arrow {
+  display: inline-block;
+  transition: transform 0.8s ease;
+}
+
+.rare-earth-database-schema-toggle-arrow.active {
+  transform: rotate(180deg);
+}
+
+.rare-earth-database-schema-content {
+  max-height: 0;
+  overflow: hidden;
+  margin-top: 0;
+  padding: 0 8px;
+  background: var(--re-gray-50);
+  border: 1px solid transparent;
+  border-radius: 4px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 8px;
+  transition: max-height 0.3s ease, margin-top 0.3s ease, padding 0.3s ease, border-color 0.3s ease;
+  opacity: 0;
+  visibility: hidden;
+}
+
+.rare-earth-database-schema-content.active {
+  max-height: 180px;
+  overflow: auto;
+  margin-top: 8px;
+  padding: 8px;
+  border-color: var(--re-gray-200);
+  opacity: 1;
+  visibility: visible;
+}
+
+.rare-earth-database.dark-mode .rare-earth-database-schema-content {
+  background: var(--re-dark-gray-700);
+  border-color: transparent;
+}
+
+.rare-earth-database.dark-mode .rare-earth-database-schema-content.active {
+  border-color: var(--re-dark-gray-600);
+}
+
+.rare-earth-database-table-card {
+  background: var(--re-white);
+  border: 1px solid var(--re-gray-200);
+  border-radius: 4px;
+  padding: 8px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: box-shadow 0.2s ease;
+}
+
+.rare-earth-database-table-card:hover {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.rare-earth-database.dark-mode .rare-earth-database-table-card {
+  background: var(--re-dark-gray-600);
+  border-color: var(--re-dark-gray-600);
+}
+
+.rare-earth-database-table-name {
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: var(--re-gray-900);
+  font-size: 12px;
+  border-bottom: 1px solid var(--re-primary-indigo);
+  padding-bottom: 4px;
+}
+
+.rare-earth-database.dark-mode .rare-earth-database-table-name {
+  color: var(--re-white);
+}
+
+.rare-earth-database-column-list {
+  font-size: 10px;
+  color: var(--re-gray-500);
+  line-height: 1.3;
+}
+
+.rare-earth-database.dark-mode .rare-earth-database-column-list {
+  color: var(--re-gray-300);
+}
+
+.rare-earth-database-column-item {
+  margin-top: 2px;
+}
+
+.rare-earth-database-column-bullet {
+  color: var(--re-gray-700);
+}
+
+.rare-earth-database.dark-mode .rare-earth-database-column-bullet {
+  color: var(--re-gray-400);
+}
+
+.rare-earth-database-column-type {
+  color: var(--re-gray-400);
+  margin-left: 4px;
+}
+
+.rare-earth-database.dark-mode .rare-earth-database-column-type {
+  color: var(--re-gray-400);
+  font-weight: 500;
+}
+
+.rare-earth-database-error {
+  color: var(--re-red-500);
+  font-size: 12px;
+  padding: 4px 8px;
+  margin-bottom: 8px;
 }
 
 /* Screen reader only utility class */
@@ -196,7 +771,7 @@
 }
 
 .rare-earth-table tbody tr {
-  transition: all 0.2s ease;
+  transition: all 0.1s ease;
 }
 
 .rare-earth-table tbody tr:nth-child(even) {

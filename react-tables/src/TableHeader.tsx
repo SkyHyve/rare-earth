@@ -731,68 +731,70 @@ const TableHeader = function(props: any){
               {...getFloatingProps()}
             >
               <div className="rare-earth-stack">
-                <div className="rare-earth-chip-group">
-                  <button
-                    className={`rare-earth-chip ${props?.search?.fields?.[props?.column_key]?._type === 'string' ? 'active' : ''}`}
-                    onClick={() => {
-                      props.setSearch((_search: SearchState) => ({
-                        ..._search,
-                        fields: {
-                          ..._search.fields,
-                          [props.column_key]: {
-                            ..._search.fields[props.column_key],
-                            _type: 'string',
-                            string: {
-                              ..._search.fields[props.column_key].string,
-                              text: null,
+                {props.column.typeToggleable !== false && (
+                  <div className="rare-earth-chip-group">
+                    <button
+                      className={`rare-earth-chip ${props?.search?.fields?.[props?.column_key]?._type === 'string' ? 'active' : ''}`}
+                      onClick={() => {
+                        props.setSearch((_search: SearchState) => ({
+                          ..._search,
+                          fields: {
+                            ..._search.fields,
+                            [props.column_key]: {
+                              ..._search.fields[props.column_key],
+                              _type: 'string',
+                              string: {
+                                ..._search.fields[props.column_key].string,
+                                text: null,
+                              },
+                              number: {
+                                ..._search.fields[props.column_key].number,
+                                gt: { ..._search.fields[props.column_key].number.gt, value: null },
+                                lt: { ..._search.fields[props.column_key].number.lt, value: null },
+                              }
                             },
-                            number: {
-                              ..._search.fields[props.column_key].number,
-                              gt: { ..._search.fields[props.column_key].number.gt, value: null },
-                              lt: { ..._search.fields[props.column_key].number.lt, value: null },
-                            }
-                          },
-                        }
-                      }));
-                      setSearchInput({
-                        string: null,
-                        number: { gt: null, lt: null, gtRaw: '', ltRaw: '' }
-                      });
-                    }}
-                  >
-                    Text
-                  </button>
-                  <button
-                    className={`rare-earth-chip ${props?.search?.fields?.[props?.column_key]?._type === 'number' ? 'active' : ''}`}
-                    onClick={() => {
-                      props.setSearch((_search: SearchState) => ({
-                        ..._search,
-                        fields: {
-                          ..._search.fields,
-                          [props.column_key]: {
-                            ..._search.fields[props.column_key],
-                            _type: 'number',
-                            string: {
-                              ..._search.fields[props.column_key].string,
-                              text: null,
+                          }
+                        }));
+                        setSearchInput({
+                          string: null,
+                          number: { gt: null, lt: null, gtRaw: '', ltRaw: '' }
+                        });
+                      }}
+                    >
+                      Text
+                    </button>
+                    <button
+                      className={`rare-earth-chip ${props?.search?.fields?.[props?.column_key]?._type === 'number' ? 'active' : ''}`}
+                      onClick={() => {
+                        props.setSearch((_search: SearchState) => ({
+                          ..._search,
+                          fields: {
+                            ..._search.fields,
+                            [props.column_key]: {
+                              ..._search.fields[props.column_key],
+                              _type: 'number',
+                              string: {
+                                ..._search.fields[props.column_key].string,
+                                text: null,
+                              },
+                              number: {
+                                ..._search.fields[props.column_key].number,
+                                gt: { ..._search.fields[props.column_key].number.gt, value: null },
+                                lt: { ..._search.fields[props.column_key].number.lt, value: null },
+                              }
                             },
-                            number: {
-                              ..._search.fields[props.column_key].number,
-                              gt: { ..._search.fields[props.column_key].number.gt, value: null },
-                              lt: { ..._search.fields[props.column_key].number.lt, value: null },
-                            }
-                          },
-                        }
-                      }));
-                      setSearchInput({
-                        string: null,
-                        number: { gt: null, lt: null, gtRaw: '', ltRaw: '' }
-                      });
-                    }}
-                  >
-                    Numeric
-                  </button>
-                </div>
+                          }
+                        }));
+                        setSearchInput({
+                          string: null,
+                          number: { gt: null, lt: null, gtRaw: '', ltRaw: '' }
+                        });
+                      }}
+                    >
+                      Numeric
+                    </button>
+                  </div>
+                )}
                 {renderPopup()}
               </div>
             </div>

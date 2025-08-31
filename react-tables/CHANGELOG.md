@@ -5,6 +5,65 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2025-01-30
+
+### Added
+- **Database Component**: New multi-table interface for complex data analysis
+  - Query multiple tables with SQL joins, aggregations, and filtering
+  - Interactive SQL query builder with schema browsing
+  - Dynamic table creation from SQL query results
+  - Table management with rename and delete capabilities
+  - Real-time SQL validation and error reporting
+  - Collapsible schema browser showing all available tables and columns
+
+- **SQL Engine Integration**: Client-side SQL processing capabilities
+  - Pure JavaScript SQL engine for CSP compliance
+  - Support for SELECT, JOIN, WHERE, GROUP BY, ORDER BY, and aggregate functions
+  - Real-time query execution without server dependencies
+  - Table registration and data synchronization
+  - SQL identifier validation for security
+
+- **Comprehensive Accessibility Support**: WCAG 2.1 AA compliant implementation
+  - Full ARIA attribute coverage (roles, labels, live regions, descriptions)
+  - Keyboard navigation with focus trapping and management
+  - Screen reader optimizations with sr-only content
+  - Tab panel and dialog accessibility patterns
+  - Enhanced focus indicators and keyboard shortcuts
+
+- **Responsive Modal Design**: Adaptive modal sizing for different screen sizes
+  - Mobile: 90% width, max 500px
+  - Tablet: 80% width, max 600px  
+  - Desktop: 70% width, max 700px
+  - Large Desktop: 60% width, max 800px
+  - Extra Large: 50% width, max 900px
+
+### Enhanced
+- **Dark Mode Improvements**: Significantly enhanced dark theme visual design
+  - Improved contrast ratios for better accessibility
+  - Enhanced hover states with smooth transitions and micro-animations
+  - Better focus indicators with blue outline rings
+  - Improved button styling with subtle backgrounds and shadows
+  - Enhanced interactive feedback for all clickable elements
+  - Slower, more deliberate transitions (0.8s) for schema toggle animations
+
+- **User Interface Polish**: Multiple visual and interaction improvements
+  - Enhanced tab hover effects with lift animations
+  - Improved action button micro-interactions with scale effects
+  - Better error state styling with semi-transparent backgrounds
+  - Enhanced form input focus states with glow effects
+  - Smoother transitions throughout the interface
+
+### Breaking Changes
+- **Replaced `className` prop with `darkMode` boolean prop**
+  - Removed the `className` prop from DataTable component
+  - Added `darkMode` boolean prop for enabling dark mode styling
+  - Dark mode is now controlled via `darkMode={true}` instead of `className="dark-mode"`
+
+### Technical Improvements
+- **Code Cleanup**: Removed unused database state management
+- **Type Safety**: Fixed TypeScript warnings and improved type coverage
+- **Performance**: Optimized component re-renders and state management
+
 ## [0.4.5] - 2025-01-26
 
 ### Accessibility Improvements

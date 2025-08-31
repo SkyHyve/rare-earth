@@ -27,7 +27,8 @@ const PLUGINS = [
     declarationDir: './dist',
   }),
   nodeResolve({
-    //browser: true,
+    browser: true,
+    preferBuiltins: false,
     resolveOnly: [
       /^(?!react$)/,
       /^(?!react-icons$)/,

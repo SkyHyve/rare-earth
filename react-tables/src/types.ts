@@ -4,6 +4,15 @@ export interface ColumnDefinition {
   key: string;
   label?: string;
   type?: 'string' | 'number' | 'boolean' | 'date';
+  typeToggleable?: boolean;
+  valueFunc?: (record: any) => any;
+  displayFunc?: (record: any, value: any) => React.ReactNode;
+  compareFunc?: (a: any, b: any) => number;
+}
+
+export interface DatabaseColumnDefinition {
+  key: string;
+  type?: 'string' | 'number' | 'boolean' | 'date';
   valueFunc?: (record: any) => any;
   displayFunc?: (record: any, value: any) => React.ReactNode;
   compareFunc?: (a: any, b: any) => number;
