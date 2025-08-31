@@ -5,6 +5,35 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.1] - 2025-01-31
+
+### Added
+- **Export All Tables to Excel**: New functionality to export all database tables to a single Excel file
+  - Each table exported as a separate sheet in the workbook
+  - Auto-sized columns based on content
+  - Cyan/teal themed button matching the design system
+  - Tooltip explaining functionality
+  - Proper ARIA labeling for accessibility
+
+### Changed
+- **Type Toggle Behavior**: Type toggle buttons (Text/Numeric) now disable instead of hide when `typeToggleable` is false
+  - Buttons remain visible but with reduced opacity
+  - Cursor shows "not-allowed" when disabled
+  - Click events are properly blocked when disabled
+
+- **Reduced Vertical Spacing**: Significantly compressed UI elements for more compact interface
+  - Database tabs padding: 8px → 2px
+  - Tab button padding: 8px 16px → 2px 8px
+  - Control container padding: 0.5rem → 0.25rem
+  - Table header/cell padding: 0.25rem → 0.125rem 0.25rem
+  - Button padding reduced across all elements
+  - Control gaps reduced from 0.5rem → 0.125rem
+
+- **Class Name Improvements**: Renamed CSS classes for better semantic meaning
+  - `rare-earth-stack` → `rare-earth-filter-content`
+  - `rare-earth-stack-sm` → `rare-earth-filter-content-sm`
+  - Removed gap from filter content containers
+
 ## [0.5.0] - 2025-01-30
 
 ### Added

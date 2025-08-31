@@ -3,6 +3,9 @@ import { DataTable } from './DataTable';
 import { ColumnDefinition, DatabaseColumnDefinition } from './types';
 import { SQLEngine } from './sql-engine';
 import { isValidSQLIdentifier } from './sql/validator';
+import { FloatingTooltip } from './FloatingTooltip';
+import { TbTableExport } from 'react-icons/tb';
+import * as XLSX from 'xlsx';
 
 interface TableConfig {
   name: string;
@@ -55,6 +58,7 @@ const Database = React.forwardRef<HTMLDivElement, DatabaseProps>((props, ref) =>
   const [queryError, setQueryError] = React.useState<string | null>(null);
   const [renameError, setRenameError] = React.useState<string | null>(null);
   const [dbLoading, setDbLoading] = React.useState(true);
+  const [exportingAll, setExportingAll] = React.useState(false);
 
   // Combine props.tables and queryTables for display
   const allTables = React.useMemo(() => [...props.tables, ...queryTables], [props.tables, queryTables]);
@@ -281,6 +285,73 @@ const Database = React.forwardRef<HTMLDivElement, DatabaseProps>((props, ref) =>
     setRenameError(null);
   };
 
+  const exportAllTables = React.useCallback(() => {
+    if (exportingAll) return;
+    
+    setExportingAll(true);
+    try {
+      // Create a new workbook
+      const wb = XLSX.utils.book_new();
+      
+      // Add each table as a sheet
+      allTables.forEach(table => {
+        // Create worksheet data
+        const wsData = [];
+        
+        // Add headers
+        const headers = table.columns.map(col => col.key);
+        wsData.push(headers);
+        
+        // Add data rows
+        if (table.records && Array.isArray(table.records)) {
+          table.records.forEach(record => {
+            const row = table.columns.map(col => {
+              const value = record[col.key];
+              return value == null ? '' : value;
+            });
+            wsData.push(row);
+          });
+        }
+        
+        // Create worksheet
+        const ws = XLSX.utils.aoa_to_sheet(wsData);
+        
+        // Set column widths (auto-fit based on content)
+        const colWidths = headers.map((header, i) => {
+          let maxWidth = header.length;
+          if (table.records) {
+            table.records.forEach(record => {
+              const value = String(record[table.columns[i].key] || '');
+              maxWidth = Math.max(maxWidth, value.length);
+            });
+          }
+          return { wch: Math.min(maxWidth + 2, 50) }; // Cap at 50 characters
+        });
+        ws['!cols'] = colWidths;
+        
+        // Add worksheet to workbook with table name as sheet name
+        // Excel sheet names have restrictions: max 31 chars, no special chars
+        const sheetName = table.name
+          .replace(/[\[\]\*\/\\\?:]/g, '_') // Replace invalid characters
+          .substring(0, 31); // Limit to 31 characters
+        XLSX.utils.book_append_sheet(wb, ws, sheetName);
+      });
+      
+      // Generate filename with timestamp
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-').substring(0, 19);
+      const filename = `database_export_${timestamp}.xlsx`;
+      
+      // Write the file
+      XLSX.writeFile(wb, filename);
+      
+    } catch (error) {
+      console.error('Error exporting all tables:', error);
+      alert('Failed to export tables. Please check the console for details.');
+    } finally {
+      setExportingAll(false);
+    }
+  }, [allTables, exportingAll]);
+
   const activeTable = allTables.find(t => t.name === activeTableId);
 
   if (dbLoading) {
@@ -469,6 +540,20 @@ const Database = React.forwardRef<HTMLDivElement, DatabaseProps>((props, ref) =>
           role="tablist"
           aria-label="Database tables"
         >
+          {allTables.length > 0 && (
+            <FloatingTooltip content="Export all tables to Excel file (.xlsx) with each table as a separate sheet">
+              <button
+                onClick={exportAllTables}
+                className="rare-earth-database-export-all-button"
+                aria-label="Export all tables to Excel file"
+                disabled={exportingAll}
+              >
+                <TbTableExport size="1.1rem" />
+                <span>{exportingAll ? 'Exporting...' : 'Export All'}</span>
+              </button>
+            </FloatingTooltip>
+          )}
+          
           {allTables.map(table => {
             const isQueryTable = queryTables.some(t => t.name === table.name);
             return (

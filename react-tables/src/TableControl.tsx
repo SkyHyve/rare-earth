@@ -102,7 +102,7 @@ const TableControl: React.FC<TableControlProps> = ({
           </button>
         </FloatingTooltip>
         
-        <div className="rare-earth-stack">
+        <div className="rare-earth-record-count">
           <span className="rare-earth-text">{numFilteredRecords} filtered</span>
           <div className="rare-earth-divider"></div>
           <span className="rare-earth-text">{numRecords} total</span>
