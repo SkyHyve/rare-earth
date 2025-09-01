@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.2] - 2025-01-31
+
+### Fixed
+- **Event Handler Consistency**: Fixed all checkbox onChange handlers to use `event.target.checked` consistently
+  - Previously some handlers used `event.currentTarget.checked` which could cause issues
+  - Affects numeric filter inclusive checkboxes and all filter option checkboxes
+
+### Changed
+- **Filter Controls Styling**: Introduced dedicated `rare-earth-filter-controls` CSS class
+  - Replaced generic `rare-earth-flex-xs` with semantic class name for filter controls section
+  - Maintains same visual appearance with improved code organization
+  - Gap reduced from 0.25rem to 2px for tighter spacing
+
 ## [0.5.1] - 2025-01-31
 
 ### Added

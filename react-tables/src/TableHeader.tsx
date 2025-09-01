@@ -359,7 +359,7 @@ const TableHeader = function(props: any){
                             ..._search.fields[props.column_key].number,
                             gt: {
                               ..._search.fields[props.column_key].number.gt!,
-                              equals: event.currentTarget.checked
+                              equals: event.target.checked
                             }
                           }
                         }
@@ -404,7 +404,7 @@ const TableHeader = function(props: any){
                             ..._search.fields[props.column_key].number,
                             lt: {
                               ..._search.fields[props.column_key].number.lt!,
-                              equals: event.currentTarget.checked
+                              equals: event.target.checked
                             }
                           }
                         }
@@ -442,7 +442,7 @@ const TableHeader = function(props: any){
                     ..._search.fields[props.column_key],
                     string: {
                       ..._search.fields[props.column_key].string,
-                      trim: event.currentTarget.checked
+                      trim: event.target.checked
                     }
                   }
                 }
@@ -462,7 +462,7 @@ const TableHeader = function(props: any){
                     ..._search.fields[props.column_key],
                     string: {
                       ..._search.fields[props.column_key].string,
-                      caseSensitive: event.currentTarget.checked
+                      caseSensitive: event.target.checked
                     }
                   }
                 }
@@ -482,7 +482,7 @@ const TableHeader = function(props: any){
                     ..._search.fields[props.column_key],
                     string: {
                       ..._search.fields[props.column_key].string,
-                      isRegex: event.currentTarget.checked
+                      isRegex: event.target.checked
                     }
                   }
                 }
@@ -507,7 +507,7 @@ const TableHeader = function(props: any){
                     ..._search.fields[props.column_key],
                     number: {
                       ..._search.fields[props.column_key].number,
-                      omitNonNumeric: event.currentTarget.checked
+                      omitNonNumeric: event.target.checked
                     }
                   }
                 }
@@ -529,7 +529,7 @@ const TableHeader = function(props: any){
                       ..._search.fields[props.column_key].number,
                       gt: {
                         ..._search.fields[props.column_key].number.gt!,
-                        equals: event.currentTarget.checked,
+                        equals: event.target.checked,
                       }
                     }
                   }
@@ -552,7 +552,7 @@ const TableHeader = function(props: any){
                       ..._search.fields[props.column_key].number,
                       lt: {
                         ..._search.fields[props.column_key].number.lt!,
-                        equals: event.currentTarget.checked,
+                        equals: event.target.checked,
                       }
                     }
                   }
@@ -698,7 +698,7 @@ const TableHeader = function(props: any){
           </div>
         </div>
         <div className="rare-earth-popover">
-          <div className="rare-earth-flex-xs">
+          <div className="rare-earth-filter-controls">
             <FloatingTooltip content="Click to open filter options and change filter type">
               <div
                 ref={refs.setReference}

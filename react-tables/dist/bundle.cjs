@@ -4272,7 +4272,7 @@ const TableHeader = function (props) {
               [props.column_key]: _objectSpread2(_objectSpread2({}, _search.fields[props.column_key]), {}, {
                 number: _objectSpread2(_objectSpread2({}, _search.fields[props.column_key].number), {}, {
                   gt: _objectSpread2(_objectSpread2({}, _search.fields[props.column_key].number.gt), {}, {
-                    equals: event.currentTarget.checked
+                    equals: event.target.checked
                   })
                 })
               })
@@ -4308,7 +4308,7 @@ const TableHeader = function (props) {
               [props.column_key]: _objectSpread2(_objectSpread2({}, _search.fields[props.column_key]), {}, {
                 number: _objectSpread2(_objectSpread2({}, _search.fields[props.column_key].number), {}, {
                   lt: _objectSpread2(_objectSpread2({}, _search.fields[props.column_key].number.lt), {}, {
-                    equals: event.currentTarget.checked
+                    equals: event.target.checked
                   })
                 })
               })
@@ -4337,7 +4337,7 @@ const TableHeader = function (props) {
           fields: _objectSpread2(_objectSpread2({}, _search.fields), {}, {
             [props.column_key]: _objectSpread2(_objectSpread2({}, _search.fields[props.column_key]), {}, {
               string: _objectSpread2(_objectSpread2({}, _search.fields[props.column_key].string), {}, {
-                trim: event.currentTarget.checked
+                trim: event.target.checked
               })
             })
           })
@@ -4351,7 +4351,7 @@ const TableHeader = function (props) {
           fields: _objectSpread2(_objectSpread2({}, _search.fields), {}, {
             [props.column_key]: _objectSpread2(_objectSpread2({}, _search.fields[props.column_key]), {}, {
               string: _objectSpread2(_objectSpread2({}, _search.fields[props.column_key].string), {}, {
-                caseSensitive: event.currentTarget.checked
+                caseSensitive: event.target.checked
               })
             })
           })
@@ -4365,7 +4365,7 @@ const TableHeader = function (props) {
           fields: _objectSpread2(_objectSpread2({}, _search.fields), {}, {
             [props.column_key]: _objectSpread2(_objectSpread2({}, _search.fields[props.column_key]), {}, {
               string: _objectSpread2(_objectSpread2({}, _search.fields[props.column_key].string), {}, {
-                isRegex: event.currentTarget.checked
+                isRegex: event.target.checked
               })
             })
           })
@@ -4384,7 +4384,7 @@ const TableHeader = function (props) {
           fields: _objectSpread2(_objectSpread2({}, _search.fields), {}, {
             [props.column_key]: _objectSpread2(_objectSpread2({}, _search.fields[props.column_key]), {}, {
               number: _objectSpread2(_objectSpread2({}, _search.fields[props.column_key].number), {}, {
-                omitNonNumeric: event.currentTarget.checked
+                omitNonNumeric: event.target.checked
               })
             })
           })
@@ -4399,7 +4399,7 @@ const TableHeader = function (props) {
             [props.column_key]: _objectSpread2(_objectSpread2({}, _search.fields[props.column_key]), {}, {
               number: _objectSpread2(_objectSpread2({}, _search.fields[props.column_key].number), {}, {
                 gt: _objectSpread2(_objectSpread2({}, _search.fields[props.column_key].number.gt), {}, {
-                  equals: event.currentTarget.checked
+                  equals: event.target.checked
                 })
               })
             })
@@ -4415,7 +4415,7 @@ const TableHeader = function (props) {
             [props.column_key]: _objectSpread2(_objectSpread2({}, _search.fields[props.column_key]), {}, {
               number: _objectSpread2(_objectSpread2({}, _search.fields[props.column_key].number), {}, {
                 lt: _objectSpread2(_objectSpread2({}, _search.fields[props.column_key].number.lt), {}, {
-                  equals: event.currentTarget.checked
+                  equals: event.target.checked
                 })
               })
             })
@@ -4547,7 +4547,7 @@ const TableHeader = function (props) {
   }))))), (_props$column$label6 = props.column.label) !== null && _props$column$label6 !== void 0 ? _props$column$label6 : props.column_key.toString())), /*#__PURE__*/React.createElement("div", {
     className: "rare-earth-popover"
   }, /*#__PURE__*/React.createElement("div", {
-    className: "rare-earth-flex-xs"
+    className: "rare-earth-filter-controls"
   }, /*#__PURE__*/React.createElement(FloatingTooltip, {
     content: "Click to open filter options and change filter type"
   }, /*#__PURE__*/React.createElement("div", _objectSpread2(_objectSpread2({

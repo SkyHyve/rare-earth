@@ -267,7 +267,7 @@
 }
 
 .rare-earth-database-content {
-  padding: 8px;
+  padding: 2px;
 }
 
 .rare-earth-database.dark-mode .rare-earth-database-content {
@@ -748,7 +748,7 @@
 
 .rare-earth-table th,
 .rare-earth-table td {
-  padding: 0.25rem 0.25rem;
+  padding: 2px;
   vertical-align: middle;
   border-bottom: 1px solid var(--rare-earth-table-border);
 }
@@ -883,14 +883,13 @@
   background: rgba(255, 255, 255, 0.15);
   color: white;
   border: 1px solid rgba(255, 255, 255, 0.3);
-  padding: 0.25rem;
+  padding: 2px;
   border-radius: 4px;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   transition: all 0.2s ease;
-  margin-left: 0.5rem;
   backdrop-filter: blur(2px);
   position: relative;
 }
@@ -921,6 +920,12 @@
   border-color: rgba(255, 255, 255, 0.5);
 }
 
+.rare-earth-header-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
 .rare-earth-filter-content {
   display: flex;
   flex-direction: column;
@@ -949,6 +954,12 @@
   display: flex;
   align-items: center;
   gap: 0.25rem;
+}
+
+.rare-earth-filter-controls {
+  display: flex;
+  align-items: center;
+  gap: 2px;
 }
 
 .rare-earth-search-container {
@@ -983,7 +994,7 @@
   background-color: var(--rare-earth-input-bg);
   color: var(--rare-earth-input-text);
   border: 2px solid var(--rare-earth-input-border);
-  padding: 0.125rem 0.25rem;
+  padding: 0 0.25rem;
   border-radius: 8px;
   font-size: 0.875rem;
   cursor: pointer;
@@ -999,7 +1010,7 @@
 .rare-earth-label {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0;
   font-size: 0.875rem;
   color: #6b7280;
   font-weight: 500;
@@ -1077,7 +1088,7 @@
 .rare-earth-divider {
   height: 1px;
   background: linear-gradient(90deg, transparent, #e5e7eb, transparent);
-  margin: 0.25rem 0;
+  margin: 0.125rem 0;
 }
 
 .rare-earth-text {
