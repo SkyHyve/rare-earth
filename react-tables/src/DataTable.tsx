@@ -2,11 +2,13 @@ import React from 'react';
 import { debounce } from 'throttle-debounce';
 import { TableControl } from './TableControl';
 import { TableHeader } from './TableHeader';
+import { ColumnDragHandle } from './ColumnDragHandle';
 import { FloatingTooltip } from './FloatingTooltip';
 import { ColumnDefinition, SortField, SearchState } from './types';
 
 interface DataTableProps {
   id?: string;
+  tableName?: string;
   columns: ColumnDefinition[];
   records: any[];
   initialPage?: number;
@@ -52,8 +54,9 @@ const initiaDefaultSearch = function(columns: ColumnDefinition[]): SearchState {
 };
 
 const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>((props, ref) => {
-  const tableId = props.id || `rare-earth-table-${React.useId()}`;
-  const tableDescriptionId = `${tableId}-description`;
+  const generatedId = React.useId();
+  const tableId = props.id || `rare-earth-table-${generatedId}`;
+  const tableName = props.tableName ?? 'Data table';
   const tableStatsId = `${tableId}-stats`;
   // Use a stable key that doesn't change unless necessary
   const indexKeyRef = React.useRef(`__index_${Date.now()}`);
@@ -75,7 +78,19 @@ const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>((props, ref) 
   const [page, setPage] = React.useState(props.initialPage ?? 1);
 
   const [sortFields, setSortFields] = React.useState(props.initialSortFields ?? []);
+  const [sortAnnouncement, setSortAnnouncement] = React.useState('');
+  const previousSortFields = React.useRef(sortFields);
   const [search, setSearch] = React.useState(initiaDefaultSearch(props?.columns ?? []));
+
+  React.useEffect(() => {
+    if (previousSortFields.current === sortFields){
+      return;
+    }
+    previousSortFields.current = sortFields;
+    setSortAnnouncement(sortFields.length ? `Sorted by ${sortFields.map((field, index) => (
+      `${columns.attributes[field.key]?.label ?? field.key} ${field.reverse ? 'descending' : 'ascending'}, priority ${index + 1}`
+    )).join('; ')}.` : 'Sorting cleared.');
+  }, [sortFields, columns.attributes]);
   
   const resetColumns = React.useCallback(() => {
     setColumns({
@@ -92,7 +107,7 @@ const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>((props, ref) 
     });
   }, [props.columns]);
 
-  const headerRefs = React.useRef({});
+  const headerRefs = React.useRef<Record<number, HTMLDivElement>>({});
 
   const defaultCompareFunc = React.useCallback((a: any, b: any) => {
     if (a == null) {
@@ -284,21 +299,21 @@ const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>((props, ref) 
     return sortedRecords;
   }, [sortFields, filteredRecords, compareRecords]);
 
-  // Create two-row header structure
+  // Keep titles in column headers and interactive controls in the row below.
   let main_headers = [];
   let sub_headers = [];
   
   if (props.index !== false){
-    main_headers.push(<th key="index-main" className="index-main-header" colSpan={2}>Row No.</th>);
+    main_headers.push(<th key="index-main" className="index-main-header" colSpan={2} scope="colgroup">Row No.</th>);
     sub_headers.push(
-      <th key="index-source" className="index-sub-header">
+      <th key="index-source" className="index-sub-header" scope="col">
         <FloatingTooltip content="Original row number from the source dataset">
           <span>Src</span>
         </FloatingTooltip>
       </th>
     );
     sub_headers.push(
-      <th key="index-current" className="index-sub-header">
+      <th key="index-current" className="index-sub-header" scope="col">
         <FloatingTooltip content="Current position in the filtered and sorted dataset">
           <span>Cur</span>
         </FloatingTooltip>
@@ -309,10 +324,33 @@ const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>((props, ref) 
   for (let i = 0; i < columns.order.length; i++){
     let key = columns.order[i];
     let column = columns.attributes[key];
+    const headingId = `${generatedId}-column-${encodeURIComponent(key)}`;
     main_headers.push(
-      <TableHeader 
-        ref={headerRefs}
+      <th
         key={key}
+        id={headingId}
+        className="rare-earth-header-cell"
+        scope="col"
+        aria-labelledby={`${headingId}-label`}
+        aria-sort={sortFields[0]?.key === key ? (sortFields[0].reverse ? 'descending' : 'ascending') : undefined}
+      >
+        <ColumnDragHandle
+          tableId={tableId}
+          columnKey={key}
+          columnIndex={i}
+          columnOrder={columns.order}
+          onOrderChange={(order) => setColumns((current) => ({ ...current, order }))}
+          headerRefs={headerRefs}
+        >
+          <span id={`${headingId}-label`}>{column.label ?? key}</span>
+        </ColumnDragHandle>
+      </th>
+    );
+    sub_headers.push(
+      <TableHeader 
+        key={key}
+        controlsOnly={true}
+        headingId={headingId}
         tableId={tableId}
         columns={columns}
         setColumns={setColumns}
@@ -324,7 +362,6 @@ const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>((props, ref) 
         column_key={key}
         column={column}
         debounceTime={props.debounceTime}
-        rowSpan={2}
       />
     )
   }
@@ -356,16 +393,16 @@ const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>((props, ref) 
 
       if (column.displayFunc != null){
         let cellDisplay = column.displayFunc(record, value);
-        cells.push(<td key={key} aria-colindex={colIndex++}>{cellDisplay}</td>);
+        cells.push(<td key={key} headers={`${generatedId}-column-${encodeURIComponent(key)}`} aria-colindex={colIndex++}>{cellDisplay}</td>);
       } else {
-        cells.push(<td key={key} aria-colindex={colIndex++}>{value}</td>);
+        cells.push(<td key={key} headers={`${generatedId}-column-${encodeURIComponent(key)}`} aria-colindex={colIndex++}>{value}</td>);
       }
     }
     rows.push(
       <tr 
         key={i} 
         role="row"
-        aria-rowindex={i + 1}
+        aria-rowindex={i + 3}
         data-testid={`table-row-${tableId}-${i}`}
         data-row-index={i}
       >
@@ -419,14 +456,20 @@ const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>((props, ref) 
       className={`rare-earth-container${props.darkMode ? ' dark-mode' : ''}`} 
       style={props.style}
       role="region"
-      aria-label="Data table with sorting and filtering"
-      aria-describedby={`${tableDescriptionId} ${tableStatsId}`}
+      aria-label={tableName}
       data-testid={`data-table-${tableId}`}
       data-component="rare-earth-table"
     >
-      <div id={tableDescriptionId} className="sr-only" translate="yes">
-        Interactive data table with sorting, filtering, and pagination capabilities. Use column headers to sort data and filter controls to narrow results.
-      </div>
+      <details>
+        <summary>Table help</summary>
+        <p>
+          Use the sort buttons to change sort direction. Hold Shift while clicking or pressing
+          Enter or Space to keep other sort fields. Sorting and filtering controls are in the
+          row below the column titles; use Tab to reach them. Filters narrow the results.
+          Drag column headings to reorder them; Reset restores the original order.
+        </p>
+      </details>
+      <div className="sr-only" role="status" aria-atomic="true">{sortAnnouncement}</div>
       <div id={tableStatsId} className="sr-only" aria-live="polite" aria-atomic="true">
         Showing {lb + 1} to {ub} of {filteredSortedRecords.length} filtered results (from {records.length} total records)
       </div>
@@ -453,20 +496,17 @@ const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>((props, ref) 
       <table 
         className={`rare-earth-table${props.darkMode ? ' dark-mode' : ''}`}
         role="table"
-        aria-label="Data table"
-        aria-rowcount={filteredSortedRecords.length}
+        aria-label={tableName}
+        aria-rowcount={filteredSortedRecords.length + 2}
         aria-colcount={columns.order.length + (props.index !== false ? 2 : 0)}
-        aria-describedby={tableDescriptionId}
       >
         <thead role="rowgroup">
-          <tr>
+          <tr aria-rowindex={1}>
             {main_headers}
           </tr>
-          {props.index !== false && (
-            <tr>
-              {sub_headers}
-            </tr>
-          )}
+          <tr aria-rowindex={2}>
+            {sub_headers}
+          </tr>
         </thead>
         <tbody role="rowgroup">
           {rows}

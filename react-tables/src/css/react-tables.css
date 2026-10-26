@@ -793,7 +793,8 @@
   margin: -0.125rem -0.25rem;
 }
 
-.rare-earth-table thead th {
+.rare-earth-table thead th,
+.rare-earth-table thead td.rare-earth-column-controls {
   background: var(--rare-earth-primary-gradient);
   color: white;
   font-weight: 600;

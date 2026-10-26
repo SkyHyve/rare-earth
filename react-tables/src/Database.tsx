@@ -646,9 +646,10 @@ const Database = React.forwardRef<HTMLDivElement, DatabaseProps>((props, ref) =>
           <DataTable
             key={activeTable.name}
             id={activeTable.name}
+            tableName={activeTable.name}
             columns={activeTable.columns.map((col): ColumnDefinition => ({
               ...col,
-              label: col.key,
+              label: col.label ?? col.key,
               typeToggleable: false
             }))}
             records={activeTable.records}

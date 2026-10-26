@@ -78,6 +78,7 @@ export default App;
 | `columns` | `ColumnDefinition[]` | **required** | Array of column definitions |
 | `records` | `any[]` | **required** | Array of data records |
 | `id` | `string` | - | HTML id attribute for the table container |
+| `tableName` | `string` | `Data table` | Accessible name for the table and its controls region; Database supplies the table name automatically |
 | `className` | `string` | - | CSS class name for the table container |
 | `style` | `React.CSSProperties` | - | Inline styles for the table container |
 | `initialPage` | `number` | `1` | Initial page number |
@@ -384,12 +385,24 @@ WHERE NOT EXISTS (
 
 ### Database Accessibility
 
-The Database component includes comprehensive accessibility features:
-- **ARIA compliance** - Full WCAG 2.1 AA support
-- **Keyboard navigation** - Tab, Enter, Escape key support
-- **Screen reader support** - Descriptive labels and live regions
-- **Focus management** - Modal focus trapping
-- **Responsive design** - Adaptive layouts for all screen sizes
+- Native column headers use their displayed labels, without filter or sorting instructions in the header name.
+- Column titles occupy their own header cells. Sorting and filtering controls are in a separate row beneath them, reachable with Tab; table navigation through a title does not encounter those controls. Data and control cells reference their corresponding title.
+- Sort buttons support Enter and Space; hold Shift to retain other sort fields. The primary sorted header exposes `aria-sort`; button descriptions and a single status announcement identify all sort priorities.
+- Expand **Table help** for instructions. These instructions are not attached to every header or to the table description.
+- Header controls use short names without instructional tooltips. Sort direction and priority describe the sort button without adding a separate text stop when reading the header.
+- Opening a filter dialog moves keyboard focus to its options. Escape returns focus to that column's filter button; clicking another control closes the dialog without moving focus back.
+- Database columns accept an optional `label`, falling back to `key`. SQL queries and the schema browser continue to use field keys. CSV export uses displayed labels; the all-tables Excel export uses field keys.
+- Test with the screen readers and browsers used by your application before deploying; automated checks do not establish WCAG conformance.
+
+### Browser regression checks
+
+Use Node.js 20 or newer for the browser test tooling. From `react-tables`, run `npm install`, `npx playwright install chromium`, then `npm run build && npm run test:browser`.
+To use an installed Google Chrome instead of downloading Chromium, set `PLAYWRIGHT_CHANNEL=chrome`.
+After a build, `npm run test:browser` reruns just the browser checks. They serve synthetic records on loopback and exercise headers, keyboard sorting, filtering, reordering, SQL and exports; no application instance or database is contacted.
+
+`npm test` runs the build, SQL engine tests and browser checks in sequence, stopping at the first failing command. A failure in the SQL suite therefore prevents the browser checks from running through that command; use the standalone command above to check browser behavior independently.
+
+Manually check row/column navigation with a screen reader, then tab to sort/filter controls and check focus, announcements and optional help. Both indexed and non-indexed tables need checking.
 
 ## Styling
 

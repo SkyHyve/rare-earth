@@ -3,6 +3,7 @@ import { FaSearchPlus } from 'react-icons/fa';
 import { debounce } from 'throttle-debounce';
 import {
   useFloating,
+  FloatingFocusManager,
   autoUpdate,
   offset,
   flip,
@@ -12,11 +13,13 @@ import {
   useRole,
   useInteractions,
 } from '@floating-ui/react';
-import { FloatingTooltip } from './FloatingTooltip';
 import { SearchState, SortField, DEBOUNCE_INPUT_TIME_MS } from './types';
+import { ColumnDragHandle } from './ColumnDragHandle';
 
 const TableHeader = function(props: any){
   const { tableId, ref } = props;
+  const labelId = React.useId();
+  const sortDescriptionId = React.useId();
   const [searchInput, setSearchInput] = React.useState({
     string: props.search?.fields?.[props.column_key]?.string?.text,
     number: {
@@ -567,243 +570,165 @@ const TableHeader = function(props: any){
     return null;
   }
 
-  const onDragStartHandle = React.useCallback((event: React.DragEvent, column_key: string, column_index: number) => {
-    event.dataTransfer.setData('initiatorKey', column_key);
-    event.dataTransfer.setData('initiatorIndex', column_index.toString());
-  }, []);
-
-  const swapColumns = React.useCallback((columnA: string, columnB: string, indexA: number, before: boolean) => {
-    if (columnA == columnB){
-      return;
-    }
-
-    if ((props.columns.attributes[columnA] == null) || (props.columns.attributes[columnB] == null)){
-      return;
-    }
-
-    let newColumnOrder = [];
-    for (let i = 0; i < props.columns.order.length; i++){
-      let orderColumnKey = props.columns.order[i];
-      if (orderColumnKey != columnA && orderColumnKey != columnB){
-        newColumnOrder.push(orderColumnKey);
-      } else if (orderColumnKey == columnB){
-        if (Math.abs(i - indexA) <= 1){
-          if (indexA < i){
-            newColumnOrder.push(columnB);
-            newColumnOrder.push(columnA);
-          } else {
-            newColumnOrder.push(columnA);
-            newColumnOrder.push(columnB);
-          }
-        } else {
-          if (before){
-            newColumnOrder.push(columnA);
-            newColumnOrder.push(columnB);
-          } else {
-            newColumnOrder.push(columnB);
-            newColumnOrder.push(columnA);
-          }
-        }
-      }
-    }
-    
-    props.setColumns({
-      ...props.columns,
-      order: newColumnOrder,
-    });
-  }, [props.columns, props.setColumns]);
-
-  const onDropHandle = React.useCallback((event: React.DragEvent) => {
-    event.preventDefault();
-    let columnA = event.dataTransfer.getData('initiatorKey');
-    let indexA = parseInt(event.dataTransfer.getData('initiatorIndex'));
-
-    let target = event.target as HTMLElement;
-    let columnB;
-    while (!columnB){
-      target = target.parentElement!;
-      if (!target){
-        return;
-      }
-      columnB = target.getAttribute('data-rare-earth-column-key');
-    }
-
-    let boundingBox = target.getBoundingClientRect();
-    let before = event.clientX <= ((boundingBox.left + boundingBox.right) / 2);
-
-    if (columnB != null){
-      swapColumns(columnA, columnB, indexA, before);
-    }
-  }, [swapColumns]);
-
-  return(
-    <th className="rare-earth-header-cell" rowSpan={props.rowSpan || 1} scope="col">
-      <div className="rare-earth-filter-content">
-        <div
-          ref={(element: HTMLDivElement | null) => {
-            if (element && ref && ref.current){
-              ref.current[props.column_index] = element;
-            }
-          }}
-          data-rare-earth-column-key={props.column_key}
-          className="rare-earth-draggable"
-          draggable={true}
-          role="columnheader"
-          tabIndex={0}
-          aria-label={`Column: ${props.column.label ?? props.column_key}. Drag to reorder.`}
-          title={`Drag to reorder column ${props.column.label ?? props.column_key}`}
-          data-testid={`column-header-${tableId}-${props.column_key}`}
-          data-column={props.column_key}
-          data-draggable="true"
-          onDragStart={(event) => onDragStartHandle(event, props.column_key, props.column_index)}
-          onDragOver={(event) => event.preventDefault()}
-          onDragEnter={(event) => event.preventDefault()}
-          onDrop={(event) => onDropHandle(event)}
-        >
-          <div className="rare-earth-flex-xs">
-            <FloatingTooltip content={
-              <div className="rare-earth-filter-content">
-                <span>Click to sort by {props.column.label ?? props.column_key.toString()}</span>
-                <span>Hold <strong>Shift</strong> and click to add to multi-sort or change sort direction.</span>
-              </div>
-            }>
-              <button
-                className="rare-earth-sort-button"
-                onClick={(event) => sortFieldClick(event)}
-                aria-label={`Sort by ${props.column.label ?? props.column_key}. Currently ${ascendingActive ? 'sorted ascending' : descendingActive ? 'sorted descending' : 'not sorted'}${sortIndex ? `, sort priority ${sortIndex}` : ''}. Click to ${ascendingActive ? 'sort descending' : 'sort ascending'}. Hold Shift and click to add to multi-sort.`}
-                aria-pressed={ascendingActive || descendingActive}
-                aria-sort={ascendingActive ? 'ascending' : descendingActive ? 'descending' : 'none'}
-                type="button"
-                data-testid={`sort-button-${tableId}-${props.column_key}`}
-                data-column={props.column_key}
-                data-sort-state={ascendingActive ? 'ascending' : descendingActive ? 'descending' : 'none'}
-                title={`Sort by ${props.column.label ?? props.column_key}`}
-              >
-                <div className="rare-earth-flex-xs">
-                  <span aria-live="polite" aria-atomic="true">
-                    <span className="sr-only">
-                      {ascendingActive ? 'Sorted ascending' : descendingActive ? 'Sorted descending' : ''}
-                      {sortIndex ? `, priority ${sortIndex}` : ''}
-                    </span>
-                    <span aria-hidden="true">{sortIndex}</span>
-                  </span>
-                  <div className="rare-earth-filter-content">
-                    <div className={`rare-earth-triangle ${ascendingActive ? 'active' : ''}`} aria-hidden="true"></div>
-                    <div className={`rare-earth-triangle descending ${descendingActive ? 'active' : ''}`} aria-hidden="true"></div>
-                  </div>
-                </div>
-              </button>
-            </FloatingTooltip>
-            {props.column.label ?? props.column_key.toString()}
+  const sortControl = (
+    <div className="rare-earth-flex-xs">
+      <button
+        className="rare-earth-sort-button"
+        onClick={(event) => sortFieldClick(event)}
+        aria-label={`Sort by ${props.column.label ?? props.column_key}`}
+        aria-describedby={sortDescriptionId}
+        type="button"
+        data-testid={`sort-button-${tableId}-${props.column_key}`}
+        data-column={props.column_key}
+        data-sort-state={ascendingActive ? 'ascending' : descendingActive ? 'descending' : 'none'}
+      >
+        <div className="rare-earth-flex-xs">
+          <span aria-hidden="true">{sortIndex}</span>
+          <div className="rare-earth-filter-content">
+            <div className={`rare-earth-triangle ${ascendingActive ? 'active' : ''}`} aria-hidden="true"></div>
+            <div className={`rare-earth-triangle descending ${descendingActive ? 'active' : ''}`} aria-hidden="true"></div>
           </div>
         </div>
+      </button>
+      {!props.controlsOnly && <span id={labelId}>{props.column.label ?? props.column_key.toString()}</span>}
+      <span id={sortDescriptionId} hidden>
+        {ascendingActive ? 'Ascending' : descendingActive ? 'Descending' : 'Not sorted'}
+        {sortIndex ? `, priority ${sortIndex}` : ''}
+      </span>
+    </div>
+  );
+  const Cell = props.controlsOnly ? 'td' : 'th';
+
+  return(
+    <Cell
+      className={props.controlsOnly ? 'rare-earth-column-controls' : 'rare-earth-header-cell'}
+      rowSpan={props.controlsOnly ? undefined : props.rowSpan || 1}
+      scope={props.controlsOnly ? undefined : 'col'}
+      headers={props.headingId}
+      data-testid={props.controlsOnly ? `column-controls-${tableId}-${props.column_key}` : undefined}
+      aria-labelledby={props.controlsOnly ? undefined : labelId}
+      aria-sort={!props.controlsOnly && sortIndex === 1 ? (ascendingActive ? 'ascending' : 'descending') : undefined}
+    >
+      <div className={props.controlsOnly ? 'rare-earth-flex-xs' : 'rare-earth-filter-content'}>
+        {props.controlsOnly ? sortControl : (
+          <ColumnDragHandle
+            tableId={tableId}
+            columnKey={props.column_key}
+            columnIndex={props.column_index}
+            columnOrder={props.columns.order}
+            onOrderChange={(order) => props.setColumns({ ...props.columns, order })}
+            headerRefs={ref}
+          >
+            {sortControl}
+          </ColumnDragHandle>
+        )}
         <div className="rare-earth-popover">
           <div className="rare-earth-filter-controls">
-            <FloatingTooltip content="Click to open filter options and change filter type">
-              <div
-                ref={refs.setReference}
-                className={`rare-earth-search-icon ${searchOptionsOpen ? 'active' : ''}`}
-                {...getReferenceProps()}
-                role="button"
-                tabIndex={0}
-                aria-haspopup="dialog"
-                aria-expanded={searchOptionsOpen}
-                aria-controls={`filter-popup-${tableId}-${props.column_key}`}
-                aria-label={`Open filter options for ${props.column.label ?? props.column_key}. Current filter type: ${props?.search?.fields?.[props?.column_key]?._type === 'number' ? 'numeric' : 'text'}`}
-              >
-                <div className="rare-earth-filter-content">
-                  <FaSearchPlus/>
-                  <span className="rare-earth-filter-type-indicator">
-                    {props?.search?.fields?.[props?.column_key]?._type != 'string' ? "123" : "ABC"}
-                  </span>
-                </div>
+            <div
+              ref={refs.setReference}
+              className={`rare-earth-search-icon ${searchOptionsOpen ? 'active' : ''}`}
+              {...getReferenceProps()}
+              role="button"
+              tabIndex={0}
+              aria-haspopup="dialog"
+              aria-expanded={searchOptionsOpen}
+              aria-controls={`filter-popup-${tableId}-${props.column_key}`}
+              aria-label={`Filter options for ${props.column.label ?? props.column_key}`}
+            >
+              <div className="rare-earth-filter-content">
+                <FaSearchPlus/>
+                <span className="rare-earth-filter-type-indicator">
+                  {props?.search?.fields?.[props?.column_key]?._type != 'string' ? "123" : "ABC"}
+                </span>
               </div>
-            </FloatingTooltip>
+            </div>
             {renderSearchInput()}
           </div>
           {searchOptionsOpen && (
-            <div 
-              ref={refs.setFloating}
-              id={`filter-popup-${tableId}-${props.column_key}`}
-              className="rare-earth-popover-content"
-              role="dialog"
-              aria-label="Filter options"
-              {...getFloatingProps()}
-            >
-              <div className="rare-earth-filter-content">
-                <div className="rare-earth-chip-group">
-                  <button
-                    className={`rare-earth-chip ${props?.search?.fields?.[props?.column_key]?._type === 'string' ? 'active' : ''}`}
-                    disabled={props.column.typeToggleable === false}
-                    onClick={() => {
-                      if (props.column.typeToggleable === false) return;
-                      props.setSearch((_search: SearchState) => ({
-                        ..._search,
-                        fields: {
-                          ..._search.fields,
-                          [props.column_key]: {
-                            ..._search.fields[props.column_key],
-                            _type: 'string',
-                            string: {
-                              ..._search.fields[props.column_key].string,
-                              text: null,
+            <FloatingFocusManager context={context} modal={false} returnFocus={true}>
+              <div
+                ref={refs.setFloating}
+                id={`filter-popup-${tableId}-${props.column_key}`}
+                className="rare-earth-popover-content"
+                role="dialog"
+                aria-label="Filter options"
+                {...getFloatingProps()}
+              >
+                <div className="rare-earth-filter-content">
+                  <div className="rare-earth-chip-group">
+                    <button
+                      className={`rare-earth-chip ${props?.search?.fields?.[props?.column_key]?._type === 'string' ? 'active' : ''}`}
+                      disabled={props.column.typeToggleable === false}
+                      onClick={() => {
+                        if (props.column.typeToggleable === false) return;
+                        props.setSearch((_search: SearchState) => ({
+                          ..._search,
+                          fields: {
+                            ..._search.fields,
+                            [props.column_key]: {
+                              ..._search.fields[props.column_key],
+                              _type: 'string',
+                              string: {
+                                ..._search.fields[props.column_key].string,
+                                text: null,
+                              },
+                              number: {
+                                ..._search.fields[props.column_key].number,
+                                gt: { ..._search.fields[props.column_key].number.gt, value: null },
+                                lt: { ..._search.fields[props.column_key].number.lt, value: null },
+                              }
                             },
-                            number: {
-                              ..._search.fields[props.column_key].number,
-                              gt: { ..._search.fields[props.column_key].number.gt, value: null },
-                              lt: { ..._search.fields[props.column_key].number.lt, value: null },
-                            }
-                          },
-                        }
-                      }));
-                      setSearchInput({
-                        string: null,
-                        number: { gt: null, lt: null, gtRaw: '', ltRaw: '' }
-                      });
-                    }}
-                  >
-                    Text
-                  </button>
-                  <button
-                    className={`rare-earth-chip ${props?.search?.fields?.[props?.column_key]?._type === 'number' ? 'active' : ''}`}
-                    disabled={props.column.typeToggleable === false}
-                    onClick={() => {
-                      if (props.column.typeToggleable === false) return;
-                      props.setSearch((_search: SearchState) => ({
-                        ..._search,
-                        fields: {
-                          ..._search.fields,
-                          [props.column_key]: {
-                            ..._search.fields[props.column_key],
-                            _type: 'number',
-                            string: {
-                              ..._search.fields[props.column_key].string,
-                              text: null,
+                          }
+                        }));
+                        setSearchInput({
+                          string: null,
+                          number: { gt: null, lt: null, gtRaw: '', ltRaw: '' }
+                        });
+                      }}
+                    >
+                      Text
+                    </button>
+                    <button
+                      className={`rare-earth-chip ${props?.search?.fields?.[props?.column_key]?._type === 'number' ? 'active' : ''}`}
+                      disabled={props.column.typeToggleable === false}
+                      onClick={() => {
+                        if (props.column.typeToggleable === false) return;
+                        props.setSearch((_search: SearchState) => ({
+                          ..._search,
+                          fields: {
+                            ..._search.fields,
+                            [props.column_key]: {
+                              ..._search.fields[props.column_key],
+                              _type: 'number',
+                              string: {
+                                ..._search.fields[props.column_key].string,
+                                text: null,
+                              },
+                              number: {
+                                ..._search.fields[props.column_key].number,
+                                gt: { ..._search.fields[props.column_key].number.gt, value: null },
+                                lt: { ..._search.fields[props.column_key].number.lt, value: null },
+                              }
                             },
-                            number: {
-                              ..._search.fields[props.column_key].number,
-                              gt: { ..._search.fields[props.column_key].number.gt, value: null },
-                              lt: { ..._search.fields[props.column_key].number.lt, value: null },
-                            }
-                          },
-                        }
-                      }));
-                      setSearchInput({
-                        string: null,
-                        number: { gt: null, lt: null, gtRaw: '', ltRaw: '' }
-                      });
-                    }}
-                  >
-                    Numeric
-                  </button>
+                          }
+                        }));
+                        setSearchInput({
+                          string: null,
+                          number: { gt: null, lt: null, gtRaw: '', ltRaw: '' }
+                        });
+                      }}
+                    >
+                      Numeric
+                    </button>
+                  </div>
+                  {renderPopup()}
                 </div>
-                {renderPopup()}
               </div>
-            </div>
+            </FloatingFocusManager>
           )}
         </div>
       </div>
-    </th>
+    </Cell>
   );
 }
 

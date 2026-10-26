@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+- Keep column header names concise and expose sort direction on the native header. Announce sort changes once, including multi-sort priority, and offer instructions through optional table help.
+- Remove repeated header tooltip and drag instructions; retain concise control names and sort-state descriptions.
+- Separate column titles from their sorting/filtering controls, preserving column dragging and header associations. Include both heading rows in accessible row counts and positions.
+- Return focus to the matching filter button when Escape closes its dialog, including after interacting with an option inside it.
+- Preserve configured Database column labels, with field-key fallback.
+- Correct the CommonJS build dependency version and load package metadata on current Node versions.
+
+### Added
+- Optional `DataTable.tableName` accessible name, supplied automatically by Database.
+- Browser regression coverage for table accessibility and existing table workflows.
+
 ## [0.5.2] - 2025-01-31
 
 ### Fixed

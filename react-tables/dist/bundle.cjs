@@ -23,50 +23,6 @@ function _interopNamespaceDefault(e) {
 var React__namespace = /*#__PURE__*/_interopNamespaceDefault(React);
 var ReactDOM__namespace = /*#__PURE__*/_interopNamespaceDefault(ReactDOM);
 
-function _defineProperty$1(e, r, t) {
-  return (r = _toPropertyKey$1(r)) in e ? Object.defineProperty(e, r, {
-    value: t,
-    enumerable: true,
-    configurable: true,
-    writable: true
-  }) : e[r] = t, e;
-}
-function ownKeys$1(e, r) {
-  var t = Object.keys(e);
-  if (Object.getOwnPropertySymbols) {
-    var o = Object.getOwnPropertySymbols(e);
-    r && (o = o.filter(function (r) {
-      return Object.getOwnPropertyDescriptor(e, r).enumerable;
-    })), t.push.apply(t, o);
-  }
-  return t;
-}
-function _objectSpread2(e) {
-  for (var r = 1; r < arguments.length; r++) {
-    var t = null != arguments[r] ? arguments[r] : {};
-    r % 2 ? ownKeys$1(Object(t), true).forEach(function (r) {
-      _defineProperty$1(e, r, t[r]);
-    }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys$1(Object(t)).forEach(function (r) {
-      Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r));
-    });
-  }
-  return e;
-}
-function _toPrimitive$1(t, r) {
-  if ("object" != typeof t || !t) return t;
-  var e = t[Symbol.toPrimitive];
-  if (void 0 !== e) {
-    var i = e.call(t, r);
-    if ("object" != typeof i) return i;
-    throw new TypeError("@@toPrimitive must return a primitive value.");
-  }
-  return ("string" === r ? String : Number)(t);
-}
-function _toPropertyKey$1(t) {
-  var i = _toPrimitive$1(t, "string");
-  return "symbol" == typeof i ? i : i + "";
-}
-
 var DefaultContext = {
   color: undefined,
   size: undefined,
@@ -342,7 +298,6 @@ function isShadowRoot(value) {
   }
   return value instanceof ShadowRoot || value instanceof getWindow(value).ShadowRoot;
 }
-const invalidOverflowDisplayValues = /*#__PURE__*/new Set(['inline', 'contents']);
 function isOverflowElement(element) {
   const {
     overflow,
@@ -350,32 +305,35 @@ function isOverflowElement(element) {
     overflowY,
     display
   } = getComputedStyle$1(element);
-  return /auto|scroll|overlay|hidden|clip/.test(overflow + overflowY + overflowX) && !invalidOverflowDisplayValues.has(display);
+  return /auto|scroll|overlay|hidden|clip/.test(overflow + overflowY + overflowX) && display !== 'inline' && display !== 'contents';
 }
-const tableElements = /*#__PURE__*/new Set(['table', 'td', 'th']);
 function isTableElement(element) {
-  return tableElements.has(getNodeName(element));
+  return /^(table|td|th)$/.test(getNodeName(element));
 }
-const topLayerSelectors = [':popover-open', ':modal'];
 function isTopLayer(element) {
-  return topLayerSelectors.some(selector => {
-    try {
-      return element.matches(selector);
-    } catch (_e) {
-      return false;
+  try {
+    if (element.matches(':popover-open')) {
+      return true;
     }
-  });
+  } catch (_e) {
+    // no-op
+  }
+  try {
+    return element.matches(':modal');
+  } catch (_e) {
+    return false;
+  }
 }
-const transformProperties = ['transform', 'translate', 'scale', 'rotate', 'perspective'];
-const willChangeValues = ['transform', 'translate', 'scale', 'rotate', 'perspective', 'filter'];
-const containValues = ['paint', 'layout', 'strict', 'content'];
+const willChangeRe = /transform|translate|scale|rotate|perspective|filter/;
+const containRe = /paint|layout|strict|content/;
+const isNotNone = value => !!value && value !== 'none';
+let isWebKitValue;
 function isContainingBlock(elementOrCss) {
-  const webkit = isWebKit();
   const css = isElement(elementOrCss) ? getComputedStyle$1(elementOrCss) : elementOrCss;
 
   // https://developer.mozilla.org/en-US/docs/Web/CSS/Containing_block#identifying_the_containing_block
   // https://drafts.csswg.org/css-transforms-2/#individual-transforms
-  return transformProperties.some(value => css[value] ? css[value] !== 'none' : false) || (css.containerType ? css.containerType !== 'normal' : false) || !webkit && (css.backdropFilter ? css.backdropFilter !== 'none' : false) || !webkit && (css.filter ? css.filter !== 'none' : false) || willChangeValues.some(value => (css.willChange || '').includes(value)) || containValues.some(value => (css.contain || '').includes(value));
+  return isNotNone(css.transform) || isNotNone(css.translate) || isNotNone(css.scale) || isNotNone(css.rotate) || isNotNone(css.perspective) || !isWebKit() && (isNotNone(css.backdropFilter) || isNotNone(css.filter)) || willChangeRe.test(css.willChange || '') || containRe.test(css.contain || '');
 }
 function getContainingBlock(element) {
   let currentNode = getParentNode(element);
@@ -390,12 +348,13 @@ function getContainingBlock(element) {
   return null;
 }
 function isWebKit() {
-  if (typeof CSS === 'undefined' || !CSS.supports) return false;
-  return CSS.supports('-webkit-backdrop-filter', 'none');
+  if (isWebKitValue == null) {
+    isWebKitValue = typeof CSS !== 'undefined' && CSS.supports && CSS.supports('-webkit-backdrop-filter', 'none');
+  }
+  return isWebKitValue;
 }
-const lastTraversableNodeNames = /*#__PURE__*/new Set(['html', 'body', '#document']);
 function isLastTraversableNode(node) {
-  return lastTraversableNodeNames.has(getNodeName(node));
+  return /^(html|body|#document)$/.test(getNodeName(node));
 }
 function getComputedStyle$1(element) {
   return getWindow(element).getComputedStyle(element);
@@ -430,7 +389,7 @@ function getParentNode(node) {
 function getNearestOverflowAncestor(node) {
   const parentNode = getParentNode(node);
   if (isLastTraversableNode(parentNode)) {
-    return node.ownerDocument ? node.ownerDocument.body : node.body;
+    return (node.ownerDocument || node).body;
   }
   if (isHTMLElement(parentNode) && isOverflowElement(parentNode)) {
     return parentNode;
@@ -451,8 +410,9 @@ function getOverflowAncestors(node, list, traverseIframes) {
   if (isBody) {
     const frameElement = getFrameElement(win);
     return list.concat(win, win.visualViewport || [], isOverflowElement(scrollableAncestor) ? scrollableAncestor : [], frameElement && traverseIframes ? getOverflowAncestors(frameElement) : []);
+  } else {
+    return list.concat(scrollableAncestor, getOverflowAncestors(scrollableAncestor, [], traverseIframes));
   }
-  return list.concat(scrollableAncestor, getOverflowAncestors(scrollableAncestor, [], traverseIframes));
 }
 function getFrameElement(win) {
   return win.parent && Object.getPrototypeOf(win.parent) ? win.frameElement : null;
@@ -477,10 +437,6 @@ const oppositeSideMap = {
   bottom: 'top',
   top: 'bottom'
 };
-const oppositeAlignmentMap = {
-  start: 'end',
-  end: 'start'
-};
 function clamp(start, value, end) {
   return max(start, min(value, end));
 }
@@ -499,9 +455,9 @@ function getOppositeAxis(axis) {
 function getAxisLength(axis) {
   return axis === 'y' ? 'height' : 'width';
 }
-const yAxisSides = /*#__PURE__*/new Set(['top', 'bottom']);
 function getSideAxis(placement) {
-  return yAxisSides.has(getSide(placement)) ? 'y' : 'x';
+  const firstChar = placement[0];
+  return firstChar === 't' || firstChar === 'b' ? 'y' : 'x';
 }
 function getAlignmentAxis(placement) {
   return getOppositeAxis(getSideAxis(placement));
@@ -524,7 +480,7 @@ function getExpandedPlacements(placement) {
   return [getOppositeAlignmentPlacement(placement), oppositePlacement, getOppositeAlignmentPlacement(oppositePlacement)];
 }
 function getOppositeAlignmentPlacement(placement) {
-  return placement.replace(/start|end/g, alignment => oppositeAlignmentMap[alignment]);
+  return placement.includes('start') ? placement.replace('start', 'end') : placement.replace('end', 'start');
 }
 const lrPlacement = ['left', 'right'];
 const rlPlacement = ['right', 'left'];
@@ -555,15 +511,16 @@ function getOppositeAxisPlacements(placement, flipAlignment, direction, rtl) {
   return list;
 }
 function getOppositePlacement(placement) {
-  return placement.replace(/left|right|bottom|top/g, side => oppositeSideMap[side]);
+  const side = getSide(placement);
+  return oppositeSideMap[side] + placement.slice(side.length);
 }
 function expandPaddingObject(padding) {
+  var _padding$top, _padding$right, _padding$bottom, _padding$left;
   return {
-    top: 0,
-    right: 0,
-    bottom: 0,
-    left: 0,
-    ...padding
+    top: (_padding$top = padding.top) != null ? _padding$top : 0,
+    right: (_padding$right = padding.right) != null ? _padding$right : 0,
+    bottom: (_padding$bottom = padding.bottom) != null ? _padding$bottom : 0,
+    left: (_padding$left = padding.left) != null ? _padding$left : 0
   };
 }
 function getPaddingObject(padding) {
@@ -593,6 +550,582 @@ function rectToClientRect(rect) {
   };
 }
 
+/*!
+* tabbable 6.5.1
+* @license MIT, https://github.com/focus-trap/tabbable/blob/master/LICENSE
+*/
+// NOTE: separate `:not()` selectors has broader browser support than the newer
+//  `:not([inert], [inert] *)` (Feb 2023)
+var candidateSelectors = ['input:not([inert]):not([inert] *)', 'select:not([inert]):not([inert] *)', 'textarea:not([inert]):not([inert] *)', 'a[href]:not([inert]):not([inert] *)', 'area[href]:not([inert]):not([inert] *)', 'button:not([inert]):not([inert] *)', '[tabindex]:not(slot):not([inert]):not([inert] *)', 'audio[controls]:not([inert]):not([inert] *)', 'video[controls]:not([inert]):not([inert] *)', '[contenteditable]:not([contenteditable="false"]):not([inert]):not([inert] *)', 'details>summary:first-of-type:not([inert]):not([inert] *)', 'details:not([inert]):not([inert] *)'];
+var candidateSelector = /* #__PURE__ */candidateSelectors.join(',');
+var NoElement = typeof Element === 'undefined';
+var matches = NoElement ? function () {} : Element.prototype.matches || Element.prototype.msMatchesSelector || Element.prototype.webkitMatchesSelector;
+var getRootNode = !NoElement && Element.prototype.getRootNode ? function (element) {
+  return element == null || element.getRootNode == null ? void 0 : element.getRootNode();
+} : function (element) {
+  return element == null ? void 0 : element.ownerDocument;
+};
+
+/**
+ * Determines if a node is inert or in an inert ancestor.
+ * @param {Node} [node]
+ * @param {boolean} [lookUp] If true and `node` is not inert, looks up at ancestors to
+ *  see if any of them are inert. If false, only `node` itself is considered.
+ * @returns {boolean} True if inert itself or by way of being in an inert ancestor.
+ *  False if `node` is falsy.
+ */
+var _isInert = function isInert(node, lookUp) {
+  if (lookUp === void 0) {
+    lookUp = true;
+  }
+  // CAREFUL: JSDom does not support inert at all, so we can't use the `HTMLElement.inert`
+  //  JS API property; we have to check the attribute, which can either be empty or 'true';
+  //  if it's `null` (not specified) or 'false', it's an active element
+  var inertAtt = node == null || node.getAttribute == null ? void 0 : node.getAttribute('inert');
+  var inert = inertAtt === '' || inertAtt === 'true';
+
+  // NOTE: this could also be handled with `node.matches('[inert], :is([inert] *)')`
+  //  if it weren't for `matches()` not being a function on shadow roots; the following
+  //  code works for any kind of node
+  var result = inert || lookUp && node && (
+  // closest does not exist on shadow roots, so we fall back to a manual
+  // lookup upward, in case it is not defined.
+  typeof node.closest === 'function' ? node.closest('[inert]') : _isInert(node.parentNode));
+  return result;
+};
+
+/**
+ * Determines if a node's content is editable.
+ * @param {Element} [node]
+ * @returns True if it's content-editable; false if it's not or `node` is falsy.
+ */
+var isContentEditable = function isContentEditable(node) {
+  var _node$getAttribute;
+  // CAREFUL: JSDom does not support the `HTMLElement.isContentEditable` API so we have
+  //  to use the case-insensitive attribute directly: empty, 'true', and 'plaintext-only'
+  //  are editable states; `null` (not specified) and 'false' are not.
+  var attValue = node == null || node.getAttribute == null || (_node$getAttribute = node.getAttribute('contenteditable')) == null ? void 0 : _node$getAttribute.toLowerCase();
+  return attValue === '' || attValue === 'true' || attValue === 'plaintext-only';
+};
+
+/**
+ * @param {Element} el container to check in
+ * @param {boolean} includeContainer add container to check
+ * @param {(node: Element) => boolean} filter filter candidates
+ * @returns {Element[]}
+ */
+var getCandidates = function getCandidates(el, includeContainer, filter) {
+  // even if `includeContainer=false`, we still have to check it for inertness because
+  //  if it's inert (either by itself or via its parent), then all its children are inert
+  if (_isInert(el)) {
+    return [];
+  }
+  var candidates = Array.prototype.slice.apply(el.querySelectorAll(candidateSelector));
+  if (includeContainer && matches.call(el, candidateSelector)) {
+    candidates.unshift(el);
+  }
+  candidates = candidates.filter(filter);
+  return candidates;
+};
+
+/**
+ * @callback GetShadowRoot
+ * @param {Element} element to check for shadow root
+ * @returns {ShadowRoot|boolean} ShadowRoot if available or boolean indicating if a shadowRoot is attached but not available.
+ */
+
+/**
+ * @callback ShadowRootFilter
+ * @param {Element} shadowHostNode the element which contains shadow content
+ * @returns {boolean} true if a shadow root could potentially contain valid candidates.
+ */
+
+/**
+ * @typedef {Object} CandidateScope
+ * @property {Element} scopeParent contains inner candidates
+ * @property {Element[]} candidates list of candidates found in the scope parent
+ */
+
+/**
+ * @typedef {Object} IterativeOptions
+ * @property {GetShadowRoot|boolean} getShadowRoot true if shadow support is enabled; falsy if not;
+ *  if a function, implies shadow support is enabled and either returns the shadow root of an element
+ *  or a boolean stating if it has an undisclosed shadow root
+ * @property {(node: Element) => boolean} filter filter candidates
+ * @property {boolean} flatten if true then result will flatten any CandidateScope into the returned list
+ * @property {ShadowRootFilter} shadowRootFilter filter shadow roots;
+ */
+
+/**
+ * @param {Element[]} elements list of element containers to match candidates from
+ * @param {boolean} includeContainer add container list to check
+ * @param {IterativeOptions} options
+ * @returns {Array.<Element|CandidateScope>}
+ */
+var _getCandidatesIteratively = function getCandidatesIteratively(elements, includeContainer, options) {
+  var candidates = [];
+  var elementsToCheck = Array.from(elements);
+  while (elementsToCheck.length) {
+    var element = elementsToCheck.shift();
+    if (_isInert(element, false)) {
+      // no need to look up since we're drilling down
+      // anything inside this container will also be inert
+      continue;
+    }
+    if (element.tagName === 'SLOT') {
+      // add shadow dom slot scope (slot itself cannot be focusable)
+      var assigned = element.assignedElements();
+      var content = assigned.length ? assigned : element.children;
+      var nestedCandidates = _getCandidatesIteratively(content, true, options);
+      if (options.flatten) {
+        candidates.push.apply(candidates, nestedCandidates);
+      } else {
+        candidates.push({
+          scopeParent: element,
+          candidates: nestedCandidates
+        });
+      }
+    } else {
+      // check candidate element
+      var validCandidate = matches.call(element, candidateSelector);
+      if (validCandidate && options.filter(element) && (includeContainer || !elements.includes(element))) {
+        candidates.push(element);
+      }
+
+      // iterate over shadow content if possible
+      var shadowRoot = element.shadowRoot ||
+      // check for an undisclosed shadow
+      typeof options.getShadowRoot === 'function' && options.getShadowRoot(element);
+
+      // no inert look up because we're already drilling down and checking for inertness
+      //  on the way down, so all containers to this root node should have already been
+      //  vetted as non-inert
+      var validShadowRoot = !_isInert(shadowRoot, false) && (!options.shadowRootFilter || options.shadowRootFilter(element));
+      if (shadowRoot && validShadowRoot) {
+        // add shadow dom scope IIF a shadow root node was given; otherwise, an undisclosed
+        //  shadow exists, so look at light dom children as fallback BUT create a scope for any
+        //  child candidates found because they're likely slotted elements (elements that are
+        //  children of the web component element (which has the shadow), in the light dom, but
+        //  slotted somewhere _inside_ the undisclosed shadow) -- the scope is created below,
+        //  _after_ we return from this recursive call
+        var _nestedCandidates = _getCandidatesIteratively(shadowRoot === true ? element.children : shadowRoot.children, true, options);
+        if (options.flatten) {
+          candidates.push.apply(candidates, _nestedCandidates);
+        } else {
+          candidates.push({
+            scopeParent: element,
+            candidates: _nestedCandidates
+          });
+        }
+      } else {
+        // there's not shadow so just dig into the element's (light dom) children
+        //  __without__ giving the element special scope treatment
+        elementsToCheck.unshift.apply(elementsToCheck, element.children);
+      }
+    }
+  }
+  return candidates;
+};
+
+/**
+ * @private
+ * Determines if the node has an explicitly specified `tabindex` attribute.
+ * @param {HTMLElement} node
+ * @returns {boolean} True if so; false if not.
+ */
+var hasTabIndex = function hasTabIndex(node) {
+  return !isNaN(parseInt(node.getAttribute('tabindex'), 10));
+};
+
+/**
+ * Determine the tab index of a given node.
+ * @param {HTMLElement} node
+ * @returns {number} Tab order (negative, 0, or positive number).
+ * @throws {Error} If `node` is falsy.
+ */
+var getTabIndex = function getTabIndex(node) {
+  if (!node) {
+    throw new Error('No node provided');
+  }
+  if (node.tabIndex < 0) {
+    // in Chrome, <details/>, <audio controls/> and <video controls/> elements get a default
+    // `tabIndex` of -1 when the 'tabindex' attribute isn't specified in the DOM,
+    // yet they are still part of the regular tab order; in FF, they get a default
+    // `tabIndex` of 0; since Chrome still puts those elements in the regular tab
+    // order, consider their tab index to be 0.
+    // Also browsers do not return `tabIndex` correctly for contentEditable nodes;
+    // so if they don't have a tabindex attribute specifically set, assume it's 0.
+    if ((/^(AUDIO|VIDEO|DETAILS)$/.test(node.tagName) || isContentEditable(node)) && !hasTabIndex(node)) {
+      return 0;
+    }
+  }
+  return node.tabIndex;
+};
+
+/**
+ * Determine the tab index of a given node __for sort order purposes__.
+ * @param {HTMLElement} node
+ * @param {boolean} [isScope] True for a custom element with shadow root or slot that, by default,
+ *  has tabIndex -1, but needs to be sorted by document order in order for its content to be
+ *  inserted into the correct sort position.
+ * @returns {number} Tab order (negative, 0, or positive number).
+ */
+var getSortOrderTabIndex = function getSortOrderTabIndex(node, isScope) {
+  var tabIndex = getTabIndex(node);
+  if (tabIndex < 0 && isScope && !hasTabIndex(node)) {
+    return 0;
+  }
+  return tabIndex;
+};
+var sortOrderedTabbables = function sortOrderedTabbables(a, b) {
+  return a.tabIndex === b.tabIndex ? a.documentOrder - b.documentOrder : a.tabIndex - b.tabIndex;
+};
+var isInput = function isInput(node) {
+  return node.tagName === 'INPUT';
+};
+var isHiddenInput = function isHiddenInput(node) {
+  return isInput(node) && node.type === 'hidden';
+};
+var isDetailsWithSummary = function isDetailsWithSummary(node) {
+  var r = node.tagName === 'DETAILS' && Array.prototype.slice.apply(node.children).some(function (child) {
+    return child.tagName === 'SUMMARY';
+  });
+  return r;
+};
+var getCheckedRadio = function getCheckedRadio(nodes, form) {
+  for (var i = 0; i < nodes.length; i++) {
+    if (nodes[i].checked && nodes[i].form === form) {
+      return nodes[i];
+    }
+  }
+};
+var isTabbableRadio = function isTabbableRadio(node) {
+  if (!node.name) {
+    return true;
+  }
+  var radioScope = node.form || getRootNode(node);
+  var queryRadios = function queryRadios(name) {
+    return radioScope.querySelectorAll('input[type="radio"][name="' + name + '"]');
+  };
+  var radioSet;
+  if (typeof window !== 'undefined' && typeof window.CSS !== 'undefined' && typeof window.CSS.escape === 'function') {
+    radioSet = queryRadios(window.CSS.escape(node.name));
+  } else {
+    try {
+      radioSet = queryRadios(node.name);
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error('Looks like you have a radio button with a name attribute containing invalid CSS selector characters and need the CSS.escape polyfill: %s', err.message);
+      return false;
+    }
+  }
+  var checked = getCheckedRadio(radioSet, node.form);
+  return !checked || checked === node;
+};
+var isRadio = function isRadio(node) {
+  return isInput(node) && node.type === 'radio';
+};
+var isNonTabbableRadio = function isNonTabbableRadio(node) {
+  return isRadio(node) && !isTabbableRadio(node);
+};
+
+// determines if a node is ultimately attached to the window's document
+var isNodeAttached = function isNodeAttached(node) {
+  var _nodeRoot;
+  // The root node is the shadow root if the node is in a shadow DOM; some document otherwise
+  //  (but NOT _the_ document; see second 'If' comment below for more).
+  // If rootNode is shadow root, it'll have a host, which is the element to which the shadow
+  //  is attached, and the one we need to check if it's in the document or not (because the
+  //  shadow, and all nodes it contains, is never considered in the document since shadows
+  //  behave like self-contained DOMs; but if the shadow's HOST, which is part of the document,
+  //  is hidden, or is not in the document itself but is detached, it will affect the shadow's
+  //  visibility, including all the nodes it contains). The host could be any normal node,
+  //  or a custom element (i.e. web component). Either way, that's the one that is considered
+  //  part of the document, not the shadow root, nor any of its children (i.e. the node being
+  //  tested).
+  // To further complicate things, we have to look all the way up until we find a shadow HOST
+  //  that is attached (or find none) because the node might be in nested shadows...
+  // If rootNode is not a shadow root, it won't have a host, and so rootNode should be the
+  //  document (per the docs) and while it's a Document-type object, that document does not
+  //  appear to be the same as the node's `ownerDocument` for some reason, so it's safer
+  //  to ignore the rootNode at this point, and use `node.ownerDocument`. Otherwise,
+  //  using `rootNode.contains(node)` will _always_ be true we'll get false-positives when
+  //  node is actually detached.
+  // NOTE: If `nodeRootHost` or `node` happens to be the `document` itself (which is possible
+  //  if a tabbable/focusable node was quickly added to the DOM, focused, and then removed
+  //  from the DOM as in https://github.com/focus-trap/focus-trap-react/issues/905), then
+  //  `ownerDocument` will be `null`, hence the optional chaining on it.
+  var nodeRoot = node && getRootNode(node);
+  var nodeRootHost = (_nodeRoot = nodeRoot) == null ? void 0 : _nodeRoot.host;
+
+  // in some cases, a detached node will return itself as the root instead of a document or
+  //  shadow root object, in which case, we shouldn't try to look further up the host chain
+  var attached = false;
+  if (nodeRoot && nodeRoot !== node) {
+    var _nodeRootHost, _node$ownerDocument;
+    attached = !!((_nodeRootHost = nodeRootHost) != null && (_nodeRootHost = _nodeRootHost.ownerDocument) != null && _nodeRootHost.contains(nodeRootHost) || node != null && (_node$ownerDocument = node.ownerDocument) != null && _node$ownerDocument.contains(node));
+    while (!attached && nodeRootHost) {
+      var _nodeRoot2, _nodeRootHost2;
+      // since it's not attached and we have a root host, the node MUST be in a nested shadow DOM,
+      //  which means we need to get the host's host and check if that parent host is contained
+      //  in (i.e. attached to) the document
+      nodeRoot = getRootNode(nodeRootHost);
+      nodeRootHost = (_nodeRoot2 = nodeRoot) == null ? void 0 : _nodeRoot2.host;
+      attached = !!((_nodeRootHost2 = nodeRootHost) != null && (_nodeRootHost2 = _nodeRootHost2.ownerDocument) != null && _nodeRootHost2.contains(nodeRootHost));
+    }
+  }
+  return attached;
+};
+var isZeroArea = function isZeroArea(node) {
+  var _node$getBoundingClie = node.getBoundingClientRect(),
+    width = _node$getBoundingClie.width,
+    height = _node$getBoundingClie.height;
+  return width === 0 && height === 0;
+};
+var isHidden = function isHidden(node, _ref) {
+  var displayCheck = _ref.displayCheck,
+    getShadowRoot = _ref.getShadowRoot;
+  if (displayCheck === 'full-native') {
+    if ('checkVisibility' in node) {
+      // Chrome >= 105, Edge >= 105, Firefox >= 106, Safari >= 17.4
+      // @see https://developer.mozilla.org/en-US/docs/Web/API/Element/checkVisibility#browser_compatibility
+      var visible = node.checkVisibility({
+        // Checking opacity might be desirable for some use cases, but natively,
+        // opacity zero elements _are_ focusable and tabbable.
+        checkOpacity: false,
+        opacityProperty: false,
+        contentVisibilityAuto: true,
+        visibilityProperty: true,
+        // This is an alias for `visibilityProperty`. Contemporary browsers
+        // support both. However, this alias has wider browser support (Chrome
+        // >= 105 and Firefox >= 106, vs. Chrome >= 121 and Firefox >= 122), so
+        // we include it anyway.
+        checkVisibilityCSS: true
+      });
+      return !visible;
+    }
+    // Fall through to manual visibility checks
+  }
+
+  // NOTE: visibility will be `undefined` if node is detached from the document
+  //  (see notes about this further down), which means we will consider it visible
+  //  (this is legacy behavior from a very long way back)
+  // NOTE: we check this regardless of `displayCheck="none"` because this is a
+  //  _visibility_ check, not a _display_ check
+  var _getComputedStyle = getComputedStyle(node),
+    visibility = _getComputedStyle.visibility;
+  if (visibility === 'hidden' || visibility === 'collapse') {
+    return true;
+  }
+  var isDirectSummary = matches.call(node, 'details>summary:first-of-type');
+  var nodeUnderDetails = isDirectSummary ? node.parentElement : node;
+  if (matches.call(nodeUnderDetails, 'details:not([open]) *')) {
+    return true;
+  }
+  if (!displayCheck || displayCheck === 'full' ||
+  // full-native can run this branch when it falls through in case
+  // Element#checkVisibility is unsupported
+  displayCheck === 'full-native' || displayCheck === 'legacy-full') {
+    if (typeof getShadowRoot === 'function') {
+      // figure out if we should consider the node to be in an undisclosed shadow and use the
+      //  'non-zero-area' fallback
+      var originalNode = node;
+      while (node) {
+        var parentElement = node.parentElement;
+        var rootNode = getRootNode(node);
+        if (parentElement && !parentElement.shadowRoot && getShadowRoot(parentElement) === true // check if there's an undisclosed shadow
+        ) {
+          // node has an undisclosed shadow which means we can only treat it as a black box, so we
+          //  fall back to a non-zero-area test
+          return isZeroArea(node);
+        } else if (node.assignedSlot) {
+          // iterate up slot
+          node = node.assignedSlot;
+        } else if (!parentElement && rootNode !== node.ownerDocument) {
+          // cross shadow boundary
+          node = rootNode.host;
+        } else {
+          // iterate up normal dom
+          node = parentElement;
+        }
+      }
+      node = originalNode;
+    }
+    // else, `getShadowRoot` might be true, but all that does is enable shadow DOM support
+    //  (i.e. it does not also presume that all nodes might have undisclosed shadows); or
+    //  it might be a falsy value, which means shadow DOM support is disabled
+
+    // Since we didn't find it sitting in an undisclosed shadow (or shadows are disabled)
+    //  now we can just test to see if it would normally be visible or not, provided it's
+    //  attached to the main document.
+    // NOTE: We must consider case where node is inside a shadow DOM and given directly to
+    //  `isTabbable()` or `isFocusable()` -- regardless of `getShadowRoot` option setting.
+
+    if (isNodeAttached(node)) {
+      // this works wherever the node is: if there's at least one client rect, it's
+      //  somehow displayed; it also covers the CSS 'display: contents' case where the
+      //  node itself is hidden in place of its contents; and there's no need to search
+      //  up the hierarchy either
+      return !node.getClientRects().length;
+    }
+
+    // Else, the node isn't attached to the document, which means the `getClientRects()`
+    //  API will __always__ return zero rects (this can happen, for example, if React
+    //  is used to render nodes onto a detached tree, as confirmed in this thread:
+    //  https://github.com/facebook/react/issues/9117#issuecomment-284228870)
+    //
+    // It also means that even window.getComputedStyle(node).display will return `undefined`
+    //  because styles are only computed for nodes that are in the document.
+    //
+    // NOTE: THIS HAS BEEN THE CASE FOR YEARS. It is not new, nor is it caused by tabbable
+    //  somehow. Though it was never stated officially, anyone who has ever used tabbable
+    //  APIs on nodes in detached containers has actually implicitly used tabbable in what
+    //  was later (as of v5.2.0 on Apr 9, 2021) called `displayCheck="none"` mode -- essentially
+    //  considering __everything__ to be visible because of the innability to determine styles.
+    //
+    // v6.0.0: As of this major release, the default 'full' option __no longer treats detached
+    //  nodes as visible with the 'none' fallback.__
+    if (displayCheck !== 'legacy-full') {
+      return true; // hidden
+    }
+    // else, fallback to 'none' mode and consider the node visible
+  } else if (displayCheck === 'non-zero-area') {
+    // NOTE: Even though this tests that the node's client rect is non-zero to determine
+    //  whether it's displayed, and that a detached node will __always__ have a zero-area
+    //  client rect, we don't special-case for whether the node is attached or not. In
+    //  this mode, we do want to consider nodes that have a zero area to be hidden at all
+    //  times, and that includes attached or not.
+    return isZeroArea(node);
+  }
+
+  // visible, as far as we can tell, or per current `displayCheck=none` mode, we assume
+  //  it's visible
+  return false;
+};
+
+// form fields (nested) inside a disabled fieldset are not focusable/tabbable
+//  unless they are in the _first_ <legend> element of the top-most disabled
+//  fieldset
+var isDisabledFromFieldset = function isDisabledFromFieldset(node) {
+  if (/^(INPUT|BUTTON|SELECT|TEXTAREA)$/.test(node.tagName)) {
+    var parentNode = node.parentElement;
+    // check if `node` is contained in a disabled <fieldset>
+    while (parentNode) {
+      if (parentNode.tagName === 'FIELDSET' && parentNode.disabled) {
+        // look for the first <legend> among the children of the disabled <fieldset>
+        for (var i = 0; i < parentNode.children.length; i++) {
+          var child = parentNode.children.item(i);
+          // when the first <legend> (in document order) is found
+          if (child.tagName === 'LEGEND') {
+            // if its parent <fieldset> is not nested in another disabled <fieldset>,
+            // return whether `node` is a descendant of its first <legend>
+            return matches.call(parentNode, 'fieldset[disabled] *') ? true : !child.contains(node);
+          }
+        }
+        // the disabled <fieldset> containing `node` has no <legend>
+        return true;
+      }
+      parentNode = parentNode.parentElement;
+    }
+  }
+
+  // else, node's tabbable/focusable state should not be affected by a fieldset's
+  //  enabled/disabled state
+  return false;
+};
+var isNodeMatchingSelectorFocusable = function isNodeMatchingSelectorFocusable(options, node) {
+  if (node.disabled || isHiddenInput(node) || isHidden(node, options) ||
+  // For a details element with a summary, the summary element gets the focus
+  isDetailsWithSummary(node) || isDisabledFromFieldset(node)) {
+    return false;
+  }
+  return true;
+};
+var isNodeMatchingSelectorTabbable = function isNodeMatchingSelectorTabbable(options, node) {
+  if (isNonTabbableRadio(node) || getTabIndex(node) < 0 || !isNodeMatchingSelectorFocusable(options, node)) {
+    return false;
+  }
+  return true;
+};
+var isShadowRootTabbable = function isShadowRootTabbable(shadowHostNode) {
+  var tabIndex = parseInt(shadowHostNode.getAttribute('tabindex'), 10);
+  if (isNaN(tabIndex) || tabIndex >= 0) {
+    return true;
+  }
+  // If a custom element has an explicit negative tabindex,
+  // browsers will not allow tab targeting said element's children.
+  return false;
+};
+
+/**
+ * @param {Array.<Element|CandidateScope>} candidates
+ * @returns Element[]
+ */
+var _sortByOrder = function sortByOrder(candidates) {
+  var regularTabbables = [];
+  var orderedTabbables = [];
+  candidates.forEach(function (item, i) {
+    var isScope = !!item.scopeParent;
+    var element = isScope ? item.scopeParent : item;
+    var candidateTabindex = getSortOrderTabIndex(element, isScope);
+    var elements = isScope ? _sortByOrder(item.candidates) : element;
+    if (candidateTabindex === 0) {
+      isScope ? regularTabbables.push.apply(regularTabbables, elements) : regularTabbables.push(element);
+    } else {
+      orderedTabbables.push({
+        documentOrder: i,
+        tabIndex: candidateTabindex,
+        item: item,
+        isScope: isScope,
+        content: elements
+      });
+    }
+  });
+  return orderedTabbables.sort(sortOrderedTabbables).reduce(function (acc, sortable) {
+    sortable.isScope ? acc.push.apply(acc, sortable.content) : acc.push(sortable.content);
+    return acc;
+  }, []).concat(regularTabbables);
+};
+var tabbable = function tabbable(container, options) {
+  options = options || {};
+  var candidates;
+  if (options.getShadowRoot) {
+    candidates = _getCandidatesIteratively([container], options.includeContainer, {
+      filter: isNodeMatchingSelectorTabbable.bind(null, options),
+      flatten: false,
+      getShadowRoot: options.getShadowRoot,
+      shadowRootFilter: isShadowRootTabbable
+    });
+  } else {
+    candidates = getCandidates(container, options.includeContainer, isNodeMatchingSelectorTabbable.bind(null, options));
+  }
+  return _sortByOrder(candidates);
+};
+var focusable = function focusable(container, options) {
+  options = options || {};
+  var candidates;
+  if (options.getShadowRoot) {
+    candidates = _getCandidatesIteratively([container], options.includeContainer, {
+      filter: isNodeMatchingSelectorFocusable.bind(null, options),
+      flatten: true,
+      getShadowRoot: options.getShadowRoot
+    });
+  } else {
+    candidates = getCandidates(container, options.includeContainer, isNodeMatchingSelectorFocusable.bind(null, options));
+  }
+  return candidates;
+};
+var isTabbable = function isTabbable(node, options) {
+  options = options || {};
+  if (!node) {
+    throw new Error('No node provided');
+  }
+  if (matches.call(node, candidateSelector) === false) {
+    return false;
+  }
+  return isNodeMatchingSelectorTabbable(options, node);
+};
+
 // Avoid Chrome DevTools blue warning.
 function getPlatform() {
   const uaData = navigator.userAgentData;
@@ -617,6 +1150,10 @@ function getUserAgent() {
 function isSafari() {
   // Chrome DevTools does not complain about navigator.vendor
   return /apple/i.test(navigator.vendor);
+}
+function isAndroid() {
+  const re = /android/i;
+  return re.test(getPlatform()) || re.test(getUserAgent());
 }
 function isMac() {
   return getPlatform().toLowerCase().startsWith('mac') && !navigator.maxTouchPoints;
@@ -686,11 +1223,15 @@ function isEventTargetWithin(event, node) {
 function isRootElement(element) {
   return element.matches('html,body');
 }
-function getDocument(node) {
+function getDocument$1(node) {
   return (node == null ? void 0 : node.ownerDocument) || document;
 }
 function isTypeableElement(element) {
   return isHTMLElement(element) && element.matches(TYPEABLE_SELECTOR);
+}
+function isTypeableCombobox(element) {
+  if (!element) return false;
+  return element.getAttribute('role') === 'combobox' && isTypeableElement(element);
 }
 function matchesFocusVisible(element) {
   // We don't want to block focus from working with `visibleOnly`
@@ -723,8 +1264,45 @@ function getNodeChildren(nodes, id, onlyOpenChildren) {
   });
   return directChildren.flatMap(child => [child, ...getNodeChildren(nodes, child.id, onlyOpenChildren)]);
 }
+function getNodeAncestors(nodes, id) {
+  var _nodes$find;
+  let allAncestors = [];
+  let currentParentId = (_nodes$find = nodes.find(node => node.id === id)) == null ? void 0 : _nodes$find.parentId;
+  while (currentParentId) {
+    const currentNode = nodes.find(node => node.id === currentParentId);
+    currentParentId = currentNode == null ? void 0 : currentNode.parentId;
+    if (currentNode) {
+      allAncestors = allAncestors.concat(currentNode);
+    }
+  }
+  return allAncestors;
+}
+
+function stopEvent(event) {
+  event.preventDefault();
+  event.stopPropagation();
+}
 function isReactEvent(event) {
   return 'nativeEvent' in event;
+}
+
+// License: https://github.com/adobe/react-spectrum/blob/b35d5c02fe900badccd0cf1a8f23bb593419f238/packages/@react-aria/utils/src/isVirtualEvent.ts
+function isVirtualClick(event) {
+  // FIXME: Firefox is now emitting a deprecation warning for `mozInputSource`.
+  // Try to find a workaround for this. `react-aria` source still has the check.
+  if (event.mozInputSource === 0 && event.isTrusted) {
+    return true;
+  }
+  if (isAndroid() && event.pointerType) {
+    return event.type === 'click' && event.buttons === 1;
+  }
+  return event.detail === 0 && !event.pointerType;
+}
+function isVirtualPointerEvent(event) {
+  if (isJSDOM()) return false;
+  return !isAndroid() && event.width === 0 && event.height === 0 || isAndroid() && event.width === 1 && event.height === 1 && event.pressure === 0 && event.detail === 0 && event.pointerType === 'mouse' ||
+  // iOS VoiceOver returns 0.333• for width/height.
+  event.width < 1 && event.height < 1 && event.pressure === 0 && event.detail === 0 && event.pointerType === 'touch';
 }
 function isMouseLikePointerType(pointerType, strict) {
   // On some Linux machines with Chromium, mouse inputs return a `pointerType`
@@ -767,6 +1345,35 @@ function useEffectEvent(callback) {
     }
     return ref.current == null ? void 0 : ref.current(...args);
   }, []);
+}
+
+const getTabbableOptions = () => ({
+  getShadowRoot: true,
+  displayCheck:
+  // JSDOM does not support the `tabbable` library. To solve this we can
+  // check if `ResizeObserver` is a real function (not polyfilled), which
+  // determines if the current environment is JSDOM-like.
+  typeof ResizeObserver === 'function' && ResizeObserver.toString().includes('[native code]') ? 'full' : 'none'
+});
+function getTabbableIn(container, dir) {
+  const list = tabbable(container, getTabbableOptions());
+  const len = list.length;
+  if (len === 0) return;
+  const active = activeElement(getDocument$1(container));
+  const index = list.indexOf(active);
+  const nextIndex = index === -1 ? dir === 1 ? 0 : len - 1 : index + dir;
+  return list[nextIndex];
+}
+function getNextTabbable(referenceElement) {
+  return getTabbableIn(getDocument$1(referenceElement).body, 1) || referenceElement;
+}
+function getPreviousTabbable(referenceElement) {
+  return getTabbableIn(getDocument$1(referenceElement).body, -1) || referenceElement;
+}
+function isOutsideEvent(event, container) {
+  const containerElement = container || event.currentTarget;
+  const relatedTarget = event.relatedTarget;
+  return !relatedTarget || !contains(containerElement, relatedTarget);
 }
 
 var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
@@ -828,7 +1435,7 @@ function requireJsxRuntime () {
 	return jsxRuntime.exports;
 }
 
-requireJsxRuntime();
+var jsxRuntimeExports = requireJsxRuntime();
 
 function computeCoordsFromPlacement(_ref, placement, rtl) {
   let {
@@ -875,107 +1482,12 @@ function computeCoordsFromPlacement(_ref, placement, rtl) {
         y: reference.y
       };
   }
-  switch (getAlignment(placement)) {
-    case 'start':
-      coords[alignmentAxis] -= commonAlign * (rtl && isVertical ? -1 : 1);
-      break;
-    case 'end':
-      coords[alignmentAxis] += commonAlign * (rtl && isVertical ? -1 : 1);
-      break;
+  const alignment = getAlignment(placement);
+  if (alignment) {
+    coords[alignmentAxis] += commonAlign * (alignment === 'end' ? 1 : -1) * (rtl && isVertical ? -1 : 1);
   }
   return coords;
 }
-
-/**
- * Computes the `x` and `y` coordinates that will place the floating element
- * next to a given reference element.
- *
- * This export does not have any `platform` interface logic. You will need to
- * write one for the platform you are using Floating UI with.
- */
-const computePosition$1 = async (reference, floating, config) => {
-  const {
-    placement = 'bottom',
-    strategy = 'absolute',
-    middleware = [],
-    platform
-  } = config;
-  const validMiddleware = middleware.filter(Boolean);
-  const rtl = await (platform.isRTL == null ? void 0 : platform.isRTL(floating));
-  let rects = await platform.getElementRects({
-    reference,
-    floating,
-    strategy
-  });
-  let {
-    x,
-    y
-  } = computeCoordsFromPlacement(rects, placement, rtl);
-  let statefulPlacement = placement;
-  let middlewareData = {};
-  let resetCount = 0;
-  for (let i = 0; i < validMiddleware.length; i++) {
-    const {
-      name,
-      fn
-    } = validMiddleware[i];
-    const {
-      x: nextX,
-      y: nextY,
-      data,
-      reset
-    } = await fn({
-      x,
-      y,
-      initialPlacement: placement,
-      placement: statefulPlacement,
-      strategy,
-      middlewareData,
-      rects,
-      platform,
-      elements: {
-        reference,
-        floating
-      }
-    });
-    x = nextX != null ? nextX : x;
-    y = nextY != null ? nextY : y;
-    middlewareData = {
-      ...middlewareData,
-      [name]: {
-        ...middlewareData[name],
-        ...data
-      }
-    };
-    if (reset && resetCount <= 50) {
-      resetCount++;
-      if (typeof reset === 'object') {
-        if (reset.placement) {
-          statefulPlacement = reset.placement;
-        }
-        if (reset.rects) {
-          rects = reset.rects === true ? await platform.getElementRects({
-            reference,
-            floating,
-            strategy
-          }) : reset.rects;
-        }
-        ({
-          x,
-          y
-        } = computeCoordsFromPlacement(rects, statefulPlacement, rtl));
-      }
-      i = -1;
-    }
-  }
-  return {
-    x,
-    y,
-    placement: statefulPlacement,
-    strategy,
-    middlewareData
-  };
-};
 
 /**
  * Resolves with an object of overflow side offsets that determine how much the
@@ -1021,10 +1533,7 @@ async function detectOverflow(state, options) {
     height: rects.floating.height
   } : rects.reference;
   const offsetParent = await (platform.getOffsetParent == null ? void 0 : platform.getOffsetParent(elements.floating));
-  const offsetScale = (await (platform.isElement == null ? void 0 : platform.isElement(offsetParent))) ? (await (platform.getScale == null ? void 0 : platform.getScale(offsetParent))) || {
-    x: 1,
-    y: 1
-  } : {
+  const offsetScale = (await (platform.isElement == null ? void 0 : platform.isElement(offsetParent))) && (await (platform.getScale == null ? void 0 : platform.getScale(offsetParent))) || {
     x: 1,
     y: 1
   };
@@ -1041,6 +1550,104 @@ async function detectOverflow(state, options) {
     right: (elementClientRect.right - clippingClientRect.right + paddingObject.right) / offsetScale.x
   };
 }
+
+// Maximum number of resets that can occur before bailing to avoid infinite reset loops.
+const MAX_RESET_COUNT = 50;
+
+/**
+ * Computes the `x` and `y` coordinates that will place the floating element
+ * next to a given reference element.
+ *
+ * This export does not have any `platform` interface logic. You will need to
+ * write one for the platform you are using Floating UI with.
+ */
+const computePosition$1 = async (reference, floating, config) => {
+  const {
+    placement = 'bottom',
+    strategy = 'absolute',
+    middleware = [],
+    platform
+  } = config;
+  const platformWithDetectOverflow = platform.detectOverflow ? platform : {
+    ...platform,
+    detectOverflow
+  };
+  const rtl = await (platform.isRTL == null ? void 0 : platform.isRTL(floating));
+  let rects = await platform.getElementRects({
+    reference,
+    floating,
+    strategy
+  });
+  let {
+    x,
+    y
+  } = computeCoordsFromPlacement(rects, placement, rtl);
+  let statefulPlacement = placement;
+  let resetCount = 0;
+  const middlewareData = {};
+  for (let i = 0; i < middleware.length; i++) {
+    const currentMiddleware = middleware[i];
+    if (!currentMiddleware) {
+      continue;
+    }
+    const {
+      name,
+      fn
+    } = currentMiddleware;
+    const {
+      x: nextX,
+      y: nextY,
+      data,
+      reset
+    } = await fn({
+      x,
+      y,
+      initialPlacement: placement,
+      placement: statefulPlacement,
+      strategy,
+      middlewareData,
+      rects,
+      platform: platformWithDetectOverflow,
+      elements: {
+        reference,
+        floating
+      }
+    });
+    x = nextX != null ? nextX : x;
+    y = nextY != null ? nextY : y;
+    middlewareData[name] = {
+      ...middlewareData[name],
+      ...data
+    };
+    if (reset && resetCount < MAX_RESET_COUNT) {
+      resetCount++;
+      if (typeof reset === 'object') {
+        if (reset.placement) {
+          statefulPlacement = reset.placement;
+        }
+        if (reset.rects) {
+          rects = reset.rects === true ? await platform.getElementRects({
+            reference,
+            floating,
+            strategy
+          }) : reset.rects;
+        }
+        ({
+          x,
+          y
+        } = computeCoordsFromPlacement(rects, statefulPlacement, rtl));
+      }
+      i = -1;
+    }
+  }
+  return {
+    x,
+    y,
+    placement: statefulPlacement,
+    strategy,
+    middlewareData
+  };
+};
 
 /**
  * Optimizes the visibility of the floating element by flipping the `placement`
@@ -1092,7 +1699,7 @@ const flip$2 = function (options) {
         fallbackPlacements.push(...getOppositeAxisPlacements(initialPlacement, flipAlignment, fallbackAxisSideDirection, rtl));
       }
       const placements = [initialPlacement, ...fallbackPlacements];
-      const overflow = await detectOverflow(state, detectOverflowOptions);
+      const overflow = await platform.detectOverflow(state, detectOverflowOptions);
       const overflows = [];
       let overflowsData = ((_middlewareData$flip = middlewareData.flip) == null ? void 0 : _middlewareData$flip.overflows) || [];
       if (checkMainAxis) {
@@ -1276,7 +1883,8 @@ const shift$2 = function (options) {
       const {
         x,
         y,
-        placement
+        placement,
+        platform
       } = state;
       const {
         mainAxis: checkMainAxis = true,
@@ -1299,24 +1907,17 @@ const shift$2 = function (options) {
         x,
         y
       };
-      const overflow = await detectOverflow(state, detectOverflowOptions);
-      const crossAxis = getSideAxis(getSide(placement));
+      const overflow = await platform.detectOverflow(state, detectOverflowOptions);
+      const crossAxis = getSideAxis(placement);
       const mainAxis = getOppositeAxis(crossAxis);
       let mainAxisCoord = coords[mainAxis];
       let crossAxisCoord = coords[crossAxis];
+      const clampCoord = (axis, coord) => clamp(coord + overflow[axis === 'y' ? 'top' : 'left'], coord, coord - overflow[axis === 'y' ? 'bottom' : 'right']);
       if (checkMainAxis) {
-        const minSide = mainAxis === 'y' ? 'top' : 'left';
-        const maxSide = mainAxis === 'y' ? 'bottom' : 'right';
-        const min = mainAxisCoord + overflow[minSide];
-        const max = mainAxisCoord - overflow[maxSide];
-        mainAxisCoord = clamp(min, mainAxisCoord, max);
+        mainAxisCoord = clampCoord(mainAxis, mainAxisCoord);
       }
       if (checkCrossAxis) {
-        const minSide = crossAxis === 'y' ? 'top' : 'left';
-        const maxSide = crossAxis === 'y' ? 'bottom' : 'right';
-        const min = crossAxisCoord + overflow[minSide];
-        const max = crossAxisCoord - overflow[maxSide];
-        crossAxisCoord = clamp(min, crossAxisCoord, max);
+        crossAxisCoord = clampCoord(crossAxis, crossAxisCoord);
       }
       const limitedCoords = limiter.fn({
         ...state,
@@ -1406,10 +2007,7 @@ function shouldAddVisualOffsets(element, isFixed, floatingOffsetParent) {
   if (isFixed === void 0) {
     isFixed = false;
   }
-  if (!floatingOffsetParent || isFixed && floatingOffsetParent !== getWindow(element)) {
-    return false;
-  }
-  return isFixed;
+  return !!floatingOffsetParent && isFixed && floatingOffsetParent === getWindow(element);
 }
 
 function getBoundingClientRect(element, includeScale, isFixedStrategy, offsetParent) {
@@ -1436,12 +2034,12 @@ function getBoundingClientRect(element, includeScale, isFixedStrategy, offsetPar
   let y = (clientRect.top + visualOffsets.y) / scale.y;
   let width = clientRect.width / scale.x;
   let height = clientRect.height / scale.y;
-  if (domElement) {
+  if (domElement && offsetParent) {
     const win = getWindow(domElement);
-    const offsetWin = offsetParent && isElement(offsetParent) ? getWindow(offsetParent) : offsetParent;
+    const offsetWin = isElement(offsetParent) ? getWindow(offsetParent) : offsetParent;
     let currentWin = win;
     let currentIFrame = getFrameElement(currentWin);
-    while (currentIFrame && offsetParent && offsetWin !== currentWin) {
+    while (currentIFrame && offsetWin !== currentWin) {
       const iframeScale = getScale(currentIFrame);
       const iframeRect = currentIFrame.getBoundingClientRect();
       const css = getComputedStyle$1(currentIFrame);
@@ -1505,11 +2103,11 @@ function convertOffsetParentRelativeRectToViewportRelativeRect(_ref) {
   let scale = createCoords(1);
   const offsets = createCoords(0);
   const isOffsetParentAnElement = isHTMLElement(offsetParent);
-  if (isOffsetParentAnElement || !isOffsetParentAnElement && !isFixed) {
+  if (isOffsetParentAnElement || !isFixed) {
     if (getNodeName(offsetParent) !== 'body' || isOverflowElement(documentElement)) {
       scroll = getNodeScroll(offsetParent);
     }
-    if (isHTMLElement(offsetParent)) {
+    if (isOffsetParentAnElement) {
       const offsetRect = getBoundingClientRect(offsetParent);
       scale = getScale(offsetParent);
       offsets.x = offsetRect.x + offsetParent.clientLeft;
@@ -1526,18 +2124,17 @@ function convertOffsetParentRelativeRectToViewportRelativeRect(_ref) {
 }
 
 function getClientRects(element) {
-  return Array.from(element.getClientRects());
+  return element.getClientRects ? Array.from(element.getClientRects()) : [];
 }
 
 // Gets the entire size of the scrollable document area, even extending outside
 // of the `<html>` and `<body>` rect bounds if horizontally scrollable.
-function getDocumentRect(element) {
-  const html = getDocumentElement(element);
-  const scroll = getNodeScroll(element);
-  const body = element.ownerDocument.body;
+function getDocumentRect(html) {
+  const scroll = getNodeScroll(html);
+  const body = html.ownerDocument.body;
   const width = max(html.scrollWidth, html.clientWidth, body.scrollWidth, body.clientWidth);
   const height = max(html.scrollHeight, html.clientHeight, body.scrollHeight, body.clientHeight);
-  let x = -scroll.scrollLeft + getWindowScrollBarX(element);
+  let x = -scroll.scrollLeft + getWindowScrollBarX(html);
   const y = -scroll.scrollTop;
   if (getComputedStyle$1(body).direction === 'rtl') {
     x += max(html.clientWidth, body.clientWidth) - width;
@@ -1554,7 +2151,11 @@ function getDocumentRect(element) {
 // calculation is affected by unusual styles.
 // Most scrollbars leave 15-18px of space.
 const SCROLLBAR_MAX = 25;
-function getViewportRect(element, strategy) {
+function getViewportRect(element, strategy, rootBoundary) {
+  if (rootBoundary === void 0) {
+    rootBoundary = 'viewport';
+  }
+  const isLayoutViewport = rootBoundary === 'layoutViewport';
   const win = getWindow(element);
   const html = getDocumentElement(element);
   const visualViewport = win.visualViewport;
@@ -1563,31 +2164,42 @@ function getViewportRect(element, strategy) {
   let x = 0;
   let y = 0;
   if (visualViewport) {
-    width = visualViewport.width;
-    height = visualViewport.height;
-    const visualViewportBased = isWebKit();
-    if (!visualViewportBased || visualViewportBased && strategy === 'fixed') {
-      x = visualViewport.offsetLeft;
-      y = visualViewport.offsetTop;
+    // Client coordinates are relative to the layout viewport, except in
+    // WebKit with an `absolute` strategy, where they are relative to the
+    // visual viewport.
+    const layoutRelativeClientCoords = !isWebKit() || strategy === 'fixed';
+    if (isLayoutViewport) {
+      if (!layoutRelativeClientCoords) {
+        x = -visualViewport.offsetLeft;
+        y = -visualViewport.offsetTop;
+      }
+    } else {
+      width = visualViewport.width;
+      height = visualViewport.height;
+      if (layoutRelativeClientCoords) {
+        x = visualViewport.offsetLeft;
+        y = visualViewport.offsetTop;
+      }
     }
   }
   const windowScrollbarX = getWindowScrollBarX(html);
-  // <html> `overflow: hidden` + `scrollbar-gutter: stable` reduces the
-  // visual width of the <html> but this is not considered in the size
-  // of `html.clientWidth`.
+  // `scrollbar-gutter: stable` on the <html> reserves gutter space that shrinks
+  // the visual width but isn't reflected in `html.clientWidth`, so subtract it.
+  // Only the inline-end (right) gutter can hold the scrollbar; `both-edges` also
+  // reserves an empty inline-start gutter that clips nothing, so exclude just
+  // the one scrollbar-side gutter — halve the measured (two-gutter) total. A
+  // left-side scrollbar (`windowScrollbarX > 0`) is already handled by
+  // `getHTMLOffset`/`visualViewport.width`; skip it here.
   if (windowScrollbarX <= 0) {
     const doc = html.ownerDocument;
     const body = doc.body;
     const bodyStyles = getComputedStyle(body);
     const bodyMarginInline = doc.compatMode === 'CSS1Compat' ? parseFloat(bodyStyles.marginLeft) + parseFloat(bodyStyles.marginRight) || 0 : 0;
-    const clippingStableScrollbarWidth = Math.abs(html.clientWidth - body.clientWidth - bodyMarginInline);
-    if (clippingStableScrollbarWidth <= SCROLLBAR_MAX) {
-      width -= clippingStableScrollbarWidth;
+    const reservedWidth = Math.abs(html.clientWidth - body.clientWidth - bodyMarginInline);
+    const gutter = getComputedStyle(html).scrollbarGutter === 'stable both-edges' ? reservedWidth / 2 : reservedWidth;
+    if (gutter <= SCROLLBAR_MAX) {
+      width -= gutter;
     }
-  } else if (windowScrollbarX <= SCROLLBAR_MAX) {
-    // If the <body> scrollbar is on the left, the width needs to be extended
-    // by the scrollbar amount so there isn't extra space on the right.
-    width += windowScrollbarX;
   }
   return {
     width,
@@ -1597,13 +2209,12 @@ function getViewportRect(element, strategy) {
   };
 }
 
-const absoluteOrFixed = /*#__PURE__*/new Set(['absolute', 'fixed']);
 // Returns the inner client rect, subtracting scrollbars if present.
 function getInnerBoundingClientRect(element, strategy) {
   const clientRect = getBoundingClientRect(element, true, strategy === 'fixed');
   const top = clientRect.top + element.clientTop;
   const left = clientRect.left + element.clientLeft;
-  const scale = isHTMLElement(element) ? getScale(element) : createCoords(1);
+  const scale = getScale(element);
   const width = element.clientWidth * scale.x;
   const height = element.clientHeight * scale.y;
   const x = left * scale.x;
@@ -1617,8 +2228,8 @@ function getInnerBoundingClientRect(element, strategy) {
 }
 function getClientRectFromClippingAncestor(element, clippingAncestor, strategy) {
   let rect;
-  if (clippingAncestor === 'viewport') {
-    rect = getViewportRect(element, strategy);
+  if (clippingAncestor === 'viewport' || clippingAncestor === 'layoutViewport') {
+    rect = getViewportRect(element, strategy, clippingAncestor);
   } else if (clippingAncestor === 'document') {
     rect = getDocumentRect(getDocumentElement(element));
   } else if (isElement(clippingAncestor)) {
@@ -1634,13 +2245,6 @@ function getClientRectFromClippingAncestor(element, clippingAncestor, strategy) 
   }
   return rectToClientRect(rect);
 }
-function hasFixedPositionAncestor(element, stopNode) {
-  const parentNode = getParentNode(element);
-  if (parentNode === stopNode || !isElement(parentNode) || isLastTraversableNode(parentNode)) {
-    return false;
-  }
-  return getComputedStyle$1(parentNode).position === 'fixed' || hasFixedPositionAncestor(parentNode, stopNode);
-}
 
 // A "clipping ancestor" is an `overflow` element with the characteristic of
 // clipping (or hiding) child elements. This returns all clipping ancestors
@@ -1651,7 +2255,7 @@ function getClippingElementAncestors(element, cache) {
     return cachedResult;
   }
   let result = getOverflowAncestors(element, [], false).filter(el => isElement(el) && getNodeName(el) !== 'body');
-  let currentContainingBlockComputedStyle = null;
+  let lastKeptComputedStyle = null;
   const elementIsFixed = getComputedStyle$1(element).position === 'fixed';
   let currentNode = elementIsFixed ? getParentNode(element) : element;
 
@@ -1659,16 +2263,20 @@ function getClippingElementAncestors(element, cache) {
   while (isElement(currentNode) && !isLastTraversableNode(currentNode)) {
     const computedStyle = getComputedStyle$1(currentNode);
     const currentNodeIsContaining = isContainingBlock(currentNode);
-    if (!currentNodeIsContaining && computedStyle.position === 'fixed') {
-      currentContainingBlockComputedStyle = null;
-    }
-    const shouldDropCurrentNode = elementIsFixed ? !currentNodeIsContaining && !currentContainingBlockComputedStyle : !currentNodeIsContaining && computedStyle.position === 'static' && !!currentContainingBlockComputedStyle && absoluteOrFixed.has(currentContainingBlockComputedStyle.position) || isOverflowElement(currentNode) && !currentNodeIsContaining && hasFixedPositionAncestor(element, currentNode);
+    // Position of the containing block chain below the current node. A fixed
+    // element whose containing block hasn't been found yet is a fixed chain.
+    const lastPosition = lastKeptComputedStyle ? lastKeptComputedStyle.position : elementIsFixed ? 'fixed' : '';
+
+    // A non-containing ancestor does not clip the element when the chain
+    // below it escapes it: a fixed chain escapes all ancestors up to the
+    // next containing block, an absolute chain escapes static ancestors.
+    const shouldDropCurrentNode = !currentNodeIsContaining && (lastPosition === 'fixed' || lastPosition === 'absolute' && computedStyle.position === 'static');
     if (shouldDropCurrentNode) {
       // Drop non-containing blocks.
       result = result.filter(ancestor => ancestor !== currentNode);
     } else {
-      // Record last containing block for next iteration.
-      currentContainingBlockComputedStyle = computedStyle;
+      // The kept node carries the chain position for the next iteration.
+      lastKeptComputedStyle = computedStyle;
     }
     currentNode = getParentNode(currentNode);
   }
@@ -1687,20 +2295,23 @@ function getClippingRect(_ref) {
   } = _ref;
   const elementClippingAncestors = boundary === 'clippingAncestors' ? isTopLayer(element) ? [] : getClippingElementAncestors(element, this._c) : [].concat(boundary);
   const clippingAncestors = [...elementClippingAncestors, rootBoundary];
-  const firstClippingAncestor = clippingAncestors[0];
-  const clippingRect = clippingAncestors.reduce((accRect, clippingAncestor) => {
-    const rect = getClientRectFromClippingAncestor(element, clippingAncestor, strategy);
-    accRect.top = max(rect.top, accRect.top);
-    accRect.right = min(rect.right, accRect.right);
-    accRect.bottom = min(rect.bottom, accRect.bottom);
-    accRect.left = max(rect.left, accRect.left);
-    return accRect;
-  }, getClientRectFromClippingAncestor(element, firstClippingAncestor, strategy));
+  const firstRect = getClientRectFromClippingAncestor(element, clippingAncestors[0], strategy);
+  let top = firstRect.top;
+  let right = firstRect.right;
+  let bottom = firstRect.bottom;
+  let left = firstRect.left;
+  for (let i = 1; i < clippingAncestors.length; i++) {
+    const rect = getClientRectFromClippingAncestor(element, clippingAncestors[i], strategy);
+    top = max(rect.top, top);
+    right = min(rect.right, right);
+    bottom = min(rect.bottom, bottom);
+    left = max(rect.left, left);
+  }
   return {
-    width: clippingRect.right - clippingRect.left,
-    height: clippingRect.bottom - clippingRect.top,
-    x: clippingRect.left,
-    y: clippingRect.top
+    width: right - left,
+    height: bottom - top,
+    x: left,
+    y: top
   };
 }
 
@@ -1725,13 +2336,7 @@ function getRectRelativeToOffsetParent(element, offsetParent, strategy) {
     scrollTop: 0
   };
   const offsets = createCoords(0);
-
-  // If the <body> scrollbar appears on the left (e.g. RTL systems). Use
-  // Firefox with layout.scrollbar.side = 3 in about:config to test this.
-  function setLeftRTLScrollbarOffset() {
-    offsets.x = getWindowScrollBarX(documentElement);
-  }
-  if (isOffsetParentAnElement || !isOffsetParentAnElement && !isFixed) {
+  if (isOffsetParentAnElement || !isFixed) {
     if (getNodeName(offsetParent) !== 'body' || isOverflowElement(documentElement)) {
       scroll = getNodeScroll(offsetParent);
     }
@@ -1739,12 +2344,13 @@ function getRectRelativeToOffsetParent(element, offsetParent, strategy) {
       const offsetRect = getBoundingClientRect(offsetParent, true, isFixed, offsetParent);
       offsets.x = offsetRect.x + offsetParent.clientLeft;
       offsets.y = offsetRect.y + offsetParent.clientTop;
-    } else if (documentElement) {
-      setLeftRTLScrollbarOffset();
     }
   }
-  if (isFixed && !isOffsetParentAnElement && documentElement) {
-    setLeftRTLScrollbarOffset();
+
+  // If the <body> scrollbar appears on the left (e.g. RTL systems). Use
+  // Firefox with layout.scrollbar.side = 3 in about:config to test this.
+  if (!isOffsetParentAnElement && documentElement) {
+    offsets.x = getWindowScrollBarX(documentElement);
   }
   const htmlOffset = documentElement && !isOffsetParentAnElement && !isFixed ? getHTMLOffset(documentElement, scroll) : createCoords(0);
   const x = rect.left + scroll.scrollLeft - offsets.x - htmlOffset.x;
@@ -1844,7 +2450,7 @@ function rectsAreEqual(a, b) {
 }
 
 // https://samthor.au/2021/observing-dom/
-function observeMove(element, onMove) {
+function observeMove(element, onMove, ancestorResize) {
   let io = null;
   let timeoutId;
   const root = getDocumentElement(element);
@@ -1887,29 +2493,28 @@ function observeMove(element, onMove) {
     let isFirstUpdate = true;
     function handleObserve(entries) {
       const ratio = entries[0].intersectionRatio;
+
+      // The entry is a snapshot, so the reference may have moved since the
+      // intersection was computed (under performance constraints, or between
+      // consecutive frames of a multi-frame layout shift). The reported ratio
+      // and the observed area are stale in that case and cannot be trusted to
+      // detect subsequent movement, so refresh regardless of the ratio.
+      if (!rectsAreEqual(elementRectForRootMargin, element.getBoundingClientRect())) {
+        return refresh();
+      }
       if (ratio !== threshold) {
         if (!isFirstUpdate) {
           return refresh();
         }
         if (!ratio) {
-          // If the reference is clipped, the ratio is 0. Throttle the refresh
-          // to prevent an infinite loop of updates.
+          // If the reference is clipped in place, the ratio is 0. Throttle
+          // the refresh to prevent an infinite loop of updates.
           timeoutId = setTimeout(() => {
             refresh(false, 1e-7);
           }, 1000);
         } else {
           refresh(false, ratio);
         }
-      }
-      if (ratio === 1 && !rectsAreEqual(elementRectForRootMargin, element.getBoundingClientRect())) {
-        // It's possible that even though the ratio is reported as 1, the
-        // element is not actually fully within the IntersectionObserver's root
-        // area anymore. This can happen under performance constraints. This may
-        // be a bug in the browser's IntersectionObserver implementation. To
-        // work around this, we compare the element's bounding rect now with
-        // what it was at the time we created the IntersectionObserver. If they
-        // are not equal then the element moved, so we refresh.
-        refresh();
       }
       isFirstUpdate = false;
     }
@@ -1927,8 +2532,18 @@ function observeMove(element, onMove) {
     }
     io.observe(element);
   }
+  const win = getWindow(element);
+  // The window is a resize ancestor, so when `ancestorResize` is enabled its
+  // listener already runs the update on resize. Here we only need to rebuild
+  // the `IntersectionObserver` for the new root size, skipping a redundant
+  // update. When `ancestorResize` is disabled, this becomes the sole update.
+  const handleResize = () => refresh(ancestorResize);
+  win.addEventListener('resize', handleResize);
   refresh(true);
-  return cleanup;
+  return () => {
+    win.removeEventListener('resize', handleResize);
+    cleanup();
+  };
 }
 
 /**
@@ -1951,20 +2566,18 @@ function autoUpdate(reference, floating, update, options) {
     animationFrame = false
   } = options;
   const referenceEl = unwrapElement(reference);
-  const ancestors = ancestorScroll || ancestorResize ? [...(referenceEl ? getOverflowAncestors(referenceEl) : []), ...getOverflowAncestors(floating)] : [];
+  const ancestors = ancestorScroll || ancestorResize ? [...(referenceEl ? getOverflowAncestors(referenceEl) : []), ...(floating ? getOverflowAncestors(floating) : [])] : [];
   ancestors.forEach(ancestor => {
-    ancestorScroll && ancestor.addEventListener('scroll', update, {
-      passive: true
-    });
+    ancestorScroll && ancestor.addEventListener('scroll', update);
     ancestorResize && ancestor.addEventListener('resize', update);
   });
-  const cleanupIo = referenceEl && layoutShift ? observeMove(referenceEl, update) : null;
+  const cleanupIo = referenceEl && layoutShift ? observeMove(referenceEl, update, ancestorResize) : null;
   let reobserveFrame = -1;
   let resizeObserver = null;
   if (elementResize) {
     resizeObserver = new ResizeObserver(_ref => {
       let [firstEntry] = _ref;
-      if (firstEntry && firstEntry.target === referenceEl && resizeObserver) {
+      if (firstEntry && firstEntry.target === referenceEl && resizeObserver && floating) {
         // Prevent update loops when using the `size` middleware.
         // https://github.com/floating-ui/floating-ui/issues/1740
         resizeObserver.unobserve(floating);
@@ -1979,7 +2592,9 @@ function autoUpdate(reference, floating, update, options) {
     if (referenceEl && !animationFrame) {
       resizeObserver.observe(referenceEl);
     }
-    resizeObserver.observe(floating);
+    if (floating) {
+      resizeObserver.observe(floating);
+    }
   }
   let frameId;
   let prevRefRect = animationFrame ? getBoundingClientRect(reference) : null;
@@ -2043,11 +2658,9 @@ const computePosition = (reference, floating, options) => {
   // multiple lifecycle resets re-use the same result. It only lives for a
   // single call. If other functions become expensive, we can add them as well.
   const cache = new Map();
-  const mergedOptions = {
-    platform,
-    ...options
-  };
+  const mergedOptions = options != null ? options : {};
   const platformWithCache = {
+    ...platform,
     ...mergedOptions.platform,
     _c: cache
   };
@@ -2296,20 +2909,28 @@ function useFloating$1(options) {
  * object may be passed.
  * @see https://floating-ui.com/docs/offset
  */
-const offset = (options, deps) => ({
-  ...offset$1(options),
-  options: [options, deps]
-});
+const offset = (options, deps) => {
+  const result = offset$1(options);
+  return {
+    name: result.name,
+    fn: result.fn,
+    options: [options, deps]
+  };
+};
 
 /**
  * Optimizes the visibility of the floating element by shifting it in order to
  * keep it in view when it will overflow the clipping boundary.
  * @see https://floating-ui.com/docs/shift
  */
-const shift = (options, deps) => ({
-  ...shift$1(options),
-  options: [options, deps]
-});
+const shift = (options, deps) => {
+  const result = shift$1(options);
+  return {
+    name: result.name,
+    fn: result.fn,
+    options: [options, deps]
+  };
+};
 
 /**
  * Optimizes the visibility of the floating element by flipping the `placement`
@@ -2317,10 +2938,14 @@ const shift = (options, deps) => ({
  * clipping boundary. Alternative to `autoPlacement`.
  * @see https://floating-ui.com/docs/flip
  */
-const flip = (options, deps) => ({
-  ...flip$1(options),
-  options: [options, deps]
-});
+const flip = (options, deps) => {
+  const result = flip$1(options);
+  return {
+    name: result.name,
+    fn: result.fn,
+    options: [options, deps]
+  };
+};
 
 const FOCUSABLE_ATTRIBUTE = 'data-floating-ui-focusable';
 const ACTIVE_KEY = 'active';
@@ -2503,7 +3128,7 @@ function useHover(context, props) {
         onOpenChange(false, event, 'hover');
       }
     }
-    const html = getDocument(elements.floating).documentElement;
+    const html = getDocument$1(elements.floating).documentElement;
     html.addEventListener('mouseleave', onLeave);
     return () => {
       html.removeEventListener('mouseleave', onLeave);
@@ -2531,7 +3156,7 @@ function useHover(context, props) {
   });
   const clearPointerEvents = useEffectEvent(() => {
     if (performedPointerEventsMutationRef.current) {
-      const body = getDocument(elements.floating).body;
+      const body = getDocument$1(elements.floating).body;
       body.style.pointerEvents = '';
       body.removeAttribute(safePolygonIdentifier);
       performedPointerEventsMutationRef.current = false;
@@ -2569,7 +3194,7 @@ function useHover(context, props) {
         return;
       }
       unbindMouseMoveRef.current();
-      const doc = getDocument(elements.floating);
+      const doc = getDocument$1(elements.floating);
       clearTimeoutIfSet(restTimeoutRef);
       restTimeoutPendingRef.current = false;
       if (handleCloseRef.current && dataRef.current.floatingContext) {
@@ -2683,7 +3308,7 @@ function useHover(context, props) {
       const floatingEl = elements.floating;
       if (isElement(elements.domReference) && floatingEl) {
         var _tree$nodesRef$curren;
-        const body = getDocument(elements.floating).body;
+        const body = getDocument$1(elements.floating).body;
         body.setAttribute(safePolygonIdentifier, '');
         const ref = elements.domReference;
         const parentFloating = tree == null || (_tree$nodesRef$curren = tree.nodesRef.current.find(node => node.id === parentId)) == null || (_tree$nodesRef$curren = _tree$nodesRef$curren.context) == null ? void 0 : _tree$nodesRef$curren.elements.floating;
@@ -2757,6 +3382,671 @@ function useHover(context, props) {
   return React__namespace.useMemo(() => enabled ? {
     reference
   } : {}, [enabled, reference]);
+}
+
+let rafId = 0;
+function enqueueFocus(el, options) {
+  if (options === void 0) {
+    options = {};
+  }
+  const {
+    preventScroll = false,
+    cancelPrevious = true,
+    sync = false
+  } = options;
+  cancelPrevious && cancelAnimationFrame(rafId);
+  const exec = () => el == null ? void 0 : el.focus({
+    preventScroll
+  });
+  if (sync) {
+    exec();
+  } else {
+    rafId = requestAnimationFrame(exec);
+  }
+}
+function getDocument(node) {
+  return (node == null ? void 0 : node.ownerDocument) || document;
+}
+
+// Modified to add conditional `aria-hidden` support:
+// https://github.com/theKashey/aria-hidden/blob/9220c8f4a4fd35f63bee5510a9f41a37264382d4/src/index.ts
+const counters = {
+  inert: /*#__PURE__*/new WeakMap(),
+  'aria-hidden': /*#__PURE__*/new WeakMap(),
+  none: /*#__PURE__*/new WeakMap()
+};
+function getCounterMap(control) {
+  if (control === 'inert') return counters.inert;
+  if (control === 'aria-hidden') return counters['aria-hidden'];
+  return counters.none;
+}
+let uncontrolledElementsSet = /*#__PURE__*/new WeakSet();
+let markerMap = {};
+let lockCount$1 = 0;
+const supportsInert = () => typeof HTMLElement !== 'undefined' && 'inert' in HTMLElement.prototype;
+const unwrapHost = node => node && (node.host || unwrapHost(node.parentNode));
+const correctElements = (parent, targets) => targets.map(target => {
+  if (parent.contains(target)) {
+    return target;
+  }
+  const correctedTarget = unwrapHost(target);
+  if (parent.contains(correctedTarget)) {
+    return correctedTarget;
+  }
+  return null;
+}).filter(x => x != null);
+function applyAttributeToOthers(uncorrectedAvoidElements, body, ariaHidden, inert) {
+  const markerName = 'data-floating-ui-inert';
+  const controlAttribute = inert ? 'inert' : ariaHidden ? 'aria-hidden' : null;
+  const avoidElements = correctElements(body, uncorrectedAvoidElements);
+  const elementsToKeep = new Set();
+  const elementsToStop = new Set(avoidElements);
+  const hiddenElements = [];
+  if (!markerMap[markerName]) {
+    markerMap[markerName] = new WeakMap();
+  }
+  const markerCounter = markerMap[markerName];
+  avoidElements.forEach(keep);
+  deep(body);
+  elementsToKeep.clear();
+  function keep(el) {
+    if (!el || elementsToKeep.has(el)) {
+      return;
+    }
+    elementsToKeep.add(el);
+    el.parentNode && keep(el.parentNode);
+  }
+  function deep(parent) {
+    if (!parent || elementsToStop.has(parent)) {
+      return;
+    }
+    [].forEach.call(parent.children, node => {
+      if (getNodeName(node) === 'script') return;
+      if (elementsToKeep.has(node)) {
+        deep(node);
+      } else {
+        const attr = controlAttribute ? node.getAttribute(controlAttribute) : null;
+        const alreadyHidden = attr !== null && attr !== 'false';
+        const counterMap = getCounterMap(controlAttribute);
+        const counterValue = (counterMap.get(node) || 0) + 1;
+        const markerValue = (markerCounter.get(node) || 0) + 1;
+        counterMap.set(node, counterValue);
+        markerCounter.set(node, markerValue);
+        hiddenElements.push(node);
+        if (counterValue === 1 && alreadyHidden) {
+          uncontrolledElementsSet.add(node);
+        }
+        if (markerValue === 1) {
+          node.setAttribute(markerName, '');
+        }
+        if (!alreadyHidden && controlAttribute) {
+          node.setAttribute(controlAttribute, controlAttribute === 'inert' ? '' : 'true');
+        }
+      }
+    });
+  }
+  lockCount$1++;
+  return () => {
+    hiddenElements.forEach(element => {
+      const counterMap = getCounterMap(controlAttribute);
+      const currentCounterValue = counterMap.get(element) || 0;
+      const counterValue = currentCounterValue - 1;
+      const markerValue = (markerCounter.get(element) || 0) - 1;
+      counterMap.set(element, counterValue);
+      markerCounter.set(element, markerValue);
+      if (!counterValue) {
+        if (!uncontrolledElementsSet.has(element) && controlAttribute) {
+          element.removeAttribute(controlAttribute);
+        }
+        uncontrolledElementsSet.delete(element);
+      }
+      if (!markerValue) {
+        element.removeAttribute(markerName);
+      }
+    });
+    lockCount$1--;
+    if (!lockCount$1) {
+      counters.inert = new WeakMap();
+      counters['aria-hidden'] = new WeakMap();
+      counters.none = new WeakMap();
+      uncontrolledElementsSet = new WeakSet();
+      markerMap = {};
+    }
+  };
+}
+function markOthers(avoidElements, ariaHidden, inert) {
+  if (ariaHidden === void 0) {
+    ariaHidden = false;
+  }
+  if (inert === void 0) {
+    inert = false;
+  }
+  const body = getDocument(avoidElements[0]).body;
+  return applyAttributeToOthers(avoidElements.concat(Array.from(body.querySelectorAll('[aria-live],[role="status"],output'))), body, ariaHidden, inert);
+}
+
+const HIDDEN_STYLES = {
+  border: 0,
+  clip: 'rect(0 0 0 0)',
+  height: '1px',
+  margin: '-1px',
+  overflow: 'hidden',
+  padding: 0,
+  position: 'fixed',
+  whiteSpace: 'nowrap',
+  width: '1px',
+  top: 0,
+  left: 0
+};
+const FocusGuard = /*#__PURE__*/React__namespace.forwardRef(function FocusGuard(props, ref) {
+  const [role, setRole] = React__namespace.useState();
+  index$2(() => {
+    if (isSafari()) {
+      // Unlike other screen readers such as NVDA and JAWS, the virtual cursor
+      // on VoiceOver does trigger the onFocus event, so we can use the focus
+      // trap element. On Safari, only buttons trigger the onFocus event.
+      // NB: "group" role in the Sandbox no longer appears to work, must be a
+      // button role.
+      setRole('button');
+    }
+  }, []);
+  const restProps = {
+    ref,
+    tabIndex: 0,
+    // Role is only for VoiceOver
+    role,
+    'aria-hidden': role ? undefined : true,
+    [createAttribute('focus-guard')]: '',
+    style: HIDDEN_STYLES
+  };
+  return /*#__PURE__*/jsxRuntimeExports.jsx("span", {
+    ...props,
+    ...restProps
+  });
+});
+
+const PortalContext = /*#__PURE__*/React__namespace.createContext(null);
+const usePortalContext = () => React__namespace.useContext(PortalContext);
+
+function useLiteMergeRefs(refs) {
+  return React__namespace.useMemo(() => {
+    return value => {
+      refs.forEach(ref => {
+        if (ref) {
+          ref.current = value;
+        }
+      });
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, refs);
+}
+
+const LIST_LIMIT = 20;
+let previouslyFocusedElements = [];
+function clearDisconnectedPreviouslyFocusedElements() {
+  previouslyFocusedElements = previouslyFocusedElements.filter(el => el.isConnected);
+}
+function addPreviouslyFocusedElement(element) {
+  clearDisconnectedPreviouslyFocusedElements();
+  if (element && getNodeName(element) !== 'body') {
+    previouslyFocusedElements.push(element);
+    if (previouslyFocusedElements.length > LIST_LIMIT) {
+      previouslyFocusedElements = previouslyFocusedElements.slice(-20);
+    }
+  }
+}
+function getPreviouslyFocusedElement() {
+  clearDisconnectedPreviouslyFocusedElements();
+  return previouslyFocusedElements[previouslyFocusedElements.length - 1];
+}
+function getFirstTabbableElement(container) {
+  const tabbableOptions = getTabbableOptions();
+  if (isTabbable(container, tabbableOptions)) {
+    return container;
+  }
+  return tabbable(container, tabbableOptions)[0] || container;
+}
+function handleTabIndex(floatingFocusElement, orderRef) {
+  var _floatingFocusElement;
+  if (!orderRef.current.includes('floating') && !((_floatingFocusElement = floatingFocusElement.getAttribute('role')) != null && _floatingFocusElement.includes('dialog'))) {
+    return;
+  }
+  const options = getTabbableOptions();
+  const focusableElements = focusable(floatingFocusElement, options);
+  const tabbableContent = focusableElements.filter(element => {
+    const dataTabIndex = element.getAttribute('data-tabindex') || '';
+    return isTabbable(element, options) || element.hasAttribute('data-tabindex') && !dataTabIndex.startsWith('-');
+  });
+  const tabIndex = floatingFocusElement.getAttribute('tabindex');
+  if (orderRef.current.includes('floating') || tabbableContent.length === 0) {
+    if (tabIndex !== '0') {
+      floatingFocusElement.setAttribute('tabindex', '0');
+    }
+  } else if (tabIndex !== '-1' || floatingFocusElement.hasAttribute('data-tabindex') && floatingFocusElement.getAttribute('data-tabindex') !== '-1') {
+    floatingFocusElement.setAttribute('tabindex', '-1');
+    floatingFocusElement.setAttribute('data-tabindex', '-1');
+  }
+}
+const VisuallyHiddenDismiss = /*#__PURE__*/React__namespace.forwardRef(function VisuallyHiddenDismiss(props, ref) {
+  return /*#__PURE__*/jsxRuntimeExports.jsx("button", {
+    ...props,
+    type: "button",
+    ref: ref,
+    tabIndex: -1,
+    style: HIDDEN_STYLES
+  });
+});
+/**
+ * Provides focus management for the floating element.
+ * @see https://floating-ui.com/docs/FloatingFocusManager
+ */
+function FloatingFocusManager(props) {
+  const {
+    context,
+    children,
+    disabled = false,
+    order = ['content'],
+    guards: _guards = true,
+    initialFocus = 0,
+    returnFocus = true,
+    restoreFocus = false,
+    modal = true,
+    visuallyHiddenDismiss = false,
+    closeOnFocusOut = true,
+    outsideElementsInert = false,
+    getInsideElements: _getInsideElements = () => []
+  } = props;
+  const {
+    open,
+    onOpenChange,
+    events,
+    dataRef,
+    elements: {
+      domReference,
+      floating
+    }
+  } = context;
+  const getNodeId = useEffectEvent(() => {
+    var _dataRef$current$floa;
+    return (_dataRef$current$floa = dataRef.current.floatingContext) == null ? void 0 : _dataRef$current$floa.nodeId;
+  });
+  const getInsideElements = useEffectEvent(_getInsideElements);
+  const ignoreInitialFocus = typeof initialFocus === 'number' && initialFocus < 0;
+  // If the reference is a combobox and is typeable (e.g. input/textarea),
+  // there are different focus semantics. The guards should not be rendered, but
+  // aria-hidden should be applied to all nodes still. Further, the visually
+  // hidden dismiss button should only appear at the end of the list, not the
+  // start.
+  const isUntrappedTypeableCombobox = isTypeableCombobox(domReference) && ignoreInitialFocus;
+
+  // Force the guards to be rendered if the `inert` attribute is not supported.
+  const inertSupported = supportsInert();
+  const guards = inertSupported ? _guards : true;
+  const useInert = !guards || inertSupported && outsideElementsInert;
+  const orderRef = useLatestRef$1(order);
+  const initialFocusRef = useLatestRef$1(initialFocus);
+  const returnFocusRef = useLatestRef$1(returnFocus);
+  const tree = useFloatingTree();
+  const portalContext = usePortalContext();
+  const startDismissButtonRef = React__namespace.useRef(null);
+  const endDismissButtonRef = React__namespace.useRef(null);
+  const preventReturnFocusRef = React__namespace.useRef(false);
+  const isPointerDownRef = React__namespace.useRef(false);
+  const tabbableIndexRef = React__namespace.useRef(-1);
+  const blurTimeoutRef = React__namespace.useRef(-1);
+  const isInsidePortal = portalContext != null;
+  const floatingFocusElement = getFloatingFocusElement(floating);
+  const getTabbableContent = useEffectEvent(function (container) {
+    if (container === void 0) {
+      container = floatingFocusElement;
+    }
+    return container ? tabbable(container, getTabbableOptions()) : [];
+  });
+  const getTabbableElements = useEffectEvent(container => {
+    const content = getTabbableContent(container);
+    return orderRef.current.map(type => {
+      if (domReference && type === 'reference') {
+        return domReference;
+      }
+      if (floatingFocusElement && type === 'floating') {
+        return floatingFocusElement;
+      }
+      return content;
+    }).filter(Boolean).flat();
+  });
+  React__namespace.useEffect(() => {
+    if (disabled) return;
+    if (!modal) return;
+    function onKeyDown(event) {
+      if (event.key === 'Tab') {
+        // The focus guards have nothing to focus, so we need to stop the event.
+        if (contains(floatingFocusElement, activeElement(getDocument$1(floatingFocusElement))) && getTabbableContent().length === 0 && !isUntrappedTypeableCombobox) {
+          stopEvent(event);
+        }
+        const els = getTabbableElements();
+        const target = getTarget(event);
+        if (orderRef.current[0] === 'reference' && target === domReference) {
+          stopEvent(event);
+          if (event.shiftKey) {
+            enqueueFocus(els[els.length - 1]);
+          } else {
+            enqueueFocus(els[1]);
+          }
+        }
+        if (orderRef.current[1] === 'floating' && target === floatingFocusElement && event.shiftKey) {
+          stopEvent(event);
+          enqueueFocus(els[0]);
+        }
+      }
+    }
+    const doc = getDocument$1(floatingFocusElement);
+    doc.addEventListener('keydown', onKeyDown);
+    return () => {
+      doc.removeEventListener('keydown', onKeyDown);
+    };
+  }, [disabled, domReference, floatingFocusElement, modal, orderRef, isUntrappedTypeableCombobox, getTabbableContent, getTabbableElements]);
+  React__namespace.useEffect(() => {
+    if (disabled) return;
+    if (!floating) return;
+    function handleFocusIn(event) {
+      const target = getTarget(event);
+      const tabbableContent = getTabbableContent();
+      const tabbableIndex = tabbableContent.indexOf(target);
+      if (tabbableIndex !== -1) {
+        tabbableIndexRef.current = tabbableIndex;
+      }
+    }
+    floating.addEventListener('focusin', handleFocusIn);
+    return () => {
+      floating.removeEventListener('focusin', handleFocusIn);
+    };
+  }, [disabled, floating, getTabbableContent]);
+  React__namespace.useEffect(() => {
+    if (disabled) return;
+    if (!closeOnFocusOut) return;
+
+    // In Safari, buttons lose focus when pressing them.
+    function handlePointerDown() {
+      isPointerDownRef.current = true;
+      setTimeout(() => {
+        isPointerDownRef.current = false;
+      });
+    }
+    function handleFocusOutside(event) {
+      const relatedTarget = event.relatedTarget;
+      const currentTarget = event.currentTarget;
+      const target = getTarget(event);
+      queueMicrotask(() => {
+        const nodeId = getNodeId();
+        const movedToUnrelatedNode = !(contains(domReference, relatedTarget) || contains(floating, relatedTarget) || contains(relatedTarget, floating) || contains(portalContext == null ? void 0 : portalContext.portalNode, relatedTarget) || relatedTarget != null && relatedTarget.hasAttribute(createAttribute('focus-guard')) || tree && (getNodeChildren(tree.nodesRef.current, nodeId).find(node => {
+          var _node$context, _node$context2;
+          return contains((_node$context = node.context) == null ? void 0 : _node$context.elements.floating, relatedTarget) || contains((_node$context2 = node.context) == null ? void 0 : _node$context2.elements.domReference, relatedTarget);
+        }) || getNodeAncestors(tree.nodesRef.current, nodeId).find(node => {
+          var _node$context3, _node$context4, _node$context5;
+          return [(_node$context3 = node.context) == null ? void 0 : _node$context3.elements.floating, getFloatingFocusElement((_node$context4 = node.context) == null ? void 0 : _node$context4.elements.floating)].includes(relatedTarget) || ((_node$context5 = node.context) == null ? void 0 : _node$context5.elements.domReference) === relatedTarget;
+        })));
+        if (currentTarget === domReference && floatingFocusElement) {
+          handleTabIndex(floatingFocusElement, orderRef);
+        }
+
+        // Restore focus to the previous tabbable element index to prevent
+        // focus from being lost outside the floating tree.
+        if (restoreFocus && currentTarget !== domReference && !(target != null && target.isConnected) && activeElement(getDocument$1(floatingFocusElement)) === getDocument$1(floatingFocusElement).body) {
+          // Let `FloatingPortal` effect knows that focus is still inside the
+          // floating tree.
+          if (isHTMLElement(floatingFocusElement)) {
+            floatingFocusElement.focus();
+          }
+          const prevTabbableIndex = tabbableIndexRef.current;
+          const tabbableContent = getTabbableContent();
+          const nodeToFocus = tabbableContent[prevTabbableIndex] || tabbableContent[tabbableContent.length - 1] || floatingFocusElement;
+          if (isHTMLElement(nodeToFocus)) {
+            nodeToFocus.focus();
+          }
+        }
+
+        // https://github.com/floating-ui/floating-ui/issues/3060
+        if (dataRef.current.insideReactTree) {
+          dataRef.current.insideReactTree = false;
+          return;
+        }
+
+        // Focus did not move inside the floating tree, and there are no tabbable
+        // portal guards to handle closing.
+        if ((isUntrappedTypeableCombobox ? true : !modal) && relatedTarget && movedToUnrelatedNode && !isPointerDownRef.current &&
+        // Fix React 18 Strict Mode returnFocus due to double rendering.
+        relatedTarget !== getPreviouslyFocusedElement()) {
+          preventReturnFocusRef.current = true;
+          onOpenChange(false, event, 'focus-out');
+        }
+      });
+    }
+    const shouldHandleBlurCapture = Boolean(!tree && portalContext);
+    function markInsideReactTree() {
+      clearTimeoutIfSet(blurTimeoutRef);
+      dataRef.current.insideReactTree = true;
+      blurTimeoutRef.current = window.setTimeout(() => {
+        dataRef.current.insideReactTree = false;
+      });
+    }
+    if (floating && isHTMLElement(domReference)) {
+      domReference.addEventListener('focusout', handleFocusOutside);
+      domReference.addEventListener('pointerdown', handlePointerDown);
+      floating.addEventListener('focusout', handleFocusOutside);
+      if (shouldHandleBlurCapture) {
+        floating.addEventListener('focusout', markInsideReactTree, true);
+      }
+      return () => {
+        domReference.removeEventListener('focusout', handleFocusOutside);
+        domReference.removeEventListener('pointerdown', handlePointerDown);
+        floating.removeEventListener('focusout', handleFocusOutside);
+        if (shouldHandleBlurCapture) {
+          floating.removeEventListener('focusout', markInsideReactTree, true);
+        }
+      };
+    }
+  }, [disabled, domReference, floating, floatingFocusElement, modal, tree, portalContext, onOpenChange, closeOnFocusOut, restoreFocus, getTabbableContent, isUntrappedTypeableCombobox, getNodeId, orderRef, dataRef]);
+  const beforeGuardRef = React__namespace.useRef(null);
+  const afterGuardRef = React__namespace.useRef(null);
+  const mergedBeforeGuardRef = useLiteMergeRefs([beforeGuardRef, portalContext == null ? void 0 : portalContext.beforeInsideRef]);
+  const mergedAfterGuardRef = useLiteMergeRefs([afterGuardRef, portalContext == null ? void 0 : portalContext.afterInsideRef]);
+  React__namespace.useEffect(() => {
+    var _portalContext$portal, _ancestors$find;
+    if (disabled) return;
+    if (!floating) return;
+
+    // Don't hide portals nested within the parent portal.
+    const portalNodes = Array.from((portalContext == null || (_portalContext$portal = portalContext.portalNode) == null ? void 0 : _portalContext$portal.querySelectorAll("[" + createAttribute('portal') + "]")) || []);
+    const ancestors = tree ? getNodeAncestors(tree.nodesRef.current, getNodeId()) : [];
+    const rootAncestorComboboxDomReference = (_ancestors$find = ancestors.find(node => {
+      var _node$context6;
+      return isTypeableCombobox(((_node$context6 = node.context) == null ? void 0 : _node$context6.elements.domReference) || null);
+    })) == null || (_ancestors$find = _ancestors$find.context) == null ? void 0 : _ancestors$find.elements.domReference;
+    const insideElements = [floating, rootAncestorComboboxDomReference, ...portalNodes, ...getInsideElements(), startDismissButtonRef.current, endDismissButtonRef.current, beforeGuardRef.current, afterGuardRef.current, portalContext == null ? void 0 : portalContext.beforeOutsideRef.current, portalContext == null ? void 0 : portalContext.afterOutsideRef.current, orderRef.current.includes('reference') || isUntrappedTypeableCombobox ? domReference : null].filter(x => x != null);
+    const cleanup = modal || isUntrappedTypeableCombobox ? markOthers(insideElements, !useInert, useInert) : markOthers(insideElements);
+    return () => {
+      cleanup();
+    };
+  }, [disabled, domReference, floating, modal, orderRef, portalContext, isUntrappedTypeableCombobox, guards, useInert, tree, getNodeId, getInsideElements]);
+  index$2(() => {
+    if (disabled || !isHTMLElement(floatingFocusElement)) return;
+    const doc = getDocument$1(floatingFocusElement);
+    const previouslyFocusedElement = activeElement(doc);
+
+    // Wait for any layout effect state setters to execute to set `tabIndex`.
+    queueMicrotask(() => {
+      const focusableElements = getTabbableElements(floatingFocusElement);
+      const initialFocusValue = initialFocusRef.current;
+      const elToFocus = (typeof initialFocusValue === 'number' ? focusableElements[initialFocusValue] : initialFocusValue.current) || floatingFocusElement;
+      const focusAlreadyInsideFloatingEl = contains(floatingFocusElement, previouslyFocusedElement);
+      if (!ignoreInitialFocus && !focusAlreadyInsideFloatingEl && open) {
+        enqueueFocus(elToFocus, {
+          preventScroll: elToFocus === floatingFocusElement
+        });
+      }
+    });
+  }, [disabled, open, floatingFocusElement, ignoreInitialFocus, getTabbableElements, initialFocusRef]);
+  index$2(() => {
+    if (disabled || !floatingFocusElement) return;
+    const doc = getDocument$1(floatingFocusElement);
+    const previouslyFocusedElement = activeElement(doc);
+    addPreviouslyFocusedElement(previouslyFocusedElement);
+
+    // Dismissing via outside press should always ignore `returnFocus` to
+    // prevent unwanted scrolling.
+    function onOpenChange(_ref) {
+      let {
+        reason,
+        event,
+        nested
+      } = _ref;
+      if (['hover', 'safe-polygon'].includes(reason) && event.type === 'mouseleave') {
+        preventReturnFocusRef.current = true;
+      }
+      if (reason !== 'outside-press') return;
+      if (nested) {
+        preventReturnFocusRef.current = false;
+      } else if (isVirtualClick(event) || isVirtualPointerEvent(event)) {
+        preventReturnFocusRef.current = false;
+      } else {
+        let isPreventScrollSupported = false;
+        document.createElement('div').focus({
+          get preventScroll() {
+            isPreventScrollSupported = true;
+            return false;
+          }
+        });
+        if (isPreventScrollSupported) {
+          preventReturnFocusRef.current = false;
+        } else {
+          preventReturnFocusRef.current = true;
+        }
+      }
+    }
+    events.on('openchange', onOpenChange);
+    const fallbackEl = doc.createElement('span');
+    fallbackEl.setAttribute('tabindex', '-1');
+    fallbackEl.setAttribute('aria-hidden', 'true');
+    Object.assign(fallbackEl.style, HIDDEN_STYLES);
+    if (isInsidePortal && domReference) {
+      domReference.insertAdjacentElement('afterend', fallbackEl);
+    }
+    function getReturnElement() {
+      if (typeof returnFocusRef.current === 'boolean') {
+        const el = domReference || getPreviouslyFocusedElement();
+        return el && el.isConnected ? el : fallbackEl;
+      }
+      return returnFocusRef.current.current || fallbackEl;
+    }
+    return () => {
+      events.off('openchange', onOpenChange);
+      const activeEl = activeElement(doc);
+      const isFocusInsideFloatingTree = contains(floating, activeEl) || tree && getNodeChildren(tree.nodesRef.current, getNodeId(), false).some(node => {
+        var _node$context7;
+        return contains((_node$context7 = node.context) == null ? void 0 : _node$context7.elements.floating, activeEl);
+      });
+      const returnElement = getReturnElement();
+      queueMicrotask(() => {
+        // This is `returnElement`, if it's tabbable, or its first tabbable child.
+        const tabbableReturnElement = getFirstTabbableElement(returnElement);
+        if (
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        returnFocusRef.current && !preventReturnFocusRef.current && isHTMLElement(tabbableReturnElement) && (
+        // If the focus moved somewhere else after mount, avoid returning focus
+        // since it likely entered a different element which should be
+        // respected: https://github.com/floating-ui/floating-ui/issues/2607
+        tabbableReturnElement !== activeEl && activeEl !== doc.body ? isFocusInsideFloatingTree : true)) {
+          tabbableReturnElement.focus({
+            preventScroll: true
+          });
+        }
+        fallbackEl.remove();
+      });
+    };
+  }, [disabled, floating, floatingFocusElement, returnFocusRef, dataRef, events, tree, isInsidePortal, domReference, getNodeId]);
+  React__namespace.useEffect(() => {
+    // The `returnFocus` cleanup behavior is inside a microtask; ensure we
+    // wait for it to complete before resetting the flag.
+    queueMicrotask(() => {
+      preventReturnFocusRef.current = false;
+    });
+    return () => {
+      queueMicrotask(clearDisconnectedPreviouslyFocusedElements);
+    };
+  }, [disabled]);
+
+  // Synchronize the `context` & `modal` value to the FloatingPortal context.
+  // It will decide whether or not it needs to render its own guards.
+  index$2(() => {
+    if (disabled) return;
+    if (!portalContext) return;
+    portalContext.setFocusManagerState({
+      modal,
+      closeOnFocusOut,
+      open,
+      onOpenChange,
+      domReference
+    });
+    return () => {
+      portalContext.setFocusManagerState(null);
+    };
+  }, [disabled, portalContext, modal, open, onOpenChange, closeOnFocusOut, domReference]);
+  index$2(() => {
+    if (disabled) return;
+    if (!floatingFocusElement) return;
+    handleTabIndex(floatingFocusElement, orderRef);
+  }, [disabled, floatingFocusElement, orderRef]);
+  function renderDismissButton(location) {
+    if (disabled || !visuallyHiddenDismiss || !modal) {
+      return null;
+    }
+    return /*#__PURE__*/jsxRuntimeExports.jsx(VisuallyHiddenDismiss, {
+      ref: location === 'start' ? startDismissButtonRef : endDismissButtonRef,
+      onClick: event => onOpenChange(false, event.nativeEvent),
+      children: typeof visuallyHiddenDismiss === 'string' ? visuallyHiddenDismiss : 'Dismiss'
+    });
+  }
+  const shouldRenderGuards = !disabled && guards && (modal ? !isUntrappedTypeableCombobox : true) && (isInsidePortal || modal);
+  return /*#__PURE__*/jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, {
+    children: [shouldRenderGuards && /*#__PURE__*/jsxRuntimeExports.jsx(FocusGuard, {
+      "data-type": "inside",
+      ref: mergedBeforeGuardRef,
+      onFocus: event => {
+        if (modal) {
+          const els = getTabbableElements();
+          enqueueFocus(order[0] === 'reference' ? els[0] : els[els.length - 1]);
+        } else if (portalContext != null && portalContext.preserveTabOrder && portalContext.portalNode) {
+          preventReturnFocusRef.current = false;
+          if (isOutsideEvent(event, portalContext.portalNode)) {
+            const nextTabbable = getNextTabbable(domReference);
+            nextTabbable == null || nextTabbable.focus();
+          } else {
+            var _portalContext$before;
+            (_portalContext$before = portalContext.beforeOutsideRef.current) == null || _portalContext$before.focus();
+          }
+        }
+      }
+    }), !isUntrappedTypeableCombobox && renderDismissButton('start'), children, renderDismissButton('end'), shouldRenderGuards && /*#__PURE__*/jsxRuntimeExports.jsx(FocusGuard, {
+      "data-type": "inside",
+      ref: mergedAfterGuardRef,
+      onFocus: event => {
+        if (modal) {
+          enqueueFocus(getTabbableElements()[0]);
+        } else if (portalContext != null && portalContext.preserveTabOrder && portalContext.portalNode) {
+          if (closeOnFocusOut) {
+            preventReturnFocusRef.current = true;
+          }
+          if (isOutsideEvent(event, portalContext.portalNode)) {
+            const prevTabbable = getPreviousTabbable(domReference);
+            prevTabbable == null || prevTabbable.focus();
+          } else {
+            var _portalContext$afterO;
+            (_portalContext$afterO = portalContext.afterOutsideRef.current) == null || _portalContext$afterO.focus();
+          }
+        }
+      }
+    })]
+  });
 }
 
 function isButtonTarget(event) {
@@ -2987,7 +4277,7 @@ function useDismiss(context, props) {
     }
     const target = getTarget(event);
     const inertSelector = "[" + createAttribute('inert') + "]";
-    const markers = getDocument(elements.floating).querySelectorAll(inertSelector);
+    const markers = getDocument$1(elements.floating).querySelectorAll(inertSelector);
     let targetRootAncestor = isElement(target) ? target : null;
     while (targetRootAncestor && !isLastTraversableNode(targetRootAncestor)) {
       const nextParent = getParentNode(targetRootAncestor);
@@ -3088,7 +4378,7 @@ function useDismiss(context, props) {
       // Only apply to WebKit for the test to remain 0ms.
       isWebKit() ? 5 : 0);
     }
-    const doc = getDocument(elements.floating);
+    const doc = getDocument$1(elements.floating);
     if (escapeKey) {
       doc.addEventListener('keydown', escapeKeyCapture ? closeOnEscapeKeyDownCapture : closeOnEscapeKeyDown, escapeKeyCapture);
       doc.addEventListener('compositionstart', handleCompositionStart);
@@ -3339,7 +4629,7 @@ function useFocus(context, props) {
     // floating element was not open, the focus should be blocked when they
     // return to the tab/window.
     function onBlur() {
-      if (!open && isHTMLElement(elements.domReference) && elements.domReference === activeElement(getDocument(elements.domReference))) {
+      if (!open && isHTMLElement(elements.domReference) && elements.domReference === activeElement(getDocument$1(elements.domReference))) {
         blockFocusRef.current = true;
       }
     }
@@ -3629,11 +4919,10 @@ function useRole(context, props) {
   } : {}, [enabled, reference, floating, item]);
 }
 
-const FloatingTooltip = _ref => {
-  let {
-    children,
-    content
-  } = _ref;
+const FloatingTooltip = ({
+  children,
+  content
+}) => {
   const [isOpen, setIsOpen] = React.useState(false);
   const {
     refs,
@@ -3661,30 +4950,30 @@ const FloatingTooltip = _ref => {
   // Apply styles directly to the DOM element to avoid inline styles
   React.useEffect(() => {
     if (isOpen && refs.floating.current) {
-      var _floatingStyles$top, _floatingStyles$left;
       const element = refs.floating.current;
       element.style.position = floatingStyles.position;
-      element.style.top = "".concat((_floatingStyles$top = floatingStyles.top) !== null && _floatingStyles$top !== void 0 ? _floatingStyles$top : 0, "px");
-      element.style.left = "".concat((_floatingStyles$left = floatingStyles.left) !== null && _floatingStyles$left !== void 0 ? _floatingStyles$left : 0, "px");
+      element.style.top = `${floatingStyles.top ?? 0}px`;
+      element.style.left = `${floatingStyles.left ?? 0}px`;
       element.style.transform = floatingStyles.transform;
     }
   }, [isOpen, floatingStyles, refs.floating]);
-  return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", _objectSpread2({
+  return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
     ref: refs.setReference,
-    className: "rare-earth-floating-tooltip-wrapper"
-  }, getReferenceProps()), children), isOpen && (/*#__PURE__*/React.createElement("div", _objectSpread2({
+    className: "rare-earth-floating-tooltip-wrapper",
+    ...getReferenceProps()
+  }, children), isOpen && (/*#__PURE__*/React.createElement("div", {
     ref: refs.setFloating,
-    className: "rare-earth-floating-tooltip"
-  }, getFloatingProps()), content)));
+    className: "rare-earth-floating-tooltip",
+    ...getFloatingProps()
+  }, content)));
 };
 
-const Pagination = /*#__PURE__*/React.memo(_ref => {
-  let {
-    tableId,
-    value,
-    onChange,
-    total
-  } = _ref;
+const Pagination = /*#__PURE__*/React.memo(({
+  tableId,
+  value,
+  onChange,
+  total
+}) => {
   const renderPageNumbers = () => {
     const pages = [];
     // If only 1 page, just show it
@@ -3697,7 +4986,7 @@ const Pagination = /*#__PURE__*/React.memo(_ref => {
         "aria-setsize": total,
         "aria-posinset": 1,
         type: "button",
-        "data-testid": "pagination-page-1-".concat(tableId)
+        "data-testid": `pagination-page-1-${tableId}`
       }, "1"));
       return pages;
     }
@@ -3706,14 +4995,14 @@ const Pagination = /*#__PURE__*/React.memo(_ref => {
       for (let i = 1; i <= total; i++) {
         pages.push(/*#__PURE__*/React.createElement("button", {
           key: i,
-          className: "rare-earth-page-button ".concat(i === value ? 'active' : ''),
+          className: `rare-earth-page-button ${i === value ? 'active' : ''}`,
           onClick: () => onChange(i),
-          "aria-label": "Go to page ".concat(i),
+          "aria-label": `Go to page ${i}`,
           "aria-current": i === value ? 'page' : undefined,
           "aria-setsize": total,
           "aria-posinset": i,
           type: "button",
-          "data-testid": "pagination-page-".concat(i, "-").concat(tableId)
+          "data-testid": `pagination-page-${i}-${tableId}`
         }, i));
       }
       return pages;
@@ -3723,13 +5012,13 @@ const Pagination = /*#__PURE__*/React.memo(_ref => {
     // Always slot 1: first page
     pages.push(/*#__PURE__*/React.createElement("button", {
       key: 1,
-      className: "rare-earth-page-button ".concat(1 === value ? 'active' : ''),
+      className: `rare-earth-page-button ${1 === value ? 'active' : ''}`,
       onClick: () => onChange(1),
       "aria-label": "Go to page 1",
       "aria-setsize": total,
       "aria-posinset": 1,
       type: "button",
-      "data-testid": "pagination-page-1-".concat(tableId)
+      "data-testid": `pagination-page-1-${tableId}`
     }, "1"));
     // Determine what goes in slots 2-6
     if (value <= 4) {
@@ -3737,14 +5026,14 @@ const Pagination = /*#__PURE__*/React.memo(_ref => {
       for (let i = 2; i <= 5; i++) {
         pages.push(/*#__PURE__*/React.createElement("button", {
           key: i,
-          className: "rare-earth-page-button ".concat(i === value ? 'active' : ''),
+          className: `rare-earth-page-button ${i === value ? 'active' : ''}`,
           onClick: () => onChange(i),
-          "aria-label": "Go to page ".concat(i),
+          "aria-label": `Go to page ${i}`,
           "aria-current": i === value ? 'page' : undefined,
           "aria-setsize": total,
           "aria-posinset": i,
           type: "button",
-          "data-testid": "pagination-page-".concat(i, "-").concat(tableId)
+          "data-testid": `pagination-page-${i}-${tableId}`
         }, i));
       }
       pages.push(/*#__PURE__*/React.createElement("span", {
@@ -3760,14 +5049,14 @@ const Pagination = /*#__PURE__*/React.memo(_ref => {
       for (let i = total - 4; i <= total - 1; i++) {
         pages.push(/*#__PURE__*/React.createElement("button", {
           key: i,
-          className: "rare-earth-page-button ".concat(i === value ? 'active' : ''),
+          className: `rare-earth-page-button ${i === value ? 'active' : ''}`,
           onClick: () => onChange(i),
-          "aria-label": "Go to page ".concat(i),
+          "aria-label": `Go to page ${i}`,
           "aria-current": i === value ? 'page' : undefined,
           "aria-setsize": total,
           "aria-posinset": i,
           type: "button",
-          "data-testid": "pagination-page-".concat(i, "-").concat(tableId)
+          "data-testid": `pagination-page-${i}-${tableId}`
         }, i));
       }
     } else {
@@ -3779,14 +5068,14 @@ const Pagination = /*#__PURE__*/React.memo(_ref => {
       for (let i = value - 1; i <= value + 1; i++) {
         pages.push(/*#__PURE__*/React.createElement("button", {
           key: i,
-          className: "rare-earth-page-button ".concat(i === value ? 'active' : ''),
+          className: `rare-earth-page-button ${i === value ? 'active' : ''}`,
           onClick: () => onChange(i),
-          "aria-label": "Go to page ".concat(i),
+          "aria-label": `Go to page ${i}`,
           "aria-current": i === value ? 'page' : undefined,
           "aria-setsize": total,
           "aria-posinset": i,
           type: "button",
-          "data-testid": "pagination-page-".concat(i, "-").concat(tableId)
+          "data-testid": `pagination-page-${i}-${tableId}`
         }, i));
       }
       pages.push(/*#__PURE__*/React.createElement("span", {
@@ -3797,13 +5086,13 @@ const Pagination = /*#__PURE__*/React.memo(_ref => {
     // Always slot 7: last page
     pages.push(/*#__PURE__*/React.createElement("button", {
       key: total,
-      className: "rare-earth-page-button ".concat(total === value ? 'active' : ''),
+      className: `rare-earth-page-button ${total === value ? 'active' : ''}`,
       onClick: () => onChange(total),
-      "aria-label": "Go to page ".concat(total),
+      "aria-label": `Go to page ${total}`,
       "aria-setsize": total,
       "aria-posinset": total,
       type: "button",
-      "data-testid": "pagination-page-".concat(total, "-").concat(tableId)
+      "data-testid": `pagination-page-${total}-${tableId}`
     }, total));
     return pages;
   };
@@ -3817,7 +5106,7 @@ const Pagination = /*#__PURE__*/React.memo(_ref => {
     onClick: () => onChange(Math.max(1, value - 1)),
     "aria-label": "Go to previous page",
     type: "button",
-    "data-testid": "pagination-previous-".concat(tableId),
+    "data-testid": `pagination-previous-${tableId}`,
     "data-action": "previous",
     title: "Go to previous page"
   }, "\u2039"), renderPageNumbers(), /*#__PURE__*/React.createElement("button", {
@@ -3826,7 +5115,7 @@ const Pagination = /*#__PURE__*/React.memo(_ref => {
     onClick: () => onChange(Math.min(total, value + 1)),
     "aria-label": "Go to next page",
     type: "button",
-    "data-testid": "pagination-next-".concat(tableId),
+    "data-testid": `pagination-next-${tableId}`,
     "data-action": "next",
     title: "Go to next page"
   }, "\u203A"));
@@ -3834,31 +5123,31 @@ const Pagination = /*#__PURE__*/React.memo(_ref => {
 
 const DEBOUNCE_INPUT_TIME_MS = 500;
 
-const TableControl = _ref => {
-  let {
-    tableId,
-    columns,
-    exportTable,
-    numRecords,
-    numFilteredRecords,
-    sortFields,
-    setSortFields,
-    search,
-    setSearch,
-    page,
-    setPage,
-    pageLength,
-    setPageLength,
-    pageLengthChoices,
-    pageCount,
-    debounceTime,
-    resetColumns,
-    initiaDefaultSearch
-  } = _ref;
+const TableControl = ({
+  tableId,
+  columns,
+  exportTable,
+  numRecords,
+  numFilteredRecords,
+  sortFields,
+  setSortFields,
+  search,
+  setSearch,
+  page,
+  setPage,
+  pageLength,
+  setPageLength,
+  pageLengthChoices,
+  pageCount,
+  debounceTime,
+  resetColumns,
+  initiaDefaultSearch
+}) => {
   const [searchInput, setSearchInput] = React.useState(search.global);
   React.useEffect(() => {
-    const debounceFunc = debounce(debounceTime !== null && debounceTime !== void 0 ? debounceTime : DEBOUNCE_INPUT_TIME_MS, () => {
-      setSearch(_search => _objectSpread2(_objectSpread2({}, _search), {}, {
+    const debounceFunc = debounce(debounceTime ?? DEBOUNCE_INPUT_TIME_MS, () => {
+      setSearch(_search => ({
+        ..._search,
         global: searchInput
       }));
     }, {
@@ -3926,15 +5215,12 @@ const TableControl = _ref => {
     className: "rare-earth-input",
     placeholder: "Table Search",
     "aria-label": "Search table",
-    value: searchInput !== null && searchInput !== void 0 ? searchInput : '',
-    onChange: event => {
-      var _event$target$value;
-      return setSearchInput(((_event$target$value = event.target.value) === null || _event$target$value === void 0 ? void 0 : _event$target$value.trim()) == '' ? null : event.target.value);
-    },
+    value: searchInput ?? '',
+    onChange: event => setSearchInput(event.target.value?.trim() == '' ? null : event.target.value),
     type: "search",
     name: "table-search",
     autoComplete: "off",
-    "data-testid": "global-search-input-".concat(tableId)
+    "data-testid": `global-search-input-${tableId}`
   }), /*#__PURE__*/React.createElement(FloatingTooltip, {
     content: "Reset Table"
   }, /*#__PURE__*/React.createElement("button", {
@@ -3953,15 +5239,15 @@ const TableControl = _ref => {
   }, /*#__PURE__*/React.createElement("div", {
     className: "rare-earth-label"
   }, /*#__PURE__*/React.createElement("label", {
-    id: "page-length-label-".concat(tableId),
-    htmlFor: "page-length-select-".concat(tableId)
+    id: `page-length-label-${tableId}`,
+    htmlFor: `page-length-select-${tableId}`
   }, "Page Length"), /*#__PURE__*/React.createElement("select", {
-    id: "page-length-select-".concat(tableId),
+    id: `page-length-select-${tableId}`,
     className: "rare-earth-select",
     value: pageLength.toString(),
     onChange: e => _setPageLength(parseFloat(e.target.value)),
-    "aria-labelledby": "page-length-label-".concat(tableId),
-    "data-testid": "page-length-select-".concat(tableId)
+    "aria-labelledby": `page-length-label-${tableId}`,
+    "data-testid": `page-length-select-${tableId}`
   }, pageLengthOptions.map(opt => (/*#__PURE__*/React.createElement("option", {
     key: opt.value,
     value: opt.value
@@ -3973,46 +5259,110 @@ const TableControl = _ref => {
   })));
 };
 
+const ColumnDragHandle = function ({
+  tableId,
+  columnKey,
+  columnIndex,
+  columnOrder,
+  onOrderChange,
+  headerRefs,
+  children
+}) {
+  const onDragStart = React.useCallback(event => {
+    event.dataTransfer.setData('initiatorKey', columnKey);
+    event.dataTransfer.setData('initiatorIndex', columnIndex.toString());
+  }, [columnKey, columnIndex]);
+  const onDrop = React.useCallback(event => {
+    event.preventDefault();
+    const columnA = event.dataTransfer.getData('initiatorKey');
+    const indexA = parseInt(event.dataTransfer.getData('initiatorIndex'));
+    if (columnA === columnKey || !columnOrder.includes(columnA) || !Number.isInteger(indexA)) {
+      return;
+    }
+    const boundingBox = event.currentTarget.getBoundingClientRect();
+    const before = event.clientX <= (boundingBox.left + boundingBox.right) / 2;
+    const newColumnOrder = [];
+    for (let i = 0; i < columnOrder.length; i++) {
+      const orderColumnKey = columnOrder[i];
+      if (orderColumnKey !== columnA && orderColumnKey !== columnKey) {
+        newColumnOrder.push(orderColumnKey);
+      } else if (orderColumnKey === columnKey) {
+        if (Math.abs(i - indexA) <= 1) {
+          newColumnOrder.push(...(indexA < i ? [columnKey, columnA] : [columnA, columnKey]));
+        } else {
+          newColumnOrder.push(...(before ? [columnA, columnKey] : [columnKey, columnA]));
+        }
+      }
+    }
+    onOrderChange(newColumnOrder);
+  }, [columnKey, columnOrder, onOrderChange]);
+  return /*#__PURE__*/React.createElement("div", {
+    ref: element => {
+      if (element && headerRefs?.current) {
+        headerRefs.current[columnIndex] = element;
+      }
+    },
+    "data-rare-earth-column-key": columnKey,
+    className: "rare-earth-draggable",
+    draggable: true,
+    "data-testid": `column-header-${tableId}-${columnKey}`,
+    "data-column": columnKey,
+    "data-draggable": "true",
+    onDragStart: onDragStart,
+    onDragOver: event => event.preventDefault(),
+    onDragEnter: event => event.preventDefault(),
+    onDrop: onDrop
+  }, children);
+};
+
 const TableHeader = function (props) {
-  var _props$search, _props$search$fields$, _props$search2, _props$search$fields$2, _props$search3, _props$search4, _props$search5, _props$search6, _props$search7, _props$search8, _props$search9, _props$search17, _props$column$label, _props$column$label2, _props$column$label3, _props$column$label4, _props$column$label5, _props$column$label6, _props$column$label7, _props$search23, _props$search24, _props$search25, _props$search26;
   const {
     tableId,
     ref
   } = props;
+  const labelId = React.useId();
+  const sortDescriptionId = React.useId();
   const [searchInput, setSearchInput] = React.useState({
-    string: (_props$search = props.search) === null || _props$search === void 0 || (_props$search = _props$search.fields) === null || _props$search === void 0 || (_props$search = _props$search[props.column_key]) === null || _props$search === void 0 || (_props$search = _props$search.string) === null || _props$search === void 0 ? void 0 : _props$search.text,
+    string: props.search?.fields?.[props.column_key]?.string?.text,
     number: {
-      gt: (_props$search$fields$ = (_props$search2 = props.search) === null || _props$search2 === void 0 || (_props$search2 = _props$search2.fields) === null || _props$search2 === void 0 || (_props$search2 = _props$search2[props.column_key]) === null || _props$search2 === void 0 || (_props$search2 = _props$search2.number) === null || _props$search2 === void 0 || (_props$search2 = _props$search2.gt) === null || _props$search2 === void 0 ? void 0 : _props$search2.value) !== null && _props$search$fields$ !== void 0 ? _props$search$fields$ : null,
-      lt: (_props$search$fields$2 = (_props$search3 = props.search) === null || _props$search3 === void 0 || (_props$search3 = _props$search3.fields) === null || _props$search3 === void 0 || (_props$search3 = _props$search3[props.column_key]) === null || _props$search3 === void 0 || (_props$search3 = _props$search3.number) === null || _props$search3 === void 0 || (_props$search3 = _props$search3.lt) === null || _props$search3 === void 0 ? void 0 : _props$search3.value) !== null && _props$search$fields$2 !== void 0 ? _props$search$fields$2 : null,
-      gtRaw: ((_props$search4 = props.search) === null || _props$search4 === void 0 || (_props$search4 = _props$search4.fields) === null || _props$search4 === void 0 || (_props$search4 = _props$search4[props.column_key]) === null || _props$search4 === void 0 || (_props$search4 = _props$search4.number) === null || _props$search4 === void 0 || (_props$search4 = _props$search4.gt) === null || _props$search4 === void 0 ? void 0 : _props$search4.value) !== null && ((_props$search5 = props.search) === null || _props$search5 === void 0 || (_props$search5 = _props$search5.fields) === null || _props$search5 === void 0 || (_props$search5 = _props$search5[props.column_key]) === null || _props$search5 === void 0 || (_props$search5 = _props$search5.number) === null || _props$search5 === void 0 || (_props$search5 = _props$search5.gt) === null || _props$search5 === void 0 ? void 0 : _props$search5.value) !== undefined ? (_props$search6 = props.search) === null || _props$search6 === void 0 || (_props$search6 = _props$search6.fields) === null || _props$search6 === void 0 || (_props$search6 = _props$search6[props.column_key]) === null || _props$search6 === void 0 || (_props$search6 = _props$search6.number) === null || _props$search6 === void 0 || (_props$search6 = _props$search6.gt) === null || _props$search6 === void 0 ? void 0 : _props$search6.value.toString() : '',
-      ltRaw: ((_props$search7 = props.search) === null || _props$search7 === void 0 || (_props$search7 = _props$search7.fields) === null || _props$search7 === void 0 || (_props$search7 = _props$search7[props.column_key]) === null || _props$search7 === void 0 || (_props$search7 = _props$search7.number) === null || _props$search7 === void 0 || (_props$search7 = _props$search7.lt) === null || _props$search7 === void 0 ? void 0 : _props$search7.value) !== null && ((_props$search8 = props.search) === null || _props$search8 === void 0 || (_props$search8 = _props$search8.fields) === null || _props$search8 === void 0 || (_props$search8 = _props$search8[props.column_key]) === null || _props$search8 === void 0 || (_props$search8 = _props$search8.number) === null || _props$search8 === void 0 || (_props$search8 = _props$search8.lt) === null || _props$search8 === void 0 ? void 0 : _props$search8.value) !== undefined ? (_props$search9 = props.search) === null || _props$search9 === void 0 || (_props$search9 = _props$search9.fields) === null || _props$search9 === void 0 || (_props$search9 = _props$search9[props.column_key]) === null || _props$search9 === void 0 || (_props$search9 = _props$search9.number) === null || _props$search9 === void 0 || (_props$search9 = _props$search9.lt) === null || _props$search9 === void 0 ? void 0 : _props$search9.value.toString() : ''
+      gt: props.search?.fields?.[props.column_key]?.number?.gt?.value ?? null,
+      lt: props.search?.fields?.[props.column_key]?.number?.lt?.value ?? null,
+      gtRaw: props.search?.fields?.[props.column_key]?.number?.gt?.value !== null && props.search?.fields?.[props.column_key]?.number?.gt?.value !== undefined ? props.search?.fields?.[props.column_key]?.number?.gt?.value.toString() : '',
+      ltRaw: props.search?.fields?.[props.column_key]?.number?.lt?.value !== null && props.search?.fields?.[props.column_key]?.number?.lt?.value !== undefined ? props.search?.fields?.[props.column_key]?.number?.lt?.value.toString() : ''
     }
   });
   const [searchOptionsOpen, setSearchOptionsOpen] = React.useState(false);
   // Memoized event handlers for inputs
   const handleStringFilterChange = React.useCallback(value => {
-    setSearchInput(prev => _objectSpread2(_objectSpread2({}, prev), {}, {
-      string: (value === null || value === void 0 ? void 0 : value.trim()) === '' ? null : value
+    setSearchInput(prev => ({
+      ...prev,
+      string: value?.trim() === '' ? null : value
     }));
   }, []);
   const handleNumberGtChange = React.useCallback(value => {
-    setSearchInput(prev => _objectSpread2(_objectSpread2({}, prev), {}, {
-      number: _objectSpread2(_objectSpread2({}, prev.number), {}, {
+    setSearchInput(prev => ({
+      ...prev,
+      number: {
+        ...prev.number,
         gtRaw: value
-      })
+      }
     }));
   }, []);
   const handleNumberLtChange = React.useCallback(value => {
-    setSearchInput(prev => _objectSpread2(_objectSpread2({}, prev), {}, {
-      number: _objectSpread2(_objectSpread2({}, prev.number), {}, {
+    setSearchInput(prev => ({
+      ...prev,
+      number: {
+        ...prev.number,
         ltRaw: value
-      })
+      }
     }));
   }, []);
   // Validate raw numeric inputs and update actual values
   React.useEffect(() => {
     setSearchInput(_searchInput => {
-      const newNumber = _objectSpread2({}, _searchInput.number);
+      const newNumber = {
+        ..._searchInput.number
+      };
       // Validate gt (greater than) value
       if (_searchInput.number.gtRaw === '') {
         newNumber.gt = null;
@@ -4047,9 +5397,10 @@ const TableHeader = function (props) {
           newNumber.lt = null;
         }
       }
-      return _objectSpread2(_objectSpread2({}, _searchInput), {}, {
+      return {
+        ..._searchInput,
         number: newNumber
-      });
+      };
     });
   }, [searchInput.number.gtRaw, searchInput.number.ltRaw]);
   const {
@@ -4078,54 +5429,54 @@ const TableHeader = function (props) {
   // Apply styles directly to the DOM element to avoid inline styles
   React.useEffect(() => {
     if (searchOptionsOpen && refs.floating.current) {
-      var _floatingStyles$top, _floatingStyles$left;
       const element = refs.floating.current;
       element.style.position = floatingStyles.position;
-      element.style.top = "".concat((_floatingStyles$top = floatingStyles.top) !== null && _floatingStyles$top !== void 0 ? _floatingStyles$top : 0, "px");
-      element.style.left = "".concat((_floatingStyles$left = floatingStyles.left) !== null && _floatingStyles$left !== void 0 ? _floatingStyles$left : 0, "px");
+      element.style.top = `${floatingStyles.top ?? 0}px`;
+      element.style.left = `${floatingStyles.left ?? 0}px`;
       element.style.transform = floatingStyles.transform;
     }
   }, [searchOptionsOpen, floatingStyles, refs.floating]);
   React.useEffect(() => {
-    setSearchInput(_searchInput => {
-      var _props$search0, _props$search$fields$3, _props$search1, _props$search$fields$4, _props$search10, _searchInput$number$g, _searchInput$number, _props$search11, _props$search12, _props$search13, _searchInput$number$l, _searchInput$number2, _props$search14, _props$search15, _props$search16;
-      return {
-        string: (_props$search0 = props.search) === null || _props$search0 === void 0 || (_props$search0 = _props$search0.fields) === null || _props$search0 === void 0 || (_props$search0 = _props$search0[props.column_key]) === null || _props$search0 === void 0 || (_props$search0 = _props$search0.string) === null || _props$search0 === void 0 ? void 0 : _props$search0.text,
-        number: {
-          gt: (_props$search$fields$3 = (_props$search1 = props.search) === null || _props$search1 === void 0 || (_props$search1 = _props$search1.fields) === null || _props$search1 === void 0 || (_props$search1 = _props$search1[props.column_key]) === null || _props$search1 === void 0 || (_props$search1 = _props$search1.number) === null || _props$search1 === void 0 || (_props$search1 = _props$search1.gt) === null || _props$search1 === void 0 ? void 0 : _props$search1.value) !== null && _props$search$fields$3 !== void 0 ? _props$search$fields$3 : null,
-          lt: (_props$search$fields$4 = (_props$search10 = props.search) === null || _props$search10 === void 0 || (_props$search10 = _props$search10.fields) === null || _props$search10 === void 0 || (_props$search10 = _props$search10[props.column_key]) === null || _props$search10 === void 0 || (_props$search10 = _props$search10.number) === null || _props$search10 === void 0 || (_props$search10 = _props$search10.lt) === null || _props$search10 === void 0 ? void 0 : _props$search10.value) !== null && _props$search$fields$4 !== void 0 ? _props$search$fields$4 : null,
-          // Preserve existing raw values or initialize from actual values if they don't exist
-          gtRaw: (_searchInput$number$g = (_searchInput$number = _searchInput.number) === null || _searchInput$number === void 0 ? void 0 : _searchInput$number.gtRaw) !== null && _searchInput$number$g !== void 0 ? _searchInput$number$g : ((_props$search11 = props.search) === null || _props$search11 === void 0 || (_props$search11 = _props$search11.fields) === null || _props$search11 === void 0 || (_props$search11 = _props$search11[props.column_key]) === null || _props$search11 === void 0 || (_props$search11 = _props$search11.number) === null || _props$search11 === void 0 || (_props$search11 = _props$search11.gt) === null || _props$search11 === void 0 ? void 0 : _props$search11.value) !== null && ((_props$search12 = props.search) === null || _props$search12 === void 0 || (_props$search12 = _props$search12.fields) === null || _props$search12 === void 0 || (_props$search12 = _props$search12[props.column_key]) === null || _props$search12 === void 0 || (_props$search12 = _props$search12.number) === null || _props$search12 === void 0 || (_props$search12 = _props$search12.gt) === null || _props$search12 === void 0 ? void 0 : _props$search12.value) !== undefined ? (_props$search13 = props.search) === null || _props$search13 === void 0 || (_props$search13 = _props$search13.fields) === null || _props$search13 === void 0 || (_props$search13 = _props$search13[props.column_key]) === null || _props$search13 === void 0 || (_props$search13 = _props$search13.number) === null || _props$search13 === void 0 || (_props$search13 = _props$search13.gt) === null || _props$search13 === void 0 ? void 0 : _props$search13.value.toString() : '',
-          ltRaw: (_searchInput$number$l = (_searchInput$number2 = _searchInput.number) === null || _searchInput$number2 === void 0 ? void 0 : _searchInput$number2.ltRaw) !== null && _searchInput$number$l !== void 0 ? _searchInput$number$l : ((_props$search14 = props.search) === null || _props$search14 === void 0 || (_props$search14 = _props$search14.fields) === null || _props$search14 === void 0 || (_props$search14 = _props$search14[props.column_key]) === null || _props$search14 === void 0 || (_props$search14 = _props$search14.number) === null || _props$search14 === void 0 || (_props$search14 = _props$search14.lt) === null || _props$search14 === void 0 ? void 0 : _props$search14.value) !== null && ((_props$search15 = props.search) === null || _props$search15 === void 0 || (_props$search15 = _props$search15.fields) === null || _props$search15 === void 0 || (_props$search15 = _props$search15[props.column_key]) === null || _props$search15 === void 0 || (_props$search15 = _props$search15.number) === null || _props$search15 === void 0 || (_props$search15 = _props$search15.lt) === null || _props$search15 === void 0 ? void 0 : _props$search15.value) !== undefined ? (_props$search16 = props.search) === null || _props$search16 === void 0 || (_props$search16 = _props$search16.fields) === null || _props$search16 === void 0 || (_props$search16 = _props$search16[props.column_key]) === null || _props$search16 === void 0 || (_props$search16 = _props$search16.number) === null || _props$search16 === void 0 || (_props$search16 = _props$search16.lt) === null || _props$search16 === void 0 ? void 0 : _props$search16.value.toString() : ''
-        }
-      };
-    });
-  }, [JSON.stringify(props === null || props === void 0 || (_props$search17 = props.search) === null || _props$search17 === void 0 || (_props$search17 = _props$search17.fields) === null || _props$search17 === void 0 ? void 0 : _props$search17[props === null || props === void 0 ? void 0 : props.column_key])]);
+    setSearchInput(_searchInput => ({
+      string: props.search?.fields?.[props.column_key]?.string?.text,
+      number: {
+        gt: props.search?.fields?.[props.column_key]?.number?.gt?.value ?? null,
+        lt: props.search?.fields?.[props.column_key]?.number?.lt?.value ?? null,
+        // Preserve existing raw values or initialize from actual values if they don't exist
+        gtRaw: _searchInput.number?.gtRaw ?? (props.search?.fields?.[props.column_key]?.number?.gt?.value !== null && props.search?.fields?.[props.column_key]?.number?.gt?.value !== undefined ? props.search?.fields?.[props.column_key]?.number?.gt?.value.toString() : ''),
+        ltRaw: _searchInput.number?.ltRaw ?? (props.search?.fields?.[props.column_key]?.number?.lt?.value !== null && props.search?.fields?.[props.column_key]?.number?.lt?.value !== undefined ? props.search?.fields?.[props.column_key]?.number?.lt?.value.toString() : '')
+      }
+    }));
+  }, [JSON.stringify(props?.search?.fields?.[props?.column_key])]);
   // Create a stable debounced function
-  const debouncedSetSearch = React.useMemo(() => {
-    var _props$debounceTime;
-    return debounce((_props$debounceTime = props.debounceTime) !== null && _props$debounceTime !== void 0 ? _props$debounceTime : DEBOUNCE_INPUT_TIME_MS, newSearchInput => {
-      props.setSearch(_search => _objectSpread2(_objectSpread2({}, _search), {}, {
-        fields: _objectSpread2(_objectSpread2({}, _search.fields), {}, {
-          [props.column_key]: _objectSpread2(_objectSpread2({}, _search.fields[props.column_key]), {}, {
-            string: _objectSpread2(_objectSpread2({}, _search.fields[props.column_key].string), {}, {
-              text: newSearchInput.string
-            }),
-            number: _objectSpread2(_objectSpread2({}, _search.fields[props.column_key].number), {}, {
-              gt: _objectSpread2(_objectSpread2({}, _search.fields[props.column_key].number.gt), {}, {
-                value: newSearchInput.number.gt
-              }),
-              lt: _objectSpread2(_objectSpread2({}, _search.fields[props.column_key].number.lt), {}, {
-                value: newSearchInput.number.lt
-              })
-            })
-          })
-        })
-      }));
-    }, {
-      atBegin: false
-    });
-  }, [props.debounceTime, props.column_key, props.setSearch]);
+  const debouncedSetSearch = React.useMemo(() => debounce(props.debounceTime ?? DEBOUNCE_INPUT_TIME_MS, newSearchInput => {
+    props.setSearch(_search => ({
+      ..._search,
+      fields: {
+        ..._search.fields,
+        [props.column_key]: {
+          ..._search.fields[props.column_key],
+          string: {
+            ..._search.fields[props.column_key].string,
+            text: newSearchInput.string
+          },
+          number: {
+            ..._search.fields[props.column_key].number,
+            gt: {
+              ..._search.fields[props.column_key].number.gt,
+              value: newSearchInput.number.gt
+            },
+            lt: {
+              ..._search.fields[props.column_key].number.lt,
+              value: newSearchInput.number.lt
+            }
+          }
+        }
+      }
+    }));
+  }, {
+    atBegin: false
+  }), [props.debounceTime, props.column_key, props.setSearch]);
   // Use the debounced function when searchInput changes
   React.useEffect(() => {
     debouncedSetSearch(searchInput);
@@ -4138,8 +5489,7 @@ const TableHeader = function (props) {
   }, [debouncedSetSearch]);
   const sortFieldClick = React.useCallback(event => {
     let thisFieldReverse = null;
-    for (let i = 0; (_ref = i < ((_props$sortFields = props.sortFields) === null || _props$sortFields === void 0 ? void 0 : _props$sortFields.length)) !== null && _ref !== void 0 ? _ref : 0; i++) {
-      var _ref, _props$sortFields;
+    for (let i = 0; i < props.sortFields?.length ?? 0; i++) {
       let sortField = props.sortFields[i];
       if (sortField['key'] == props.column_key) {
         thisFieldReverse = sortField['reverse'];
@@ -4166,8 +5516,7 @@ const TableHeader = function (props) {
         break;
       case true:
         let currentKeyIncluded = false;
-        for (let i = 0; (_ref2 = i < ((_props$sortFields2 = props.sortFields) === null || _props$sortFields2 === void 0 ? void 0 : _props$sortFields2.length)) !== null && _ref2 !== void 0 ? _ref2 : 0; i++) {
-          var _ref2, _props$sortFields2;
+        for (let i = 0; i < props.sortFields?.length ?? 0; i++) {
           let sortField = props.sortFields[i];
           if (sortField['key'] == props.column_key) {
             currentKeyIncluded = true;
@@ -4203,8 +5552,7 @@ const TableHeader = function (props) {
   let ascendingActive = false;
   let descendingActive = false;
   let sortIndex = null;
-  for (let i = 0; (_ref3 = i < ((_props$sortFields3 = props.sortFields) === null || _props$sortFields3 === void 0 ? void 0 : _props$sortFields3.length)) !== null && _ref3 !== void 0 ? _ref3 : 0; i++) {
-    var _ref3, _props$sortFields3;
+  for (let i = 0; i < props.sortFields?.length ?? 0; i++) {
     let sortField = props.sortFields[i];
     if (sortField.key == props.column_key) {
       if (sortField.reverse) {
@@ -4216,34 +5564,33 @@ const TableHeader = function (props) {
     }
   }
   function renderSearchInput() {
-    var _props$search18, _searchInput$string, _searchInput$number3, _searchInput$number4, _searchInput$number5, _searchInput$number6, _searchInput$number7, _searchInput$number8, _searchInput$number9, _searchInput$number0, _searchInput$number1, _searchInput$number10, _searchInput$number11, _searchInput$number12, _searchInput$number13, _searchInput$number14, _searchInput$number$g2, _searchInput$number15, _props$search$fields$5, _props$search19, _searchInput$number$l2, _searchInput$number16, _props$search$fields$6, _props$search20;
-    switch (props === null || props === void 0 || (_props$search18 = props.search) === null || _props$search18 === void 0 || (_props$search18 = _props$search18.fields) === null || _props$search18 === void 0 || (_props$search18 = _props$search18[props === null || props === void 0 ? void 0 : props.column_key]) === null || _props$search18 === void 0 ? void 0 : _props$search18._type) {
+    switch (props?.search?.fields?.[props?.column_key]?._type) {
       case 'string':
         return /*#__PURE__*/React.createElement("input", {
           className: "rare-earth-input rare-earth-input-sm",
           placeholder: "Filter",
-          value: (_searchInput$string = searchInput === null || searchInput === void 0 ? void 0 : searchInput.string) !== null && _searchInput$string !== void 0 ? _searchInput$string : '',
+          value: searchInput?.string ?? '',
           onChange: event => handleStringFilterChange(event.target.value),
           type: "text",
-          name: "filter-".concat(tableId, "-").concat(props.column_key),
+          name: `filter-${tableId}-${props.column_key}`,
           autoComplete: "off",
-          "data-testid": "filter-input-".concat(tableId, "-").concat(props.column_key),
+          "data-testid": `filter-input-${tableId}-${props.column_key}`,
           "data-filter-type": "string"
         });
       case 'number':
         // Check if the input contains only valid characters but is still invalid as a number
-        const isValidGtPattern = ((_searchInput$number3 = searchInput.number) === null || _searchInput$number3 === void 0 ? void 0 : _searchInput$number3.gtRaw) && /^-?\d*\.?\d*$/.test(searchInput.number.gtRaw);
-        const isValidLtPattern = ((_searchInput$number4 = searchInput.number) === null || _searchInput$number4 === void 0 ? void 0 : _searchInput$number4.ltRaw) && /^-?\d*\.?\d*$/.test(searchInput.number.ltRaw);
+        const isValidGtPattern = searchInput.number?.gtRaw && /^-?\d*\.?\d*$/.test(searchInput.number.gtRaw);
+        const isValidLtPattern = searchInput.number?.ltRaw && /^-?\d*\.?\d*$/.test(searchInput.number.ltRaw);
         // These are intermediate states that are invalid as final values
-        const gtIsIntermediateState = ((_searchInput$number5 = searchInput.number) === null || _searchInput$number5 === void 0 ? void 0 : _searchInput$number5.gtRaw) === '-' || ((_searchInput$number6 = searchInput.number) === null || _searchInput$number6 === void 0 ? void 0 : _searchInput$number6.gtRaw) === '.' || ((_searchInput$number7 = searchInput.number) === null || _searchInput$number7 === void 0 ? void 0 : _searchInput$number7.gtRaw) === '-.' || ((_searchInput$number8 = searchInput.number) === null || _searchInput$number8 === void 0 ? void 0 : _searchInput$number8.gtRaw) && searchInput.number.gtRaw.endsWith('.');
-        const ltIsIntermediateState = ((_searchInput$number9 = searchInput.number) === null || _searchInput$number9 === void 0 ? void 0 : _searchInput$number9.ltRaw) === '-' || ((_searchInput$number0 = searchInput.number) === null || _searchInput$number0 === void 0 ? void 0 : _searchInput$number0.ltRaw) === '.' || ((_searchInput$number1 = searchInput.number) === null || _searchInput$number1 === void 0 ? void 0 : _searchInput$number1.ltRaw) === '-.' || ((_searchInput$number10 = searchInput.number) === null || _searchInput$number10 === void 0 ? void 0 : _searchInput$number10.ltRaw) && searchInput.number.ltRaw.endsWith('.');
+        const gtIsIntermediateState = searchInput.number?.gtRaw === '-' || searchInput.number?.gtRaw === '.' || searchInput.number?.gtRaw === '-.' || searchInput.number?.gtRaw && searchInput.number.gtRaw.endsWith('.');
+        const ltIsIntermediateState = searchInput.number?.ltRaw === '-' || searchInput.number?.ltRaw === '.' || searchInput.number?.ltRaw === '-.' || searchInput.number?.ltRaw && searchInput.number.ltRaw.endsWith('.');
         // Check for min/max validation
-        const gtValue = (_searchInput$number11 = searchInput.number) === null || _searchInput$number11 === void 0 ? void 0 : _searchInput$number11.gt;
-        const ltValue = (_searchInput$number12 = searchInput.number) === null || _searchInput$number12 === void 0 ? void 0 : _searchInput$number12.lt;
+        const gtValue = searchInput.number?.gt;
+        const ltValue = searchInput.number?.lt;
         const hasMinMaxMismatch = gtValue !== null && ltValue !== null && gtValue > ltValue;
         // Show error if: contains invalid characters OR is an incomplete number OR min > max
-        const gtHasError = ((_searchInput$number13 = searchInput.number) === null || _searchInput$number13 === void 0 ? void 0 : _searchInput$number13.gtRaw) && (!isValidGtPattern || gtIsIntermediateState) || hasMinMaxMismatch;
-        const ltHasError = ((_searchInput$number14 = searchInput.number) === null || _searchInput$number14 === void 0 ? void 0 : _searchInput$number14.ltRaw) && (!isValidLtPattern || ltIsIntermediateState) || hasMinMaxMismatch;
+        const gtHasError = searchInput.number?.gtRaw && (!isValidGtPattern || gtIsIntermediateState) || hasMinMaxMismatch;
+        const ltHasError = searchInput.number?.ltRaw && (!isValidLtPattern || ltIsIntermediateState) || hasMinMaxMismatch;
         return /*#__PURE__*/React.createElement("div", {
           className: "rare-earth-numeric-filter-container"
         }, /*#__PURE__*/React.createElement("div", {
@@ -4251,35 +5598,40 @@ const TableHeader = function (props) {
         }, /*#__PURE__*/React.createElement("div", {
           className: "rare-earth-numeric-filter-row"
         }, /*#__PURE__*/React.createElement("input", {
-          className: "rare-earth-number-input rare-earth-numeric-filter-input ".concat(gtHasError ? 'error' : ''),
+          className: `rare-earth-number-input rare-earth-numeric-filter-input ${gtHasError ? 'error' : ''}`,
           type: "text",
           placeholder: "Min",
-          value: (_searchInput$number$g2 = (_searchInput$number15 = searchInput.number) === null || _searchInput$number15 === void 0 ? void 0 : _searchInput$number15.gtRaw) !== null && _searchInput$number$g2 !== void 0 ? _searchInput$number$g2 : '',
+          value: searchInput.number?.gtRaw ?? '',
           "aria-invalid": gtHasError,
-          "aria-describedby": gtHasError ? "gt-error-".concat(tableId, "-").concat(props.column_key) : undefined,
-          name: "filter-".concat(tableId, "-").concat(props.column_key, "-min"),
+          "aria-describedby": gtHasError ? `gt-error-${tableId}-${props.column_key}` : undefined,
+          name: `filter-${tableId}-${props.column_key}-min`,
           autoComplete: "off",
-          "data-testid": "filter-min-".concat(tableId, "-").concat(props.column_key),
+          "data-testid": `filter-min-${tableId}-${props.column_key}`,
           "data-filter-type": "number",
           onChange: event => handleNumberGtChange(event.target.value)
         }), /*#__PURE__*/React.createElement("label", {
           className: "rare-earth-checkbox-sm"
         }, /*#__PURE__*/React.createElement("input", {
           type: "checkbox",
-          checked: (_props$search$fields$5 = (_props$search19 = props.search) === null || _props$search19 === void 0 || (_props$search19 = _props$search19.fields) === null || _props$search19 === void 0 || (_props$search19 = _props$search19[props.column_key]) === null || _props$search19 === void 0 || (_props$search19 = _props$search19.number) === null || _props$search19 === void 0 || (_props$search19 = _props$search19.gt) === null || _props$search19 === void 0 ? void 0 : _props$search19.equals) !== null && _props$search$fields$5 !== void 0 ? _props$search$fields$5 : false,
-          onChange: event => props.setSearch(_search => _objectSpread2(_objectSpread2({}, _search), {}, {
-            fields: _objectSpread2(_objectSpread2({}, _search.fields), {}, {
-              [props.column_key]: _objectSpread2(_objectSpread2({}, _search.fields[props.column_key]), {}, {
-                number: _objectSpread2(_objectSpread2({}, _search.fields[props.column_key].number), {}, {
-                  gt: _objectSpread2(_objectSpread2({}, _search.fields[props.column_key].number.gt), {}, {
+          checked: props.search?.fields?.[props.column_key]?.number?.gt?.equals ?? false,
+          onChange: event => props.setSearch(_search => ({
+            ..._search,
+            fields: {
+              ..._search.fields,
+              [props.column_key]: {
+                ..._search.fields[props.column_key],
+                number: {
+                  ..._search.fields[props.column_key].number,
+                  gt: {
+                    ..._search.fields[props.column_key].number.gt,
                     equals: event.target.checked
-                  })
-                })
-              })
-            })
+                  }
+                }
+              }
+            }
           }))
         }), "Inclusive")), gtHasError && /*#__PURE__*/React.createElement("div", {
-          id: "gt-error-".concat(tableId, "-").concat(props.column_key),
+          id: `gt-error-${tableId}-${props.column_key}`,
           className: "rare-earth-error-text",
           role: "alert"
         }, hasMinMaxMismatch ? 'Min cannot be greater than max' : gtIsIntermediateState ? 'Incomplete number' : 'Invalid number format')), /*#__PURE__*/React.createElement("div", {
@@ -4287,35 +5639,40 @@ const TableHeader = function (props) {
         }, /*#__PURE__*/React.createElement("div", {
           className: "rare-earth-numeric-filter-row"
         }, /*#__PURE__*/React.createElement("input", {
-          className: "rare-earth-number-input rare-earth-numeric-filter-input ".concat(ltHasError ? 'error' : ''),
+          className: `rare-earth-number-input rare-earth-numeric-filter-input ${ltHasError ? 'error' : ''}`,
           type: "text",
           placeholder: "Max",
-          value: (_searchInput$number$l2 = (_searchInput$number16 = searchInput.number) === null || _searchInput$number16 === void 0 ? void 0 : _searchInput$number16.ltRaw) !== null && _searchInput$number$l2 !== void 0 ? _searchInput$number$l2 : '',
+          value: searchInput.number?.ltRaw ?? '',
           "aria-invalid": ltHasError,
-          "aria-describedby": ltHasError ? "lt-error-".concat(tableId, "-").concat(props.column_key) : undefined,
-          name: "filter-".concat(tableId, "-").concat(props.column_key, "-max"),
+          "aria-describedby": ltHasError ? `lt-error-${tableId}-${props.column_key}` : undefined,
+          name: `filter-${tableId}-${props.column_key}-max`,
           autoComplete: "off",
-          "data-testid": "filter-max-".concat(tableId, "-").concat(props.column_key),
+          "data-testid": `filter-max-${tableId}-${props.column_key}`,
           "data-filter-type": "number",
           onChange: event => handleNumberLtChange(event.target.value)
         }), /*#__PURE__*/React.createElement("label", {
           className: "rare-earth-checkbox-sm"
         }, /*#__PURE__*/React.createElement("input", {
           type: "checkbox",
-          checked: (_props$search$fields$6 = (_props$search20 = props.search) === null || _props$search20 === void 0 || (_props$search20 = _props$search20.fields) === null || _props$search20 === void 0 || (_props$search20 = _props$search20[props.column_key]) === null || _props$search20 === void 0 || (_props$search20 = _props$search20.number) === null || _props$search20 === void 0 || (_props$search20 = _props$search20.lt) === null || _props$search20 === void 0 ? void 0 : _props$search20.equals) !== null && _props$search$fields$6 !== void 0 ? _props$search$fields$6 : false,
-          onChange: event => props.setSearch(_search => _objectSpread2(_objectSpread2({}, _search), {}, {
-            fields: _objectSpread2(_objectSpread2({}, _search.fields), {}, {
-              [props.column_key]: _objectSpread2(_objectSpread2({}, _search.fields[props.column_key]), {}, {
-                number: _objectSpread2(_objectSpread2({}, _search.fields[props.column_key].number), {}, {
-                  lt: _objectSpread2(_objectSpread2({}, _search.fields[props.column_key].number.lt), {}, {
+          checked: props.search?.fields?.[props.column_key]?.number?.lt?.equals ?? false,
+          onChange: event => props.setSearch(_search => ({
+            ..._search,
+            fields: {
+              ..._search.fields,
+              [props.column_key]: {
+                ..._search.fields[props.column_key],
+                number: {
+                  ..._search.fields[props.column_key].number,
+                  lt: {
+                    ..._search.fields[props.column_key].number.lt,
                     equals: event.target.checked
-                  })
-                })
-              })
-            })
+                  }
+                }
+              }
+            }
           }))
         }), "Inclusive")), ltHasError && /*#__PURE__*/React.createElement("div", {
-          id: "lt-error-".concat(tableId, "-").concat(props.column_key),
+          id: `lt-error-${tableId}-${props.column_key}`,
           className: "rare-earth-error-text",
           role: "alert"
         }, hasMinMaxMismatch ? 'Max cannot be less than min' : ltIsIntermediateState ? 'Incomplete number' : 'Invalid number format')));
@@ -4324,8 +5681,7 @@ const TableHeader = function (props) {
     }
   }
   function renderPopup() {
-    var _props$search21, _props$search22;
-    if ((props === null || props === void 0 || (_props$search21 = props.search) === null || _props$search21 === void 0 || (_props$search21 = _props$search21.fields) === null || _props$search21 === void 0 || (_props$search21 = _props$search21[props === null || props === void 0 ? void 0 : props.column_key]) === null || _props$search21 === void 0 ? void 0 : _props$search21._type) == 'string') {
+    if (props?.search?.fields?.[props?.column_key]?._type == 'string') {
       return /*#__PURE__*/React.createElement("div", {
         className: "rare-earth-filter-content"
       }, /*#__PURE__*/React.createElement("label", {
@@ -4333,46 +5689,57 @@ const TableHeader = function (props) {
       }, /*#__PURE__*/React.createElement("input", {
         type: "checkbox",
         checked: props.search.fields[props.column_key].string.trim,
-        onChange: event => props.setSearch(_search => _objectSpread2(_objectSpread2({}, _search), {}, {
-          fields: _objectSpread2(_objectSpread2({}, _search.fields), {}, {
-            [props.column_key]: _objectSpread2(_objectSpread2({}, _search.fields[props.column_key]), {}, {
-              string: _objectSpread2(_objectSpread2({}, _search.fields[props.column_key].string), {}, {
+        onChange: event => props.setSearch(_search => ({
+          ..._search,
+          fields: {
+            ..._search.fields,
+            [props.column_key]: {
+              ..._search.fields[props.column_key],
+              string: {
+                ..._search.fields[props.column_key].string,
                 trim: event.target.checked
-              })
-            })
-          })
+              }
+            }
+          }
         }))
       }), "Trim"), /*#__PURE__*/React.createElement("label", {
         className: "rare-earth-checkbox"
       }, /*#__PURE__*/React.createElement("input", {
         type: "checkbox",
         checked: props.search.fields[props.column_key].string.caseSensitive,
-        onChange: event => props.setSearch(_search => _objectSpread2(_objectSpread2({}, _search), {}, {
-          fields: _objectSpread2(_objectSpread2({}, _search.fields), {}, {
-            [props.column_key]: _objectSpread2(_objectSpread2({}, _search.fields[props.column_key]), {}, {
-              string: _objectSpread2(_objectSpread2({}, _search.fields[props.column_key].string), {}, {
+        onChange: event => props.setSearch(_search => ({
+          ..._search,
+          fields: {
+            ..._search.fields,
+            [props.column_key]: {
+              ..._search.fields[props.column_key],
+              string: {
+                ..._search.fields[props.column_key].string,
                 caseSensitive: event.target.checked
-              })
-            })
-          })
+              }
+            }
+          }
         }))
       }), "Case Sensitive"), /*#__PURE__*/React.createElement("label", {
         className: "rare-earth-checkbox"
       }, /*#__PURE__*/React.createElement("input", {
         type: "checkbox",
         checked: props.search.fields[props.column_key].string.isRegex,
-        onChange: event => props.setSearch(_search => _objectSpread2(_objectSpread2({}, _search), {}, {
-          fields: _objectSpread2(_objectSpread2({}, _search.fields), {}, {
-            [props.column_key]: _objectSpread2(_objectSpread2({}, _search.fields[props.column_key]), {}, {
-              string: _objectSpread2(_objectSpread2({}, _search.fields[props.column_key].string), {}, {
+        onChange: event => props.setSearch(_search => ({
+          ..._search,
+          fields: {
+            ..._search.fields,
+            [props.column_key]: {
+              ..._search.fields[props.column_key],
+              string: {
+                ..._search.fields[props.column_key].string,
                 isRegex: event.target.checked
-              })
-            })
-          })
+              }
+            }
+          }
         }))
       }), "Regex"));
-    } else if ((props === null || props === void 0 || (_props$search22 = props.search) === null || _props$search22 === void 0 || (_props$search22 = _props$search22.fields) === null || _props$search22 === void 0 || (_props$search22 = _props$search22[props === null || props === void 0 ? void 0 : props.column_key]) === null || _props$search22 === void 0 ? void 0 : _props$search22._type) == 'number') {
-      var _props$search$fields$7, _props$search$fields$8;
+    } else if (props?.search?.fields?.[props?.column_key]?._type == 'number') {
       return /*#__PURE__*/React.createElement("div", {
         className: "rare-earth-filter-content"
       }, /*#__PURE__*/React.createElement("label", {
@@ -4380,222 +5747,177 @@ const TableHeader = function (props) {
       }, /*#__PURE__*/React.createElement("input", {
         type: "checkbox",
         checked: props.search.fields[props.column_key].number.omitNonNumeric,
-        onChange: event => props.setSearch(_search => _objectSpread2(_objectSpread2({}, _search), {}, {
-          fields: _objectSpread2(_objectSpread2({}, _search.fields), {}, {
-            [props.column_key]: _objectSpread2(_objectSpread2({}, _search.fields[props.column_key]), {}, {
-              number: _objectSpread2(_objectSpread2({}, _search.fields[props.column_key].number), {}, {
+        onChange: event => props.setSearch(_search => ({
+          ..._search,
+          fields: {
+            ..._search.fields,
+            [props.column_key]: {
+              ..._search.fields[props.column_key],
+              number: {
+                ..._search.fields[props.column_key].number,
                 omitNonNumeric: event.target.checked
-              })
-            })
-          })
+              }
+            }
+          }
         }))
       }), "Omit Non Numeric"), /*#__PURE__*/React.createElement("label", {
         className: "rare-earth-checkbox"
       }, /*#__PURE__*/React.createElement("input", {
         type: "checkbox",
-        checked: (_props$search$fields$7 = props.search.fields[props.column_key].number.gt) === null || _props$search$fields$7 === void 0 ? void 0 : _props$search$fields$7.equals,
-        onChange: event => props.setSearch(_search => _objectSpread2(_objectSpread2({}, _search), {}, {
-          fields: _objectSpread2(_objectSpread2({}, _search.fields), {}, {
-            [props.column_key]: _objectSpread2(_objectSpread2({}, _search.fields[props.column_key]), {}, {
-              number: _objectSpread2(_objectSpread2({}, _search.fields[props.column_key].number), {}, {
-                gt: _objectSpread2(_objectSpread2({}, _search.fields[props.column_key].number.gt), {}, {
+        checked: props.search.fields[props.column_key].number.gt?.equals,
+        onChange: event => props.setSearch(_search => ({
+          ..._search,
+          fields: {
+            ..._search.fields,
+            [props.column_key]: {
+              ..._search.fields[props.column_key],
+              number: {
+                ..._search.fields[props.column_key].number,
+                gt: {
+                  ..._search.fields[props.column_key].number.gt,
                   equals: event.target.checked
-                })
-              })
-            })
-          })
+                }
+              }
+            }
+          }
         }))
       }), "Inclusive Greater Than"), /*#__PURE__*/React.createElement("label", {
         className: "rare-earth-checkbox"
       }, /*#__PURE__*/React.createElement("input", {
         type: "checkbox",
-        checked: (_props$search$fields$8 = props.search.fields[props.column_key].number.lt) === null || _props$search$fields$8 === void 0 ? void 0 : _props$search$fields$8.equals,
-        onChange: event => props.setSearch(_search => _objectSpread2(_objectSpread2({}, _search), {}, {
-          fields: _objectSpread2(_objectSpread2({}, _search.fields), {}, {
-            [props.column_key]: _objectSpread2(_objectSpread2({}, _search.fields[props.column_key]), {}, {
-              number: _objectSpread2(_objectSpread2({}, _search.fields[props.column_key].number), {}, {
-                lt: _objectSpread2(_objectSpread2({}, _search.fields[props.column_key].number.lt), {}, {
+        checked: props.search.fields[props.column_key].number.lt?.equals,
+        onChange: event => props.setSearch(_search => ({
+          ..._search,
+          fields: {
+            ..._search.fields,
+            [props.column_key]: {
+              ..._search.fields[props.column_key],
+              number: {
+                ..._search.fields[props.column_key].number,
+                lt: {
+                  ..._search.fields[props.column_key].number.lt,
                   equals: event.target.checked
-                })
-              })
-            })
-          })
+                }
+              }
+            }
+          }
         }))
       }), "Inclusive Less Than"));
     }
     return null;
   }
-  const onDragStartHandle = React.useCallback((event, column_key, column_index) => {
-    event.dataTransfer.setData('initiatorKey', column_key);
-    event.dataTransfer.setData('initiatorIndex', column_index.toString());
-  }, []);
-  const swapColumns = React.useCallback((columnA, columnB, indexA, before) => {
-    if (columnA == columnB) {
-      return;
-    }
-    if (props.columns.attributes[columnA] == null || props.columns.attributes[columnB] == null) {
-      return;
-    }
-    let newColumnOrder = [];
-    for (let i = 0; i < props.columns.order.length; i++) {
-      let orderColumnKey = props.columns.order[i];
-      if (orderColumnKey != columnA && orderColumnKey != columnB) {
-        newColumnOrder.push(orderColumnKey);
-      } else if (orderColumnKey == columnB) {
-        if (Math.abs(i - indexA) <= 1) {
-          if (indexA < i) {
-            newColumnOrder.push(columnB);
-            newColumnOrder.push(columnA);
-          } else {
-            newColumnOrder.push(columnA);
-            newColumnOrder.push(columnB);
-          }
-        } else {
-          if (before) {
-            newColumnOrder.push(columnA);
-            newColumnOrder.push(columnB);
-          } else {
-            newColumnOrder.push(columnB);
-            newColumnOrder.push(columnA);
-          }
-        }
-      }
-    }
-    props.setColumns(_objectSpread2(_objectSpread2({}, props.columns), {}, {
-      order: newColumnOrder
-    }));
-  }, [props.columns, props.setColumns]);
-  const onDropHandle = React.useCallback(event => {
-    event.preventDefault();
-    let columnA = event.dataTransfer.getData('initiatorKey');
-    let indexA = parseInt(event.dataTransfer.getData('initiatorIndex'));
-    let target = event.target;
-    let columnB;
-    while (!columnB) {
-      target = target.parentElement;
-      if (!target) {
-        return;
-      }
-      columnB = target.getAttribute('data-rare-earth-column-key');
-    }
-    let boundingBox = target.getBoundingClientRect();
-    let before = event.clientX <= (boundingBox.left + boundingBox.right) / 2;
-    if (columnB != null) {
-      swapColumns(columnA, columnB, indexA, before);
-    }
-  }, [swapColumns]);
-  return /*#__PURE__*/React.createElement("th", {
-    className: "rare-earth-header-cell",
-    rowSpan: props.rowSpan || 1,
-    scope: "col"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "rare-earth-filter-content"
-  }, /*#__PURE__*/React.createElement("div", {
-    ref: element => {
-      if (element && ref && ref.current) {
-        ref.current[props.column_index] = element;
-      }
-    },
-    "data-rare-earth-column-key": props.column_key,
-    className: "rare-earth-draggable",
-    draggable: true,
-    role: "columnheader",
-    tabIndex: 0,
-    "aria-label": "Column: ".concat((_props$column$label = props.column.label) !== null && _props$column$label !== void 0 ? _props$column$label : props.column_key, ". Drag to reorder."),
-    title: "Drag to reorder column ".concat((_props$column$label2 = props.column.label) !== null && _props$column$label2 !== void 0 ? _props$column$label2 : props.column_key),
-    "data-testid": "column-header-".concat(tableId, "-").concat(props.column_key),
-    "data-column": props.column_key,
-    "data-draggable": "true",
-    onDragStart: event => onDragStartHandle(event, props.column_key, props.column_index),
-    onDragOver: event => event.preventDefault(),
-    onDragEnter: event => event.preventDefault(),
-    onDrop: event => onDropHandle(event)
-  }, /*#__PURE__*/React.createElement("div", {
+  const sortControl = /*#__PURE__*/React.createElement("div", {
     className: "rare-earth-flex-xs"
-  }, /*#__PURE__*/React.createElement(FloatingTooltip, {
-    content: /*#__PURE__*/React.createElement("div", {
-      className: "rare-earth-filter-content"
-    }, /*#__PURE__*/React.createElement("span", null, "Click to sort by ", (_props$column$label3 = props.column.label) !== null && _props$column$label3 !== void 0 ? _props$column$label3 : props.column_key.toString()), /*#__PURE__*/React.createElement("span", null, "Hold ", /*#__PURE__*/React.createElement("strong", null, "Shift"), " and click to add to multi-sort or change sort direction."))
   }, /*#__PURE__*/React.createElement("button", {
     className: "rare-earth-sort-button",
     onClick: event => sortFieldClick(event),
-    "aria-label": "Sort by ".concat((_props$column$label4 = props.column.label) !== null && _props$column$label4 !== void 0 ? _props$column$label4 : props.column_key, ". Currently ").concat(ascendingActive ? 'sorted ascending' : descendingActive ? 'sorted descending' : 'not sorted').concat(sortIndex ? ", sort priority ".concat(sortIndex) : '', ". Click to ").concat(ascendingActive ? 'sort descending' : 'sort ascending', ". Hold Shift and click to add to multi-sort."),
-    "aria-pressed": ascendingActive || descendingActive,
-    "aria-sort": ascendingActive ? 'ascending' : descendingActive ? 'descending' : 'none',
+    "aria-label": `Sort by ${props.column.label ?? props.column_key}`,
+    "aria-describedby": sortDescriptionId,
     type: "button",
-    "data-testid": "sort-button-".concat(tableId, "-").concat(props.column_key),
+    "data-testid": `sort-button-${tableId}-${props.column_key}`,
     "data-column": props.column_key,
-    "data-sort-state": ascendingActive ? 'ascending' : descendingActive ? 'descending' : 'none',
-    title: "Sort by ".concat((_props$column$label5 = props.column.label) !== null && _props$column$label5 !== void 0 ? _props$column$label5 : props.column_key)
+    "data-sort-state": ascendingActive ? 'ascending' : descendingActive ? 'descending' : 'none'
   }, /*#__PURE__*/React.createElement("div", {
     className: "rare-earth-flex-xs"
   }, /*#__PURE__*/React.createElement("span", {
-    "aria-live": "polite",
-    "aria-atomic": "true"
-  }, /*#__PURE__*/React.createElement("span", {
-    className: "sr-only"
-  }, ascendingActive ? 'Sorted ascending' : descendingActive ? 'Sorted descending' : '', sortIndex ? ", priority ".concat(sortIndex) : ''), /*#__PURE__*/React.createElement("span", {
     "aria-hidden": "true"
-  }, sortIndex)), /*#__PURE__*/React.createElement("div", {
+  }, sortIndex), /*#__PURE__*/React.createElement("div", {
     className: "rare-earth-filter-content"
   }, /*#__PURE__*/React.createElement("div", {
-    className: "rare-earth-triangle ".concat(ascendingActive ? 'active' : ''),
+    className: `rare-earth-triangle ${ascendingActive ? 'active' : ''}`,
     "aria-hidden": "true"
   }), /*#__PURE__*/React.createElement("div", {
-    className: "rare-earth-triangle descending ".concat(descendingActive ? 'active' : ''),
+    className: `rare-earth-triangle descending ${descendingActive ? 'active' : ''}`,
     "aria-hidden": "true"
-  }))))), (_props$column$label6 = props.column.label) !== null && _props$column$label6 !== void 0 ? _props$column$label6 : props.column_key.toString())), /*#__PURE__*/React.createElement("div", {
+  })))), !props.controlsOnly && /*#__PURE__*/React.createElement("span", {
+    id: labelId
+  }, props.column.label ?? props.column_key.toString()), /*#__PURE__*/React.createElement("span", {
+    id: sortDescriptionId,
+    hidden: true
+  }, ascendingActive ? 'Ascending' : descendingActive ? 'Descending' : 'Not sorted', sortIndex ? `, priority ${sortIndex}` : ''));
+  const Cell = props.controlsOnly ? 'td' : 'th';
+  return /*#__PURE__*/React.createElement(Cell, {
+    className: props.controlsOnly ? 'rare-earth-column-controls' : 'rare-earth-header-cell',
+    rowSpan: props.controlsOnly ? undefined : props.rowSpan || 1,
+    scope: props.controlsOnly ? undefined : 'col',
+    headers: props.headingId,
+    "data-testid": props.controlsOnly ? `column-controls-${tableId}-${props.column_key}` : undefined,
+    "aria-labelledby": props.controlsOnly ? undefined : labelId,
+    "aria-sort": !props.controlsOnly && sortIndex === 1 ? ascendingActive ? 'ascending' : 'descending' : undefined
+  }, /*#__PURE__*/React.createElement("div", {
+    className: props.controlsOnly ? 'rare-earth-flex-xs' : 'rare-earth-filter-content'
+  }, props.controlsOnly ? sortControl : (/*#__PURE__*/React.createElement(ColumnDragHandle, {
+    tableId: tableId,
+    columnKey: props.column_key,
+    columnIndex: props.column_index,
+    columnOrder: props.columns.order,
+    onOrderChange: order => props.setColumns({
+      ...props.columns,
+      order
+    }),
+    headerRefs: ref
+  }, sortControl)), /*#__PURE__*/React.createElement("div", {
     className: "rare-earth-popover"
   }, /*#__PURE__*/React.createElement("div", {
     className: "rare-earth-filter-controls"
-  }, /*#__PURE__*/React.createElement(FloatingTooltip, {
-    content: "Click to open filter options and change filter type"
-  }, /*#__PURE__*/React.createElement("div", _objectSpread2(_objectSpread2({
+  }, /*#__PURE__*/React.createElement("div", {
     ref: refs.setReference,
-    className: "rare-earth-search-icon ".concat(searchOptionsOpen ? 'active' : '')
-  }, getReferenceProps()), {}, {
+    className: `rare-earth-search-icon ${searchOptionsOpen ? 'active' : ''}`,
+    ...getReferenceProps(),
     role: "button",
     tabIndex: 0,
     "aria-haspopup": "dialog",
     "aria-expanded": searchOptionsOpen,
-    "aria-controls": "filter-popup-".concat(tableId, "-").concat(props.column_key),
-    "aria-label": "Open filter options for ".concat((_props$column$label7 = props.column.label) !== null && _props$column$label7 !== void 0 ? _props$column$label7 : props.column_key, ". Current filter type: ").concat((props === null || props === void 0 || (_props$search23 = props.search) === null || _props$search23 === void 0 || (_props$search23 = _props$search23.fields) === null || _props$search23 === void 0 || (_props$search23 = _props$search23[props === null || props === void 0 ? void 0 : props.column_key]) === null || _props$search23 === void 0 ? void 0 : _props$search23._type) === 'number' ? 'numeric' : 'text')
-  }), /*#__PURE__*/React.createElement("div", {
+    "aria-controls": `filter-popup-${tableId}-${props.column_key}`,
+    "aria-label": `Filter options for ${props.column.label ?? props.column_key}`
+  }, /*#__PURE__*/React.createElement("div", {
     className: "rare-earth-filter-content"
   }, /*#__PURE__*/React.createElement(FaSearchPlus, null), /*#__PURE__*/React.createElement("span", {
     className: "rare-earth-filter-type-indicator"
-  }, (props === null || props === void 0 || (_props$search24 = props.search) === null || _props$search24 === void 0 || (_props$search24 = _props$search24.fields) === null || _props$search24 === void 0 || (_props$search24 = _props$search24[props === null || props === void 0 ? void 0 : props.column_key]) === null || _props$search24 === void 0 ? void 0 : _props$search24._type) != 'string' ? "123" : "ABC")))), renderSearchInput()), searchOptionsOpen && (/*#__PURE__*/React.createElement("div", _objectSpread2({
+  }, props?.search?.fields?.[props?.column_key]?._type != 'string' ? "123" : "ABC"))), renderSearchInput()), searchOptionsOpen && (/*#__PURE__*/React.createElement(FloatingFocusManager, {
+    context: context,
+    modal: false,
+    returnFocus: true
+  }, /*#__PURE__*/React.createElement("div", {
     ref: refs.setFloating,
-    id: "filter-popup-".concat(tableId, "-").concat(props.column_key),
+    id: `filter-popup-${tableId}-${props.column_key}`,
     className: "rare-earth-popover-content",
     role: "dialog",
-    "aria-label": "Filter options"
-  }, getFloatingProps()), /*#__PURE__*/React.createElement("div", {
+    "aria-label": "Filter options",
+    ...getFloatingProps()
+  }, /*#__PURE__*/React.createElement("div", {
     className: "rare-earth-filter-content"
   }, /*#__PURE__*/React.createElement("div", {
     className: "rare-earth-chip-group"
   }, /*#__PURE__*/React.createElement("button", {
-    className: "rare-earth-chip ".concat((props === null || props === void 0 || (_props$search25 = props.search) === null || _props$search25 === void 0 || (_props$search25 = _props$search25.fields) === null || _props$search25 === void 0 || (_props$search25 = _props$search25[props === null || props === void 0 ? void 0 : props.column_key]) === null || _props$search25 === void 0 ? void 0 : _props$search25._type) === 'string' ? 'active' : ''),
+    className: `rare-earth-chip ${props?.search?.fields?.[props?.column_key]?._type === 'string' ? 'active' : ''}`,
     disabled: props.column.typeToggleable === false,
     onClick: () => {
       if (props.column.typeToggleable === false) return;
-      props.setSearch(_search => _objectSpread2(_objectSpread2({}, _search), {}, {
-        fields: _objectSpread2(_objectSpread2({}, _search.fields), {}, {
-          [props.column_key]: _objectSpread2(_objectSpread2({}, _search.fields[props.column_key]), {}, {
+      props.setSearch(_search => ({
+        ..._search,
+        fields: {
+          ..._search.fields,
+          [props.column_key]: {
+            ..._search.fields[props.column_key],
             _type: 'string',
-            string: _objectSpread2(_objectSpread2({}, _search.fields[props.column_key].string), {}, {
+            string: {
+              ..._search.fields[props.column_key].string,
               text: null
-            }),
-            number: _objectSpread2(_objectSpread2({}, _search.fields[props.column_key].number), {}, {
-              gt: _objectSpread2(_objectSpread2({}, _search.fields[props.column_key].number.gt), {}, {
+            },
+            number: {
+              ..._search.fields[props.column_key].number,
+              gt: {
+                ..._search.fields[props.column_key].number.gt,
                 value: null
-              }),
-              lt: _objectSpread2(_objectSpread2({}, _search.fields[props.column_key].number.lt), {}, {
+              },
+              lt: {
+                ..._search.fields[props.column_key].number.lt,
                 value: null
-              })
-            })
-          })
-        })
+              }
+            }
+          }
+        }
       }));
       setSearchInput({
         string: null,
@@ -4608,27 +5930,34 @@ const TableHeader = function (props) {
       });
     }
   }, "Text"), /*#__PURE__*/React.createElement("button", {
-    className: "rare-earth-chip ".concat((props === null || props === void 0 || (_props$search26 = props.search) === null || _props$search26 === void 0 || (_props$search26 = _props$search26.fields) === null || _props$search26 === void 0 || (_props$search26 = _props$search26[props === null || props === void 0 ? void 0 : props.column_key]) === null || _props$search26 === void 0 ? void 0 : _props$search26._type) === 'number' ? 'active' : ''),
+    className: `rare-earth-chip ${props?.search?.fields?.[props?.column_key]?._type === 'number' ? 'active' : ''}`,
     disabled: props.column.typeToggleable === false,
     onClick: () => {
       if (props.column.typeToggleable === false) return;
-      props.setSearch(_search => _objectSpread2(_objectSpread2({}, _search), {}, {
-        fields: _objectSpread2(_objectSpread2({}, _search.fields), {}, {
-          [props.column_key]: _objectSpread2(_objectSpread2({}, _search.fields[props.column_key]), {}, {
+      props.setSearch(_search => ({
+        ..._search,
+        fields: {
+          ..._search.fields,
+          [props.column_key]: {
+            ..._search.fields[props.column_key],
             _type: 'number',
-            string: _objectSpread2(_objectSpread2({}, _search.fields[props.column_key].string), {}, {
+            string: {
+              ..._search.fields[props.column_key].string,
               text: null
-            }),
-            number: _objectSpread2(_objectSpread2({}, _search.fields[props.column_key].number), {}, {
-              gt: _objectSpread2(_objectSpread2({}, _search.fields[props.column_key].number.gt), {}, {
+            },
+            number: {
+              ..._search.fields[props.column_key].number,
+              gt: {
+                ..._search.fields[props.column_key].number.gt,
                 value: null
-              }),
-              lt: _objectSpread2(_objectSpread2({}, _search.fields[props.column_key].number.lt), {}, {
+              },
+              lt: {
+                ..._search.fields[props.column_key].number.lt,
                 value: null
-              })
-            })
-          })
-        })
+              }
+            }
+          }
+        }
       }));
       setSearchInput({
         string: null,
@@ -4640,13 +5969,13 @@ const TableHeader = function (props) {
         }
       });
     }
-  }, "Numeric")), renderPopup()))))));
+  }, "Numeric")), renderPopup())))))));
 };
 
 const initiaDefaultSearch = function (columns) {
   return {
     global: null,
-    fields: Object.fromEntries((columns !== null && columns !== void 0 ? columns : []).map((x, i) => [x.key, {
+    fields: Object.fromEntries((columns ?? []).map((x, i) => [x.key, {
       _type: x.type == 'number' ? 'number' : 'string',
       string: {
         text: null,
@@ -4670,56 +5999,60 @@ const initiaDefaultSearch = function (columns) {
   };
 };
 const DataTable = /*#__PURE__*/React.forwardRef((props, ref) => {
-  var _props$columns, _props$columns2, _props$records, _props$initialPageLen, _props$pageLengthChoi, _props$initialPage, _props$initialSortFie, _props$columns3, _filteredSortedRecord, _props$columns8;
-  const tableId = props.id || "rare-earth-table-".concat(React.useId());
-  const tableDescriptionId = "".concat(tableId, "-description");
-  const tableStatsId = "".concat(tableId, "-stats");
+  const generatedId = React.useId();
+  const tableId = props.id || `rare-earth-table-${generatedId}`;
+  const tableName = props.tableName ?? 'Data table';
+  const tableStatsId = `${tableId}-stats`;
   // Use a stable key that doesn't change unless necessary
-  const indexKeyRef = React.useRef("__index_".concat(Date.now()));
+  const indexKeyRef = React.useRef(`__index_${Date.now()}`);
   const [columns, setColumns] = React.useState({
     _indexKey: indexKeyRef.current,
-    order: ((_props$columns = props.columns) !== null && _props$columns !== void 0 ? _props$columns : []).map((x, i) => x.key),
-    attributes: Object.fromEntries(((_props$columns2 = props.columns) !== null && _props$columns2 !== void 0 ? _props$columns2 : []).map((x, i) => {
-      var _x$typeToggleable, _x$valueFunc;
-      return [x.key, _objectSpread2(_objectSpread2({}, x), {}, {
-        typeToggleable: (_x$typeToggleable = x.typeToggleable) !== null && _x$typeToggleable !== void 0 ? _x$typeToggleable : true,
-        valueFunc: (_x$valueFunc = x === null || x === void 0 ? void 0 : x.valueFunc) !== null && _x$valueFunc !== void 0 ? _x$valueFunc : record => {
-          switch (x.type == 'number') {
-            case true:
-              return parseFloat(record === null || record === void 0 ? void 0 : record[x.key]);
-            case false:
-              return record === null || record === void 0 ? void 0 : record[x.key];
-          }
+    order: (props.columns ?? []).map((x, i) => x.key),
+    attributes: Object.fromEntries((props.columns ?? []).map((x, i) => [x.key, {
+      ...x,
+      typeToggleable: x.typeToggleable ?? true,
+      valueFunc: x?.valueFunc ?? (record => {
+        switch (x.type == 'number') {
+          case true:
+            return parseFloat(record?.[x.key]);
+          case false:
+            return record?.[x.key];
         }
-      })];
-    }))
+      })
+    }]))
   });
-  const [records, setRecords] = React.useState((_props$records = props.records) !== null && _props$records !== void 0 ? _props$records : []);
-  const [pageLength, setPageLength] = React.useState((_props$initialPageLen = props.initialPageLength) !== null && _props$initialPageLen !== void 0 ? _props$initialPageLen : 20);
-  const [pageLengthChoices, setPageLengthChoices] = React.useState((_props$pageLengthChoi = props.pageLengthChoices) !== null && _props$pageLengthChoi !== void 0 ? _props$pageLengthChoi : [10, 20, 50, 100, Infinity]);
-  const [page, setPage] = React.useState((_props$initialPage = props.initialPage) !== null && _props$initialPage !== void 0 ? _props$initialPage : 1);
-  const [sortFields, setSortFields] = React.useState((_props$initialSortFie = props.initialSortFields) !== null && _props$initialSortFie !== void 0 ? _props$initialSortFie : []);
-  const [search, setSearch] = React.useState(initiaDefaultSearch((_props$columns3 = props === null || props === void 0 ? void 0 : props.columns) !== null && _props$columns3 !== void 0 ? _props$columns3 : []));
+  const [records, setRecords] = React.useState(props.records ?? []);
+  const [pageLength, setPageLength] = React.useState(props.initialPageLength ?? 20);
+  const [pageLengthChoices, setPageLengthChoices] = React.useState(props.pageLengthChoices ?? [10, 20, 50, 100, Infinity]);
+  const [page, setPage] = React.useState(props.initialPage ?? 1);
+  const [sortFields, setSortFields] = React.useState(props.initialSortFields ?? []);
+  const [sortAnnouncement, setSortAnnouncement] = React.useState('');
+  const previousSortFields = React.useRef(sortFields);
+  const [search, setSearch] = React.useState(initiaDefaultSearch(props?.columns ?? []));
+  React.useEffect(() => {
+    if (previousSortFields.current === sortFields) {
+      return;
+    }
+    previousSortFields.current = sortFields;
+    setSortAnnouncement(sortFields.length ? `Sorted by ${sortFields.map((field, index) => `${columns.attributes[field.key]?.label ?? field.key} ${field.reverse ? 'descending' : 'ascending'}, priority ${index + 1}`).join('; ')}.` : 'Sorting cleared.');
+  }, [sortFields, columns.attributes]);
   const resetColumns = React.useCallback(() => {
-    var _props$columns4, _props$columns5;
     setColumns({
       _indexKey: indexKeyRef.current,
-      order: ((_props$columns4 = props.columns) !== null && _props$columns4 !== void 0 ? _props$columns4 : []).map(x => x.key),
-      attributes: Object.fromEntries(((_props$columns5 = props.columns) !== null && _props$columns5 !== void 0 ? _props$columns5 : []).map(x => {
-        var _x$typeToggleable2, _x$valueFunc2;
-        return [x.key, _objectSpread2(_objectSpread2({}, x), {}, {
-          typeToggleable: (_x$typeToggleable2 = x.typeToggleable) !== null && _x$typeToggleable2 !== void 0 ? _x$typeToggleable2 : true,
-          valueFunc: (_x$valueFunc2 = x === null || x === void 0 ? void 0 : x.valueFunc) !== null && _x$valueFunc2 !== void 0 ? _x$valueFunc2 : record => {
-            switch (x.type == 'number') {
-              case true:
-                const numValue = parseFloat(record === null || record === void 0 ? void 0 : record[x.key]);
-                return isNaN(numValue) ? null : numValue;
-              case false:
-                return record === null || record === void 0 ? void 0 : record[x.key];
-            }
+      order: (props.columns ?? []).map(x => x.key),
+      attributes: Object.fromEntries((props.columns ?? []).map(x => [x.key, {
+        ...x,
+        typeToggleable: x.typeToggleable ?? true,
+        valueFunc: x?.valueFunc ?? (record => {
+          switch (x.type == 'number') {
+            case true:
+              const numValue = parseFloat(record?.[x.key]);
+              return isNaN(numValue) ? null : numValue;
+            case false:
+              return record?.[x.key];
           }
-        })];
-      }))
+        })
+      }]))
     });
   }, [props.columns]);
   const headerRefs = React.useRef({});
@@ -4770,31 +6103,26 @@ const DataTable = /*#__PURE__*/React.forwardRef((props, ref) => {
     return 0;
   }, [sortFields, columns.attributes, defaultCompareFunc]);
   React.useEffect(() => {
-    var _props$columns6, _props$columns7;
     setColumns({
       _indexKey: indexKeyRef.current,
-      order: ((_props$columns6 = props.columns) !== null && _props$columns6 !== void 0 ? _props$columns6 : []).map((x, i) => x.key),
-      attributes: Object.fromEntries(((_props$columns7 = props.columns) !== null && _props$columns7 !== void 0 ? _props$columns7 : []).map((x, i) => {
-        var _x$typeToggleable3, _x$valueFunc3;
-        return [x.key, _objectSpread2(_objectSpread2({}, x), {}, {
-          typeToggleable: (_x$typeToggleable3 = x.typeToggleable) !== null && _x$typeToggleable3 !== void 0 ? _x$typeToggleable3 : true,
-          valueFunc: (_x$valueFunc3 = x === null || x === void 0 ? void 0 : x.valueFunc) !== null && _x$valueFunc3 !== void 0 ? _x$valueFunc3 : record => record === null || record === void 0 ? void 0 : record[x.key]
-        })];
-      }))
+      order: (props.columns ?? []).map((x, i) => x.key),
+      attributes: Object.fromEntries((props.columns ?? []).map((x, i) => [x.key, {
+        ...x,
+        typeToggleable: x.typeToggleable ?? true,
+        valueFunc: x?.valueFunc ?? (record => record?.[x.key])
+      }]))
     });
   }, [props.columns]);
   React.useEffect(() => {
-    var _props$records2;
-    setRecords((_props$records2 = props.records) !== null && _props$records2 !== void 0 ? _props$records2 : []);
+    setRecords(props.records ?? []);
   }, [props.records]);
-  function stringDoesMatch(_ref) {
-    let {
-      recordCompareStr,
-      keySearch,
-      trim,
-      caseSensitive,
-      isRegex
-    } = _ref;
+  function stringDoesMatch({
+    recordCompareStr,
+    keySearch,
+    trim,
+    caseSensitive,
+    isRegex
+  }) {
     if (keySearch == null) {
       return true;
     }
@@ -4811,15 +6139,14 @@ const DataTable = /*#__PURE__*/React.forwardRef((props, ref) => {
       return _recordCompareStr.includes(_keySearch);
     }
   }
-  function numberDoesMatch(_ref2) {
-    let {
-      recordNumber,
-      omitNonNumeric,
-      gtNum,
-      gtEquals,
-      ltNum,
-      ltEquals
-    } = _ref2;
+  function numberDoesMatch({
+    recordNumber,
+    omitNonNumeric,
+    gtNum,
+    gtEquals,
+    ltNum,
+    ltEquals
+  }) {
     if (isNaN(recordNumber)) {
       return !omitNonNumeric;
     }
@@ -4839,11 +6166,10 @@ const DataTable = /*#__PURE__*/React.forwardRef((props, ref) => {
     }
     return true;
   }
-  function doesMatch(_ref3) {
-    let {
-      recordCompareStr,
-      keySearch
-    } = _ref3;
+  function doesMatch({
+    recordCompareStr,
+    keySearch
+  }) {
     if (keySearch._type === 'string') {
       return stringDoesMatch({
         recordCompareStr: recordCompareStr,
@@ -4853,14 +6179,13 @@ const DataTable = /*#__PURE__*/React.forwardRef((props, ref) => {
         isRegex: keySearch.string.isRegex
       });
     } else if (keySearch._type === 'number') {
-      var _ref4, _ref4$trim, _keySearch$number$gt, _keySearch$number$gt2, _keySearch$number$lt, _keySearch$number$lt2;
       return numberDoesMatch({
-        recordNumber: new Number((_ref4 = recordCompareStr !== null && recordCompareStr !== void 0 ? recordCompareStr : '') === null || _ref4 === void 0 || (_ref4$trim = _ref4.trim) === null || _ref4$trim === void 0 ? void 0 : _ref4$trim.call(_ref4)),
+        recordNumber: new Number((recordCompareStr ?? '')?.trim?.()),
         omitNonNumeric: keySearch.number.omitNonNumeric,
-        gtNum: (_keySearch$number$gt = keySearch.number.gt) === null || _keySearch$number$gt === void 0 ? void 0 : _keySearch$number$gt.value,
-        gtEquals: (_keySearch$number$gt2 = keySearch.number.gt) === null || _keySearch$number$gt2 === void 0 ? void 0 : _keySearch$number$gt2.equals,
-        ltNum: (_keySearch$number$lt = keySearch.number.lt) === null || _keySearch$number$lt === void 0 ? void 0 : _keySearch$number$lt.value,
-        ltEquals: (_keySearch$number$lt2 = keySearch.number.lt) === null || _keySearch$number$lt2 === void 0 ? void 0 : _keySearch$number$lt2.equals
+        gtNum: keySearch.number.gt?.value,
+        gtEquals: keySearch.number.gt?.equals,
+        ltNum: keySearch.number.lt?.value,
+        ltEquals: keySearch.number.lt?.equals
       });
     }
   }
@@ -4870,8 +6195,7 @@ const DataTable = /*#__PURE__*/React.forwardRef((props, ref) => {
       let record = records[i];
       let include = !Boolean(search.global);
       for (let key in search.fields) {
-        var _ref5, _ref5$toString, _columns$attributes$k, _columns$attributes, _columns$attributes$v;
-        let recordCompareStr = (_ref5 = (_columns$attributes$k = columns === null || columns === void 0 || (_columns$attributes = columns.attributes) === null || _columns$attributes === void 0 || (_columns$attributes = _columns$attributes[key]) === null || _columns$attributes === void 0 || (_columns$attributes$v = _columns$attributes.valueFunc) === null || _columns$attributes$v === void 0 ? void 0 : _columns$attributes$v.call(_columns$attributes, record)) !== null && _columns$attributes$k !== void 0 ? _columns$attributes$k : '') === null || _ref5 === void 0 || (_ref5$toString = _ref5.toString) === null || _ref5$toString === void 0 ? void 0 : _ref5$toString.call(_ref5);
+        let recordCompareStr = (columns?.attributes?.[key]?.valueFunc?.(record) ?? '')?.toString?.();
         if (Boolean(search.global) && stringDoesMatch({
           recordCompareStr: recordCompareStr,
           keySearch: search.global,
@@ -4888,10 +6212,8 @@ const DataTable = /*#__PURE__*/React.forwardRef((props, ref) => {
             continue;
           }
         } else if (keySearch._type == 'number') {
-          var _keySearch$number$gt3, _keySearch$number$lt3;
-          if (((_keySearch$number$gt3 = keySearch.number.gt) === null || _keySearch$number$gt3 === void 0 ? void 0 : _keySearch$number$gt3.value) == null && ((_keySearch$number$lt3 = keySearch.number.lt) === null || _keySearch$number$lt3 === void 0 ? void 0 : _keySearch$number$lt3.value) == null) {
-            var _ref6, _ref6$trim;
-            if (keySearch.number.omitNonNumeric && isNaN(new Number((_ref6 = recordCompareStr !== null && recordCompareStr !== void 0 ? recordCompareStr : '') === null || _ref6 === void 0 || (_ref6$trim = _ref6.trim) === null || _ref6$trim === void 0 ? void 0 : _ref6$trim.call(_ref6)))) {
+          if (keySearch.number.gt?.value == null && keySearch.number.lt?.value == null) {
+            if (keySearch.number.omitNonNumeric && isNaN(new Number((recordCompareStr ?? '')?.trim?.()))) {
               include = false;
             }
             continue;
@@ -4913,9 +6235,10 @@ const DataTable = /*#__PURE__*/React.forwardRef((props, ref) => {
         }
       }
       if (include) {
-        newRecords.push(_objectSpread2(_objectSpread2({}, record), {}, {
+        newRecords.push({
+          ...record,
           [columns._indexKey]: i
-        }));
+        });
       }
     }
     return newRecords;
@@ -4924,24 +6247,27 @@ const DataTable = /*#__PURE__*/React.forwardRef((props, ref) => {
     const sortedRecords = [...filteredRecords].sort(compareRecords);
     return sortedRecords;
   }, [sortFields, filteredRecords, compareRecords]);
-  // Create two-row header structure
+  // Keep titles in column headers and interactive controls in the row below.
   let main_headers = [];
   let sub_headers = [];
   if (props.index !== false) {
     main_headers.push(/*#__PURE__*/React.createElement("th", {
       key: "index-main",
       className: "index-main-header",
-      colSpan: 2
+      colSpan: 2,
+      scope: "colgroup"
     }, "Row No."));
     sub_headers.push(/*#__PURE__*/React.createElement("th", {
       key: "index-source",
-      className: "index-sub-header"
+      className: "index-sub-header",
+      scope: "col"
     }, /*#__PURE__*/React.createElement(FloatingTooltip, {
       content: "Original row number from the source dataset"
     }, /*#__PURE__*/React.createElement("span", null, "Src"))));
     sub_headers.push(/*#__PURE__*/React.createElement("th", {
       key: "index-current",
-      className: "index-sub-header"
+      className: "index-sub-header",
+      scope: "col"
     }, /*#__PURE__*/React.createElement(FloatingTooltip, {
       content: "Current position in the filtered and sorted dataset"
     }, /*#__PURE__*/React.createElement("span", null, "Cur"))));
@@ -4949,9 +6275,31 @@ const DataTable = /*#__PURE__*/React.forwardRef((props, ref) => {
   for (let i = 0; i < columns.order.length; i++) {
     let key = columns.order[i];
     let column = columns.attributes[key];
-    main_headers.push(/*#__PURE__*/React.createElement(TableHeader, {
-      ref: headerRefs,
+    const headingId = `${generatedId}-column-${encodeURIComponent(key)}`;
+    main_headers.push(/*#__PURE__*/React.createElement("th", {
       key: key,
+      id: headingId,
+      className: "rare-earth-header-cell",
+      scope: "col",
+      "aria-labelledby": `${headingId}-label`,
+      "aria-sort": sortFields[0]?.key === key ? sortFields[0].reverse ? 'descending' : 'ascending' : undefined
+    }, /*#__PURE__*/React.createElement(ColumnDragHandle, {
+      tableId: tableId,
+      columnKey: key,
+      columnIndex: i,
+      columnOrder: columns.order,
+      onOrderChange: order => setColumns(current => ({
+        ...current,
+        order
+      })),
+      headerRefs: headerRefs
+    }, /*#__PURE__*/React.createElement("span", {
+      id: `${headingId}-label`
+    }, column.label ?? key))));
+    sub_headers.push(/*#__PURE__*/React.createElement(TableHeader, {
+      key: key,
+      controlsOnly: true,
+      headingId: headingId,
       tableId: tableId,
       columns: columns,
       setColumns: setColumns,
@@ -4962,11 +6310,10 @@ const DataTable = /*#__PURE__*/React.forwardRef((props, ref) => {
       column_index: i,
       column_key: key,
       column: column,
-      debounceTime: props.debounceTime,
-      rowSpan: 2
+      debounceTime: props.debounceTime
     }));
   }
-  let pageCount = Math.max(Math.ceil(((_filteredSortedRecord = filteredSortedRecords === null || filteredSortedRecords === void 0 ? void 0 : filteredSortedRecords.length) !== null && _filteredSortedRecord !== void 0 ? _filteredSortedRecord : 0) / pageLength), 1);
+  let pageCount = Math.max(Math.ceil((filteredSortedRecords?.length ?? 0) / pageLength), 1);
   let rows = [];
   let lb = pageLength === Infinity ? 0 : (page - 1) * pageLength;
   let ub = pageLength === Infinity ? filteredSortedRecords.length : Math.min(page * pageLength, filteredSortedRecords.length);
@@ -4999,11 +6346,13 @@ const DataTable = /*#__PURE__*/React.forwardRef((props, ref) => {
         let cellDisplay = column.displayFunc(record, value);
         cells.push(/*#__PURE__*/React.createElement("td", {
           key: key,
+          headers: `${generatedId}-column-${encodeURIComponent(key)}`,
           "aria-colindex": colIndex++
         }, cellDisplay));
       } else {
         cells.push(/*#__PURE__*/React.createElement("td", {
           key: key,
+          headers: `${generatedId}-column-${encodeURIComponent(key)}`,
           "aria-colindex": colIndex++
         }, value));
       }
@@ -5011,8 +6360,8 @@ const DataTable = /*#__PURE__*/React.forwardRef((props, ref) => {
     rows.push(/*#__PURE__*/React.createElement("tr", {
       key: i,
       role: "row",
-      "aria-rowindex": i + 1,
-      "data-testid": "table-row-".concat(tableId, "-").concat(i),
+      "aria-rowindex": i + 3,
+      "data-testid": `table-row-${tableId}-${i}`,
       "data-row-index": i
     }, cells));
   }
@@ -5024,10 +6373,9 @@ const DataTable = /*#__PURE__*/React.forwardRef((props, ref) => {
     let exportRows = [];
     let exportHeaders = [];
     for (let i = 0; i < columns.order.length; i++) {
-      var _column$label;
       let key = columns.order[i];
       let column = columns.attributes[key];
-      exportHeaders.push((_column$label = column.label) !== null && _column$label !== void 0 ? _column$label : column.key);
+      exportHeaders.push(column.label ?? column.key);
     }
     exportRows.push(exportHeaders.join(","));
     for (let i = 0; i < filteredSortedRecords.length; i++) {
@@ -5053,25 +6401,24 @@ const DataTable = /*#__PURE__*/React.forwardRef((props, ref) => {
   return /*#__PURE__*/React.createElement("div", {
     ref: ref,
     id: props.id,
-    className: "rare-earth-container".concat(props.darkMode ? ' dark-mode' : ''),
+    className: `rare-earth-container${props.darkMode ? ' dark-mode' : ''}`,
     style: props.style,
     role: "region",
-    "aria-label": "Data table with sorting and filtering",
-    "aria-describedby": "".concat(tableDescriptionId, " ").concat(tableStatsId),
-    "data-testid": "data-table-".concat(tableId),
+    "aria-label": tableName,
+    "data-testid": `data-table-${tableId}`,
     "data-component": "rare-earth-table"
-  }, /*#__PURE__*/React.createElement("div", {
-    id: tableDescriptionId,
+  }, /*#__PURE__*/React.createElement("details", null, /*#__PURE__*/React.createElement("summary", null, "Table help"), /*#__PURE__*/React.createElement("p", null, "Use the sort buttons to change sort direction. Hold Shift while clicking or pressing Enter or Space to keep other sort fields. Sorting and filtering controls are in the row below the column titles; use Tab to reach them. Filters narrow the results. Drag column headings to reorder them; Reset restores the original order.")), /*#__PURE__*/React.createElement("div", {
     className: "sr-only",
-    translate: "yes"
-  }, "Interactive data table with sorting, filtering, and pagination capabilities. Use column headers to sort data and filter controls to narrow results."), /*#__PURE__*/React.createElement("div", {
+    role: "status",
+    "aria-atomic": "true"
+  }, sortAnnouncement), /*#__PURE__*/React.createElement("div", {
     id: tableStatsId,
     className: "sr-only",
     "aria-live": "polite",
     "aria-atomic": "true"
   }, "Showing ", lb + 1, " to ", ub, " of ", filteredSortedRecords.length, " filtered results (from ", records.length, " total records)"), /*#__PURE__*/React.createElement(TableControl, {
     tableId: tableId,
-    columns: (_props$columns8 = props === null || props === void 0 ? void 0 : props.columns) !== null && _props$columns8 !== void 0 ? _props$columns8 : [],
+    columns: props?.columns ?? [],
     exportTable: exportTable,
     numRecords: records.length,
     numFilteredRecords: filteredRecords.length,
@@ -5089,15 +6436,18 @@ const DataTable = /*#__PURE__*/React.forwardRef((props, ref) => {
     resetColumns: resetColumns,
     initiaDefaultSearch: initiaDefaultSearch
   }), /*#__PURE__*/React.createElement("table", {
-    className: "rare-earth-table".concat(props.darkMode ? ' dark-mode' : ''),
+    className: `rare-earth-table${props.darkMode ? ' dark-mode' : ''}`,
     role: "table",
-    "aria-label": "Data table",
-    "aria-rowcount": filteredSortedRecords.length,
-    "aria-colcount": columns.order.length + (props.index !== false ? 2 : 0),
-    "aria-describedby": tableDescriptionId
+    "aria-label": tableName,
+    "aria-rowcount": filteredSortedRecords.length + 2,
+    "aria-colcount": columns.order.length + (props.index !== false ? 2 : 0)
   }, /*#__PURE__*/React.createElement("thead", {
     role: "rowgroup"
-  }, /*#__PURE__*/React.createElement("tr", null, main_headers), props.index !== false && (/*#__PURE__*/React.createElement("tr", null, sub_headers))), /*#__PURE__*/React.createElement("tbody", {
+  }, /*#__PURE__*/React.createElement("tr", {
+    "aria-rowindex": 1
+  }, main_headers), /*#__PURE__*/React.createElement("tr", {
+    "aria-rowindex": 2
+  }, sub_headers)), /*#__PURE__*/React.createElement("tbody", {
     role: "rowgroup"
   }, rows)), rows.length === 0 && (/*#__PURE__*/React.createElement("div", {
     className: "rare-earth-no-results",
@@ -6608,12 +7958,11 @@ class SQLEvaluator {
     this.tables = tables;
     this.executeSelect = executeSelect;
   }
-  evaluateWhere(row, whereClause) {
-    let context = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+  evaluateWhere(row, whereClause, context = {}) {
     if (whereClause.type === 'binary_expr') {
       const left = this.evaluateExpression(row, whereClause.left, context);
       const right = this.evaluateExpression(row, whereClause.right, context);
-      console.log("WHERE evaluation: ".concat(left, " ").concat(whereClause.operator, " ").concat(right, " (types: ").concat(typeof left, ", ").concat(typeof right, ")"));
+      console.log(`WHERE evaluation: ${left} ${whereClause.operator} ${right} (types: ${typeof left}, ${typeof right})`);
       console.log('Full whereClause:', JSON.stringify(whereClause, null, 2));
       switch (whereClause.operator) {
         case '=':
@@ -6720,8 +8069,7 @@ class SQLEvaluator {
     }
     return true;
   }
-  evaluateExpression(row, expr) {
-    let context = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+  evaluateExpression(row, expr, context = {}) {
     console.log('evaluateExpression called with expr:', JSON.stringify(expr, null, 2));
     // Handle ANY() function calls
     if (expr.type === 'function' && expr.name) {
@@ -6785,7 +8133,7 @@ class JoinHandler {
     const firstTableName = firstTable.table;
     const firstTableAlias = firstTable.as || firstTableName;
     const table1 = this.tables.get(firstTableName);
-    if (!table1) throw new Error("Table ".concat(firstTableName, " does not exist"));
+    if (!table1) throw new Error(`Table ${firstTableName} does not exist`);
     let results = table1.data.map(row => ({
       [firstTableAlias]: row
     }));
@@ -6797,7 +8145,7 @@ class JoinHandler {
         const rightTableName = fromItem.table;
         const rightTableAlias = fromItem.as || rightTableName;
         const table2 = this.tables.get(rightTableName);
-        if (!table2) throw new Error("Table ".concat(rightTableName, " does not exist"));
+        if (!table2) throw new Error(`Table ${rightTableName} does not exist`);
         const joinCondition = fromItem.on;
         results = this.performJoin(results, table2.data, joinType, joinCondition, rightTableAlias, outerContext);
       }
@@ -6805,7 +8153,10 @@ class JoinHandler {
     // Apply WHERE clause
     if (stmt.where) {
       results = results.filter(joinedRow => {
-        const context = _objectSpread2(_objectSpread2({}, outerContext), joinedRow);
+        const context = {
+          ...outerContext,
+          ...joinedRow
+        };
         return this.evaluator.evaluateWhere(joinedRow, stmt.where, context);
       });
     }
@@ -6816,10 +8167,14 @@ class JoinHandler {
     for (const leftRow of leftResults) {
       let hasMatch = false;
       for (const rightRow of rightData) {
-        const combinedRow = _objectSpread2(_objectSpread2({}, leftRow), {}, {
+        const combinedRow = {
+          ...leftRow,
           [rightTableAlias]: rightRow
-        });
-        const context = _objectSpread2(_objectSpread2({}, outerContext), combinedRow);
+        };
+        const context = {
+          ...outerContext,
+          ...combinedRow
+        };
         if (!joinCondition || this.evaluator.evaluateWhere(combinedRow, joinCondition, context)) {
           results.push(combinedRow);
           hasMatch = true;
@@ -6827,9 +8182,10 @@ class JoinHandler {
       }
       // Handle LEFT JOIN - include unmatched left rows
       if (!hasMatch && (joinType === 'LEFT' || joinType === 'LEFT OUTER')) {
-        results.push(_objectSpread2(_objectSpread2({}, leftRow), {}, {
+        results.push({
+          ...leftRow,
           [rightTableAlias]: null
-        }));
+        });
       }
     }
     // Handle RIGHT JOIN - include unmatched right rows
@@ -6837,10 +8193,14 @@ class JoinHandler {
       for (const rightRow of rightData) {
         let hasMatch = false;
         for (const leftRow of leftResults) {
-          const combinedRow = _objectSpread2(_objectSpread2({}, leftRow), {}, {
+          const combinedRow = {
+            ...leftRow,
             [rightTableAlias]: rightRow
-          });
-          const context = _objectSpread2(_objectSpread2({}, outerContext), combinedRow);
+          };
+          const context = {
+            ...outerContext,
+            ...combinedRow
+          };
           if (!joinCondition || this.evaluator.evaluateWhere(combinedRow, joinCondition, context)) {
             hasMatch = true;
             break;
@@ -6851,9 +8211,10 @@ class JoinHandler {
           Object.keys(leftResults[0] || {}).forEach(key => {
             nullLeftRow[key] = null;
           });
-          results.push(_objectSpread2(_objectSpread2({}, nullLeftRow), {}, {
+          results.push({
+            ...nullLeftRow,
             [rightTableAlias]: rightRow
-          }));
+          });
         }
       }
     }
@@ -6863,8 +8224,7 @@ class JoinHandler {
 
 class ColumnSelector {
   applyColumnSelection(stmt, results) {
-    var _stmt$columns$0$expr, _stmt$columns$0$expr2;
-    const isSelectAll = stmt.columns.length === 1 && ((_stmt$columns$0$expr = stmt.columns[0].expr) === null || _stmt$columns$0$expr === void 0 ? void 0 : _stmt$columns$0$expr.type) === 'column_ref' && ((_stmt$columns$0$expr2 = stmt.columns[0].expr) === null || _stmt$columns$0$expr2 === void 0 ? void 0 : _stmt$columns$0$expr2.column) === '*';
+    const isSelectAll = stmt.columns.length === 1 && stmt.columns[0].expr?.type === 'column_ref' && stmt.columns[0].expr?.column === '*';
     if (isSelectAll) {
       return results;
     } else {
@@ -6873,7 +8233,7 @@ class ColumnSelector {
         stmt.columns.forEach(col => {
           const expr = col.expr;
           // Handle aggregation functions
-          if ((expr === null || expr === void 0 ? void 0 : expr.type) === 'aggr_func' || (expr === null || expr === void 0 ? void 0 : expr.type) === 'function' && this.isAggregationFunction(expr.name)) {
+          if (expr?.type === 'aggr_func' || expr?.type === 'function' && this.isAggregationFunction(expr.name)) {
             const funcName = expr.name.toUpperCase();
             // Extract column name from aggregation arguments
             let columnName;
@@ -6884,11 +8244,11 @@ class ColumnSelector {
             } else if (expr.args && expr.args.length > 0) {
               columnName = expr.args[0].column;
             }
-            const resultKey = col.as || "".concat(funcName, "(").concat(columnName || '*', ")");
+            const resultKey = col.as || `${funcName}(${columnName || '*'})`;
             newRow[col.as || resultKey] = row[resultKey];
           } else {
             // Regular column
-            const colName = (expr === null || expr === void 0 ? void 0 : expr.column) || col.column || col;
+            const colName = expr?.column || col.column || col;
             if (typeof colName === 'string') {
               newRow[col.as || colName] = row[colName];
             }
@@ -6903,8 +8263,7 @@ class ColumnSelector {
     return aggFunctions.includes(name.toUpperCase());
   }
   applyColumnSelectionForJoin(stmt, results) {
-    var _stmt$columns$0$expr3, _stmt$columns$0$expr4;
-    const isSelectAll = stmt.columns.length === 1 && ((_stmt$columns$0$expr3 = stmt.columns[0].expr) === null || _stmt$columns$0$expr3 === void 0 ? void 0 : _stmt$columns$0$expr3.type) === 'column_ref' && ((_stmt$columns$0$expr4 = stmt.columns[0].expr) === null || _stmt$columns$0$expr4 === void 0 ? void 0 : _stmt$columns$0$expr4.column) === '*';
+    const isSelectAll = stmt.columns.length === 1 && stmt.columns[0].expr?.type === 'column_ref' && stmt.columns[0].expr?.column === '*';
     if (isSelectAll) {
       // Flatten joined rows for SELECT *
       return results.map(joinedRow => {
@@ -6920,9 +8279,8 @@ class ColumnSelector {
       return results.map(joinedRow => {
         const newRow = {};
         stmt.columns.forEach(col => {
-          var _col$expr, _col$expr2;
-          const tableRef = (_col$expr = col.expr) === null || _col$expr === void 0 ? void 0 : _col$expr.table;
-          const colName = ((_col$expr2 = col.expr) === null || _col$expr2 === void 0 ? void 0 : _col$expr2.column) || col.column || col;
+          const tableRef = col.expr?.table;
+          const colName = col.expr?.column || col.column || col;
           const resultKey = col.as || colName; // Use alias if present
           if (typeof colName === 'string') {
             if (tableRef && joinedRow[tableRef]) {
@@ -6998,8 +8356,7 @@ class AggregationHandler {
         }
         // Check if this GROUP BY column is in the SELECT list
         const isInSelect = stmt.columns.some(selectCol => {
-          var _selectCol$expr;
-          const selectColName = ((_selectCol$expr = selectCol.expr) === null || _selectCol$expr === void 0 ? void 0 : _selectCol$expr.column) || selectCol.column;
+          const selectColName = selectCol.expr?.column || selectCol.column;
           return selectColName === colName;
         });
         const groupValues = groupKey.split('|');
@@ -7018,7 +8375,7 @@ class AggregationHandler {
   hasAggregationFunctions(columns) {
     return columns.some(col => {
       const expr = col.expr;
-      return (expr === null || expr === void 0 ? void 0 : expr.type) === 'aggr_func' || (expr === null || expr === void 0 ? void 0 : expr.type) === 'function' && this.isAggregationFunction(expr.name);
+      return expr?.type === 'aggr_func' || expr?.type === 'function' && this.isAggregationFunction(expr.name);
     });
   }
   isAggregationFunction(name) {
@@ -7030,7 +8387,7 @@ class AggregationHandler {
     columns.forEach(col => {
       const alias = col.as;
       const expr = col.expr;
-      if ((expr === null || expr === void 0 ? void 0 : expr.type) === 'aggr_func' || (expr === null || expr === void 0 ? void 0 : expr.type) === 'function' && this.isAggregationFunction(expr.name)) {
+      if (expr?.type === 'aggr_func' || expr?.type === 'function' && this.isAggregationFunction(expr.name)) {
         const funcName = expr.name.toUpperCase();
         // Extract column name from various AST structures
         let columnName;
@@ -7045,7 +8402,7 @@ class AggregationHandler {
         } else if (expr.column) {
           columnName = expr.column;
         }
-        const resultKey = alias || "".concat(funcName, "(").concat(columnName || '*', ")");
+        const resultKey = alias || `${funcName}(${columnName || '*'})`;
         switch (funcName) {
           case 'COUNT':
             if (columnName === '*' || !columnName) {
@@ -7082,9 +8439,9 @@ class AggregationHandler {
             result[resultKey] = maxValues.length > 0 ? Math.max(...maxValues.map(row => Number(row[columnName])).filter(val => !isNaN(val))) : null;
             break;
           default:
-            throw new Error("Unsupported aggregation function: ".concat(funcName));
+            throw new Error(`Unsupported aggregation function: ${funcName}`);
         }
-      } else if ((expr === null || expr === void 0 ? void 0 : expr.type) === 'column_ref') {
+      } else if (expr?.type === 'column_ref') {
         // Non-aggregated column - should be in GROUP BY
         const colName = expr.column;
         if (rows.length > 0) {
@@ -7134,15 +8491,13 @@ class SQLExecutor {
       throw error;
     }
   }
-  executeSelect(stmt) {
-    let outerContext = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+  executeSelect(stmt, outerContext = {}) {
     // Handle SELECT without FROM (e.g., SELECT 1, SELECT 2, etc.)
     if (!stmt.from || stmt.from.length === 0) {
       const result = {};
       stmt.columns.forEach((col, index) => {
-        var _col$expr;
-        const value = ((_col$expr = col.expr) === null || _col$expr === void 0 ? void 0 : _col$expr.value) || col.value || index + 1;
-        const key = col.as || "column_".concat(index);
+        const value = col.expr?.value || col.value || index + 1;
+        const key = col.as || `column_${index}`;
         result[key] = value;
       });
       return [result];
@@ -7153,14 +8508,15 @@ class SQLExecutor {
       const tableName = stmt.from[0].table;
       const tableAlias = stmt.from[0].as || tableName;
       const table = this.tables.get(tableName);
-      if (!table) throw new Error("Table ".concat(tableName, " does not exist"));
+      if (!table) throw new Error(`Table ${tableName} does not exist`);
       let results = [...table.data];
       // Apply WHERE clause if present
       if (stmt.where) {
         results = results.filter(row => {
-          const context = _objectSpread2(_objectSpread2({}, outerContext), {}, {
+          const context = {
+            ...outerContext,
             [tableAlias]: row
-          });
+          };
           return this.evaluator.evaluateWhere(row, stmt.where, context);
         });
       }
@@ -7211,7 +8567,7 @@ class SQLEngine {
   }
   setTable(name, columns, data) {
     if (!isValidSQLIdentifier(name)) {
-      throw new Error("Invalid table name: \"".concat(name, "\". Table names must be valid SQL identifiers."));
+      throw new Error(`Invalid table name: "${name}". Table names must be valid SQL identifiers.`);
     }
     this.executor.setTable(name, {
       columns,
@@ -23164,12 +24520,12 @@ const Database = /*#__PURE__*/React.forwardRef((props, ref) => {
       if (e.shiftKey) {
         if (document.activeElement === firstFocusable) {
           e.preventDefault();
-          lastFocusable === null || lastFocusable === void 0 || lastFocusable.focus();
+          lastFocusable?.focus();
         }
       } else {
         if (document.activeElement === lastFocusable) {
           e.preventDefault();
-          firstFocusable === null || firstFocusable === void 0 || firstFocusable.focus();
+          firstFocusable?.focus();
         }
       }
     };
@@ -23207,13 +24563,13 @@ const Database = /*#__PURE__*/React.forwardRef((props, ref) => {
       }
       // Validate table name as SQL identifier
       if (!isValidSQLIdentifier(newTableName)) {
-        setQueryError("Invalid table name: \"".concat(newTableName, "\". Table names must be valid SQL identifiers (letters, numbers, underscores only, cannot start with number, cannot be SQL reserved words)."));
+        setQueryError(`Invalid table name: "${newTableName}". Table names must be valid SQL identifiers (letters, numbers, underscores only, cannot start with number, cannot be SQL reserved words).`);
         return;
       }
       // Check for duplicate table names
       const allTables = [...props.tables, ...queryTables];
       if (allTables.some(table => table.name === newTableName)) {
-        setQueryError("Table name \"".concat(newTableName, "\" already exists. Please choose a different name."));
+        setQueryError(`Table name "${newTableName}" already exists. Please choose a different name.`);
         return;
       }
       // Create new table configuration
@@ -23231,7 +24587,7 @@ const Database = /*#__PURE__*/React.forwardRef((props, ref) => {
       setNewTableQuery('');
       setQueryError(null);
     } catch (error) {
-      setQueryError("SQL Error: ".concat(error.message || error));
+      setQueryError(`SQL Error: ${error.message || error}`);
       return;
     }
   };
@@ -23265,17 +24621,18 @@ const Database = /*#__PURE__*/React.forwardRef((props, ref) => {
       // Check for duplicate table names (excluding the current table being renamed)
       const allTables = [...props.tables, ...queryTables.filter(t => t.name !== tableName)];
       if (allTables.some(table => table.name === renameValue)) {
-        setRenameError("Table name \"".concat(renameValue, "\" already exists. Please choose a different name."));
+        setRenameError(`Table name "${renameValue}" already exists. Please choose a different name.`);
         return;
       }
       // Validate the new name as SQL identifier
       if (!isValidSQLIdentifier(renameValue)) {
-        setRenameError("Invalid table name: \"".concat(renameValue, "\". Table names must be valid SQL identifiers."));
+        setRenameError(`Invalid table name: "${renameValue}". Table names must be valid SQL identifiers.`);
         return;
       }
-      setQueryTables(queryTables.map(t => t.name === tableName ? _objectSpread2(_objectSpread2({}, t), {}, {
+      setQueryTables(queryTables.map(t => t.name === tableName ? {
+        ...t,
         name: renameValue
-      }) : t));
+      } : t));
       setRenameError(null);
     }
     setRenamingTableId(null);
@@ -23332,7 +24689,7 @@ const Database = /*#__PURE__*/React.forwardRef((props, ref) => {
       });
       // Generate filename with timestamp
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-').substring(0, 19);
-      const filename = "database_export_".concat(timestamp, ".xlsx");
+      const filename = `database_export_${timestamp}.xlsx`;
       // Write the file
       writeFileSync(wb, filename);
     } catch (error) {
@@ -23346,7 +24703,7 @@ const Database = /*#__PURE__*/React.forwardRef((props, ref) => {
   if (dbLoading) {
     return /*#__PURE__*/React.createElement("div", {
       ref: ref,
-      className: "rare-earth-database".concat(props.darkMode ? ' dark-mode' : ''),
+      className: `rare-earth-database${props.darkMode ? ' dark-mode' : ''}`,
       role: "status",
       "aria-live": "polite",
       "aria-busy": "true"
@@ -23358,7 +24715,7 @@ const Database = /*#__PURE__*/React.forwardRef((props, ref) => {
   }
   return /*#__PURE__*/React.createElement("div", {
     ref: ref,
-    className: "rare-earth-database".concat(props.darkMode ? ' dark-mode' : ''),
+    className: `rare-earth-database${props.darkMode ? ' dark-mode' : ''}`,
     role: "region",
     "aria-label": "Database interface"
   }, showAddTablePopover && (/*#__PURE__*/React.createElement("div", {
@@ -23401,16 +24758,16 @@ const Database = /*#__PURE__*/React.forwardRef((props, ref) => {
   }, /*#__PURE__*/React.createElement("button", {
     type: "button",
     onClick: () => setShowTableSchema(!showTableSchema),
-    className: "rare-earth-database-schema-toggle".concat(showTableSchema ? ' active' : ''),
+    className: `rare-earth-database-schema-toggle${showTableSchema ? ' active' : ''}`,
     "aria-expanded": showTableSchema,
     "aria-controls": "table-schema-panel",
-    "aria-label": "".concat(showTableSchema ? 'Hide' : 'Show', " available tables and columns")
+    "aria-label": `${showTableSchema ? 'Hide' : 'Show'} available tables and columns`
   }, /*#__PURE__*/React.createElement("span", null, "Available Tables & Columns"), /*#__PURE__*/React.createElement("span", {
-    className: "rare-earth-database-schema-toggle-arrow".concat(showTableSchema ? ' active' : ''),
+    className: `rare-earth-database-schema-toggle-arrow${showTableSchema ? ' active' : ''}`,
     "aria-hidden": "true"
   }, "\u25BC")), /*#__PURE__*/React.createElement("div", {
     id: "table-schema-panel",
-    className: "rare-earth-database-schema-content".concat(showTableSchema ? ' active' : ''),
+    className: `rare-earth-database-schema-content${showTableSchema ? ' active' : ''}`,
     role: "region",
     "aria-label": "Database schema",
     "aria-hidden": !showTableSchema
@@ -23418,7 +24775,7 @@ const Database = /*#__PURE__*/React.forwardRef((props, ref) => {
     key: table.name,
     className: "rare-earth-database-table-card",
     role: "group",
-    "aria-label": "Table: ".concat(table.name)
+    "aria-label": `Table: ${table.name}`
   }, /*#__PURE__*/React.createElement("div", {
     className: "rare-earth-database-table-name",
     role: "heading",
@@ -23426,7 +24783,7 @@ const Database = /*#__PURE__*/React.forwardRef((props, ref) => {
   }, table.name), /*#__PURE__*/React.createElement("div", {
     className: "rare-earth-database-column-list",
     role: "list",
-    "aria-label": "Columns in ".concat(table.name)
+    "aria-label": `Columns in ${table.name}`
   }, table.columns.map(col => (/*#__PURE__*/React.createElement("div", {
     key: col.key,
     className: "rare-earth-database-column-item",
@@ -23435,7 +24792,7 @@ const Database = /*#__PURE__*/React.forwardRef((props, ref) => {
     className: "rare-earth-database-column-bullet",
     "aria-hidden": "true"
   }, "\u2022"), /*#__PURE__*/React.createElement("span", {
-    "aria-label": "Column ".concat(col.key, " of type ").concat(col.type || 'string')
+    "aria-label": `Column ${col.key} of type ${col.type || 'string'}`
   }, col.key, /*#__PURE__*/React.createElement("span", {
     className: "rare-earth-database-column-type"
   }, "(", col.type || 'string', ")"))))))))))), /*#__PURE__*/React.createElement("div", {
@@ -23494,7 +24851,7 @@ const Database = /*#__PURE__*/React.forwardRef((props, ref) => {
     const isQueryTable = queryTables.some(t => t.name === table.name);
     return /*#__PURE__*/React.createElement("div", {
       key: table.name,
-      className: "rare-earth-database-tab".concat(activeTableId === table.name ? ' active' : ''),
+      className: `rare-earth-database-tab${activeTableId === table.name ? ' active' : ''}`,
       role: "presentation"
     }, renamingTableId === table.name ? (/*#__PURE__*/React.createElement("input", {
       type: "text",
@@ -23510,7 +24867,7 @@ const Database = /*#__PURE__*/React.forwardRef((props, ref) => {
       },
       autoFocus: true,
       className: "rare-earth-database-rename-input",
-      "aria-label": "Rename table ".concat(table.name),
+      "aria-label": `Rename table ${table.name}`,
       "aria-invalid": !!renameError,
       "aria-describedby": renameError ? "rename-error" : undefined
     })) : (/*#__PURE__*/React.createElement("button", {
@@ -23518,8 +24875,8 @@ const Database = /*#__PURE__*/React.forwardRef((props, ref) => {
       className: "rare-earth-database-tab-button",
       role: "tab",
       "aria-selected": activeTableId === table.name,
-      "aria-controls": "tabpanel-".concat(table.name),
-      id: "tab-".concat(table.name),
+      "aria-controls": `tabpanel-${table.name}`,
+      id: `tab-${table.name}`,
       tabIndex: activeTableId === table.name ? 0 : -1
     }, table.name)), /*#__PURE__*/React.createElement("div", {
       className: "rare-earth-database-tab-actions",
@@ -23529,7 +24886,7 @@ const Database = /*#__PURE__*/React.forwardRef((props, ref) => {
       onClick: () => startRenaming(table.name),
       className: "rare-earth-database-action-button",
       title: "Rename table",
-      "aria-label": "Rename table ".concat(table.name)
+      "aria-label": `Rename table ${table.name}`
     }, /*#__PURE__*/React.createElement("span", {
       "aria-hidden": "true"
     }, "\u270F\uFE0F"), /*#__PURE__*/React.createElement("span", {
@@ -23538,7 +24895,7 @@ const Database = /*#__PURE__*/React.forwardRef((props, ref) => {
       onClick: () => handleRemoveTable(table.name),
       className: "rare-earth-database-action-button",
       title: "Remove table",
-      "aria-label": "Remove table ".concat(table.name)
+      "aria-label": `Remove table ${table.name}`
     }, /*#__PURE__*/React.createElement("span", {
       "aria-hidden": "true"
     }, "\u00D7"), /*#__PURE__*/React.createElement("span", {
@@ -23554,13 +24911,15 @@ const Database = /*#__PURE__*/React.forwardRef((props, ref) => {
   }, "+"), " Add Table")))), /*#__PURE__*/React.createElement("div", {
     className: "rare-earth-database-content",
     role: "tabpanel",
-    id: "tabpanel-".concat(activeTableId),
-    "aria-labelledby": "tab-".concat(activeTableId)
+    id: `tabpanel-${activeTableId}`,
+    "aria-labelledby": `tab-${activeTableId}`
   }, activeTable && (/*#__PURE__*/React.createElement(DataTable, {
     key: activeTable.name,
     id: activeTable.name,
-    columns: activeTable.columns.map(col => _objectSpread2(_objectSpread2({}, col), {}, {
-      label: col.key,
+    tableName: activeTable.name,
+    columns: activeTable.columns.map(col => ({
+      ...col,
+      label: col.label ?? col.key,
       typeToggleable: false
     })),
     records: activeTable.records,
@@ -23609,7 +24968,7 @@ const PRODUCTS_RECORDS = Array.from({
   length: 20
 }, (_, i) => ({
   product_id: i + 1,
-  name: "Product ".concat(getRandomString(6)),
+  name: `Product ${getRandomString(6)}`,
   category: ['Electronics', 'Clothing', 'Books', 'Home'][Math.floor(Math.random() * 4)],
   price: getRandomNumber(10, 500)
 }));
@@ -23632,16 +24991,13 @@ const SALES_COLUMNS = [{
 }];
 const SALES_RECORDS = Array.from({
   length: 100
-}, (_, i) => {
-  var _String, _String2;
-  return {
-    sale_id: i + 1,
-    product_id: getRandomNumber(1, 20),
-    user_id: getRandomNumber(1, 50),
-    quantity: getRandomNumber(1, 10),
-    sale_date: "2024-".concat((_String = String(getRandomNumber(1, 12))) === null || _String === void 0 ? void 0 : _String.padStart(2, '0'), "-").concat((_String2 = String(getRandomNumber(1, 28))) === null || _String2 === void 0 ? void 0 : _String2.padStart(2, '0'))
-  };
-});
+}, (_, i) => ({
+  sale_id: i + 1,
+  product_id: getRandomNumber(1, 20),
+  user_id: getRandomNumber(1, 50),
+  quantity: getRandomNumber(1, 10),
+  sale_date: `2024-${String(getRandomNumber(1, 12))?.padStart(2, '0')}-${String(getRandomNumber(1, 28))?.padStart(2, '0')}`
+}));
 // Users table
 const USER_COLUMNS = [{
   key: 'user_id',
@@ -23660,8 +25016,8 @@ const USER_RECORDS = Array.from({
   length: 50
 }, (_, i) => ({
   user_id: i + 1,
-  name: "User ".concat(getRandomString(5)),
-  email: "".concat(getRandomString(8), "@example.com"),
+  name: `User ${getRandomString(5)}`,
+  email: `${getRandomString(8)}@example.com`,
   status: Math.random() > 0.3 ? 'Active' : 'Inactive'
 }));
 // Export as example tables for testing
