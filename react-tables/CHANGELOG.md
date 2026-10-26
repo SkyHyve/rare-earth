@@ -8,10 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
-- Keep column header names concise and expose sort direction on the native header. Announce sort changes once, including multi-sort priority, and offer instructions through optional table help.
-- Remove repeated header tooltip and drag instructions; retain concise control names and sort-state descriptions.
-- Separate column titles from their sorting/filtering controls, preserving column dragging and header associations. Include both heading rows in accessible row counts and positions.
-- Return focus to the matching filter button when Escape closes its dialog, including after interacting with an option inside it.
+- **Accessibility — Screen-reader announcements**: Stop repeating sorting, filtering and drag instructions when navigating a table with a screen reader. Keep column names concise, announce sort changes once with multi-sort priority, and move detailed instructions into optional Table help.
+- **Accessibility — Column navigation**: Separate column titles from sorting/filtering controls so screen readers announce the title clearly when navigating by row or column. Preserve column dragging, cell-to-header associations and accurate accessible row counts and positions.
+- **Accessibility — Sort controls**: Expose the primary sort direction on its native column header and retain concise control names and sort-state descriptions. Sorting and filtering controls remain reachable with Tab.
+- **Accessibility — Keyboard focus**: Return focus to the matching filter button when Escape closes its dialog, including after interacting with an option inside it, instead of losing focus to the top of the page.
 - Preserve configured Database column labels, with field-key fallback.
 - Correct the CommonJS build dependency version and load package metadata on current Node versions.
 
