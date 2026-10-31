@@ -7,7 +7,9 @@ import postcss from 'rollup-plugin-postcss';
 import replace from '@rollup/plugin-replace';
 import typescript from '@rollup/plugin-typescript';
 
-import pkg from './package.json' assert { type: "json" };
+import { readFileSync } from 'node:fs';
+
+const pkg = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8'));
 
 const INPUT_FILE_PATH = 'src/index.ts';
 const OUTPUT_NAME = 'RareEarth';

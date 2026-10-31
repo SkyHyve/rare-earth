@@ -1,3 +1,5 @@
+import './css/react-tables.css';
+
 export { DataTable } from './DataTable';
 export { Database } from './Database';
 export { TableControl } from './TableControl';

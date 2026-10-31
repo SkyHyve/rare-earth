@@ -12,6 +12,7 @@ export interface ColumnDefinition {
 
 export interface DatabaseColumnDefinition {
   key: string;
+  label?: string;
   type?: 'string' | 'number' | 'boolean' | 'date';
   valueFunc?: (record: any) => any;
   displayFunc?: (record: any, value: any) => React.ReactNode;

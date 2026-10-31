@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+- **Accessibility — Screen-reader announcements**: Stop repeating sorting, filtering and drag instructions when navigating a table with a screen reader. Keep column names concise, announce sort changes once with multi-sort priority, and move detailed instructions into optional Table help.
+- **Accessibility — Column navigation**: Separate column titles from sorting/filtering controls so screen readers announce the title clearly when navigating by row or column. Preserve column dragging, cell-to-header associations and accurate accessible row counts and positions.
+- **Accessibility — Sort controls**: Expose the primary sort direction on its native column header and retain concise control names and sort-state descriptions. Sorting and filtering controls remain reachable with Tab.
+- **Accessibility — Keyboard focus**: Return focus to the matching filter button when Escape closes its dialog, including after interacting with an option inside it, instead of losing focus to the top of the page.
+- Preserve configured Database column labels, with field-key fallback.
+- Correct the CommonJS build dependency version and load package metadata on current Node versions.
+
+### Added
+- Optional `DataTable.tableName` accessible name, supplied automatically by Database.
+- Browser regression coverage for table accessibility and existing table workflows.
+
 ## [0.5.2] - 2025-01-31
 
 ### Fixed
